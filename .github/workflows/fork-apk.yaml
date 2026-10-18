@@ -31,6 +31,18 @@ jobs:
           docker-args: ${{ env.DEV_DOCKER_ARGS }}
       - name: Unit tests and debug APK
         run: $DEV_RUN -c 'gradle --no-daemon testDebugUnitTest assembleDebug'
+      # Prints what an installer checks: signature schemes, SDK levels, testOnly/debuggable.
+      - name: Inspect the APK
+        continue-on-error: true
+        run: |
+          $DEV_RUN -c '
+            bt="$(ls -d "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/opt/android-sdk}}"/build-tools/* | sort -V | tail -1)"
+            apk="$(ls app/build/outputs/apk/debug/*.apk | head -1)"
+            echo "APK: ${apk}  build-tools: ${bt}"; ls -la app/build/outputs/apk/debug/
+            "${bt}/apksigner" verify --verbose --print-certs "${apk}" | head -20
+            "${bt}/aapt2" dump badging "${apk}" | grep -E "^(package|sdkVersion|targetSdkVersion|application-debuggable|testOnly|native-code)" || true
+            "${bt}/aapt2" dump xmltree --file AndroidManifest.xml "${apk}" | grep -iE "testOnly|debuggable|minSdk|targetSdk" || true
+          '
       # Reported but never allowed to block the APK.
       - name: Android lint
         continue-on-error: true
