@@ -19,6 +19,8 @@ package com.h3nc4.hypergesture.service
 
 import android.accessibilityservice.AccessibilityService
 import android.util.Log
+import android.widget.Toast
+import com.h3nc4.hypergesture.R
 import com.h3nc4.hypergesture.gesture.GestureAction
 
 /**
@@ -38,6 +40,7 @@ class GestureActionPerformer(private val service: AccessibilityService) {
             // Android exposes no global action for these, so they launch instead.
             GestureAction.PreviousApp -> return switcher.step(toPrevious = true)
             GestureAction.NextApp -> return switcher.step(toPrevious = false)
+            GestureAction.CircleToSearch -> return circleToSearch()
         }
 
         // performGlobalAction throws instead of returning false once the service has been
@@ -54,6 +57,21 @@ class GestureActionPerformer(private val service: AccessibilityService) {
             Log.w(TAG, "performGlobalAction(${action.id}) returned false")
         }
         return performed
+    }
+
+    /**
+     * The usual cause of a refusal - Google not being the default assistant - is invisible
+     * from a swipe, so it is spelled out once on screen as well as in Diagnostics.
+     */
+    private fun circleToSearch(): Boolean {
+        val problem = CircleToSearchLauncher.launch(service) ?: return true
+        lastFailure = "${GestureAction.CircleToSearch.id}: $problem"
+        Log.w(TAG, "Circle to Search failed: $problem")
+        runCatching {
+            Toast.makeText(service, R.string.toast_circle_to_search_failed, Toast.LENGTH_LONG)
+                .show()
+        }
+        return false
     }
 
     companion object {

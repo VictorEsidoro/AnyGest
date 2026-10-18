@@ -45,6 +45,11 @@ sealed interface GestureAction {
     data object NextApp : GestureAction {
         override val id: String = "NextApp"
     }
+
+    /** Google's Circle to Search, as a long press on the gesture handle would start it. */
+    data object CircleToSearch : GestureAction {
+        override val id: String = "CircleToSearch"
+    }
 }
 
 enum class ScreenEdge { LEFT, RIGHT, BOTTOM }
@@ -73,6 +78,16 @@ data class GestureConfiguration(
     val leftEdgeBackEnabled: Boolean = true,
     val rightEdgeBackEnabled: Boolean = true,
     val hapticFeedbackEnabled: Boolean = true,
+    /**
+     * Off by default: a still finger on the bottom strip otherwise reaches the app
+     * underneath as a long press, and this takes that touch away from it.
+     */
+    val circleToSearchEnabled: Boolean = false,
+    /**
+     * How long the finger has to rest on the bottom strip. Kept below
+     * [maximumArmDurationMs], after which a lingering touch is no longer tracked at all.
+     */
+    val circleToSearchHoldMs: Long = 500L,
 )
 
 enum class RejectionReason {
@@ -89,6 +104,9 @@ sealed interface TrackerAction {
     data class Armed(val scheduleHoldMs: Long?) : TrackerAction
 
     data class RearmHold(val delayMs: Long) : TrackerAction
+
+    /** Start the long-press timer; its expiry is reported through `onLongPressElapsed`. */
+    data class ScheduleLongPress(val delayMs: Long) : TrackerAction
 
     data class Fire(val action: GestureAction, val edge: ScreenEdge) : TrackerAction
 

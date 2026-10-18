@@ -146,6 +146,12 @@ private fun HyperGestureScreen(
             scope.launch { settings.update(update) }
         }
 
+        // Also never collapsed: it depends on a setting outside this app (the default
+        // assistant), and the card is where that requirement is explained.
+        CircleToSearchCard(configuration) { update ->
+            scope.launch { settings.update(update) }
+        }
+
         GestureCheatSheet()
 
         // Both sections stay collapsed by default: an accidental tap while scrolling
@@ -414,6 +420,7 @@ private fun GestureCheatSheet() {
                 R.string.gesture_recents_name to R.string.gesture_recents_how,
                 R.string.gesture_previous_app_name to R.string.gesture_previous_app_how,
                 R.string.gesture_next_app_name to R.string.gesture_next_app_how,
+                R.string.gesture_circle_to_search_name to R.string.gesture_circle_to_search_how,
             ).forEach { (name, how) ->
                 Column {
                     Text(
@@ -622,6 +629,70 @@ private fun AppSwitchCard(
             ) { updated -> onUpdate { it.copy(appSwitchEnabled = updated) } }
 
             if (configuration.appSwitchEnabled) UsageAccessRow()
+        }
+    }
+}
+
+@Composable
+private fun CircleToSearchCard(
+    configuration: GestureConfiguration,
+    onUpdate: ((GestureConfiguration) -> GestureConfiguration) -> Unit,
+) {
+    val context = LocalContext.current
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.section_circle_to_search),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = stringResource(R.string.section_circle_to_search_body),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            ToggleRow(
+                label = stringResource(R.string.label_circle_to_search),
+                checked = configuration.circleToSearchEnabled,
+            ) { updated -> onUpdate { it.copy(circleToSearchEnabled = updated) } }
+
+            if (configuration.circleToSearchEnabled) {
+                ThresholdSlider(
+                    label = stringResource(R.string.label_circle_to_search_hold),
+                    value = configuration.circleToSearchHoldMs.toFloat(),
+                    // Capped below the default arm window, after which a resting finger
+                    // is no longer tracked and the long press could never fire.
+                    range = 250f..900f,
+                    formatter = { stringResource(R.string.value_ms, it) },
+                ) { updated -> onUpdate { it.copy(circleToSearchHoldMs = updated.toLong()) } }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_circle_to_search_assistant),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 12.dp),
+                    )
+                    TextButton(onClick = {
+                        context.startFirst(
+                            Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS),
+                            Intent(Settings.ACTION_SETTINGS),
+                        )
+                    }) {
+                        Text(stringResource(R.string.action_open_default_apps))
+                    }
+                }
+            }
         }
     }
 }

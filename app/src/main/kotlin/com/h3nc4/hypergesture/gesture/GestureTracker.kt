@@ -62,11 +62,22 @@ class GestureTracker(
     // Null until the gesture arms.
     private var arm: Arm? = null
 
+    // A still touch that has not armed may still become a long press. Cleared for good as
+    // soon as the finger strays, so a slow swipe that pauses later cannot fire it.
+    private var longPressPending = false
+
     private val shortAction: GestureAction =
         if (edge == ScreenEdge.BOTTOM) GestureAction.Home else GestureAction.Back
 
     private val holdAction: GestureAction? =
         if (edge == ScreenEdge.BOTTOM) GestureAction.Recents else null
+
+    private val longPressAction: GestureAction? =
+        if (edge == ScreenEdge.BOTTOM && configuration.circleToSearchEnabled) {
+            GestureAction.CircleToSearch
+        } else {
+            null
+        }
 
     private val minimumDistancePx: Float
         get() = density * when (edge) {
@@ -80,11 +91,17 @@ class GestureTracker(
         start = sample
         tracked = sample
         arm = null
-        return TrackerAction.None
+        longPressPending = longPressAction != null
+        return if (longPressPending) {
+            TrackerAction.ScheduleLongPress(configuration.circleToSearchHoldMs)
+        } else {
+            TrackerAction.None
+        }
     }
 
     fun onMove(sample: TouchSample): TrackerAction {
         val origin = tracked ?: return TrackerAction.None
+        if (longPressPending && strayed(origin, sample)) longPressPending = false
         val state = arm
         return if (state == null) whileArming(origin, sample) else whileArmed(origin, state, sample)
     }
@@ -120,9 +137,7 @@ class GestureTracker(
 
     // The hold may come anywhere along the swipe, so movement re-anchors, not cancels.
     private fun reanchorHold(reference: TouchSample, sample: TouchSample): TrackerAction {
-        val moved = abs(sample.xPx - reference.xPx) > stillnessPx ||
-            abs(sample.yPx - reference.yPx) > stillnessPx
-        if (!moved) return TrackerAction.None
+        if (!strayed(reference, sample)) return TrackerAction.None
 
         arm = Arm.Holding(sample)
         return TrackerAction.RearmHold(configuration.recentsHoldMs)
@@ -135,10 +150,24 @@ class GestureTracker(
         return TrackerAction.Fire(action, edge)
     }
 
+    /**
+     * Fires only for a touch that is still down, has not armed a swipe and has not strayed
+     * since DOWN. Marks the gesture fired, so the release neither fires Home nor replays
+     * the touch to the app underneath.
+     */
+    fun onLongPressElapsed(): TrackerAction {
+        val action = longPressAction ?: return TrackerAction.None
+        if (!longPressPending || tracked == null || arm != null) return TrackerAction.None
+        longPressPending = false
+        arm = Arm.Fired
+        return TrackerAction.Fire(action, edge)
+    }
+
     fun onUp(sample: TouchSample): TrackerAction {
         val origin = tracked
         val state = arm
         tracked = null
+        longPressPending = false
 
         if (state is Arm.Fired) return TrackerAction.None
         if (origin == null) return TrackerAction.Unused(rejectionFor(start, sample))
@@ -161,7 +190,12 @@ class GestureTracker(
         start = null
         tracked = null
         arm = null
+        longPressPending = false
     }
+
+    private fun strayed(reference: TouchSample, sample: TouchSample): Boolean =
+        abs(sample.xPx - reference.xPx) > stillnessPx ||
+            abs(sample.yPx - reference.yPx) > stillnessPx
 
     // A swipe along the bottom edge rather than up from it. Only the bottom edge offers this:
     // on a side edge the sideways axis is the one that already means Back.

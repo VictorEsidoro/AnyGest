@@ -229,6 +229,9 @@ internal class EdgeTouchOverlay(
 
         private val holdRunnable = Runnable { handle(tracker.onHoldElapsed(), replayable = false) }
 
+        private val longPressRunnable =
+            Runnable { handle(tracker.onLongPressElapsed(), replayable = false) }
+
         init {
             setBackgroundColor(Color.TRANSPARENT)
         }
@@ -301,7 +304,13 @@ internal class EdgeTouchOverlay(
         private fun handle(action: TrackerAction, replayable: Boolean): Boolean {
             when (action) {
                 is TrackerAction.None -> Unit
+                is TrackerAction.ScheduleLongPress -> {
+                    removeCallbacks(longPressRunnable)
+                    postDelayed(longPressRunnable, action.delayMs)
+                }
                 is TrackerAction.Armed -> {
+                    // A swipe is under way, so this touch can no longer be a long press.
+                    removeCallbacks(longPressRunnable)
                     Log.d(TAG, "$edge armed (hold=${action.scheduleHoldMs})")
                     // The bottom edge ticks on fire instead of on arming, so a plain
                     // upward swipe does not buzz on the way up.
@@ -315,7 +324,7 @@ internal class EdgeTouchOverlay(
                 is TrackerAction.Fire -> {
                     cancelHold()
                     collapseBelly()
-                    tick()
+                    if (action.action == GestureAction.CircleToSearch) longPressTick() else tick()
                     // action.id, not ::class.simpleName - R8 obfuscates class names.
                     Log.i(TAG, "GESTURE_FIRED $edge ${action.action.id}")
                     onFire(action.action)
@@ -334,7 +343,12 @@ internal class EdgeTouchOverlay(
             return false
         }
 
-        private fun cancelHold() = removeCallbacks(holdRunnable)
+        // Clears both timers: every caller is ending or deciding the touch, and a long press
+        // left scheduled past that point would fire on a finished stream.
+        private fun cancelHold() {
+            removeCallbacks(holdRunnable)
+            removeCallbacks(longPressRunnable)
+        }
 
         private fun showBelly() {
             val down = samples.firstOrNull() ?: return
@@ -357,6 +371,12 @@ internal class EdgeTouchOverlay(
         private fun tick() {
             if (!hapticsEnabled) return
             performHapticFeedback(HapticFeedbackConstants.GESTURE_START)
+        }
+
+        /** Mirrors the system long-press buzz, so the hold reads as having landed. */
+        private fun longPressTick() {
+            if (!hapticsEnabled) return
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         }
 
         private companion object {

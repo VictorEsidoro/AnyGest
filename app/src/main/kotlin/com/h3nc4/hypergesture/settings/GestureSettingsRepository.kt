@@ -57,6 +57,8 @@ class GestureSettingsRepository(private val context: Context) {
             preferences[LEFT_EDGE_BACK] = updated.leftEdgeBackEnabled
             preferences[RIGHT_EDGE_BACK] = updated.rightEdgeBackEnabled
             preferences[HAPTIC_FEEDBACK] = updated.hapticFeedbackEnabled
+            preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
+            preferences[CIRCLE_TO_SEARCH_HOLD_MS] = updated.circleToSearchHoldMs
         }
     }
 
@@ -79,6 +81,10 @@ class GestureSettingsRepository(private val context: Context) {
             leftEdgeBackEnabled = preferences[LEFT_EDGE_BACK] ?: defaults.leftEdgeBackEnabled,
             rightEdgeBackEnabled = preferences[RIGHT_EDGE_BACK] ?: defaults.rightEdgeBackEnabled,
             hapticFeedbackEnabled = preferences[HAPTIC_FEEDBACK] ?: defaults.hapticFeedbackEnabled,
+            circleToSearchEnabled =
+                preferences[CIRCLE_TO_SEARCH] ?: defaults.circleToSearchEnabled,
+            circleToSearchHoldMs =
+                preferences[CIRCLE_TO_SEARCH_HOLD_MS] ?: defaults.circleToSearchHoldMs,
         )
     }
 
@@ -119,5 +125,7 @@ class GestureSettingsRepository(private val context: Context) {
         val LEFT_EDGE_BACK = booleanPreferencesKey("left_edge_back_enabled")
         val RIGHT_EDGE_BACK = booleanPreferencesKey("right_edge_back_enabled")
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback_enabled")
+        val CIRCLE_TO_SEARCH = booleanPreferencesKey("circle_to_search_enabled")
+        val CIRCLE_TO_SEARCH_HOLD_MS = longPreferencesKey("circle_to_search_hold_ms")
     }
 }

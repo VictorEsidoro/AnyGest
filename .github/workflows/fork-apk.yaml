@@ -1,0 +1,52 @@
+# Builds an installable debug APK of this branch and publishes it as a workflow artifact.
+# Fork-only helper: upstream's own CI runs on main/release branches and is untouched.
+
+name: Fork debug APK
+
+on:
+  push:
+    branches:
+      - "circle-to-search"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEV_DOCKER_ARGS: -v ${HOME:?}/ci-cache/gradle:/cache/gradle -e GRADLE_USER_HOME=/cache/gradle
+
+jobs:
+  apk:
+    name: Unit tests and debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0 # dev-image-action diffs against the base to spot image changes
+      - name: Create the cache directories
+        run: mkdir -p ~/ci-cache/gradle
+      - name: Run h3nc4/dev-image-action
+        uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2
+        with:
+          docker-args: ${{ env.DEV_DOCKER_ARGS }}
+      - name: Unit tests and debug APK
+        run: $DEV_RUN -c 'gradle --no-daemon testDebugUnitTest assembleDebug'
+      # Reported but never allowed to block the APK.
+      - name: Android lint
+        continue-on-error: true
+        run: $DEV_RUN -c 'gradle --no-daemon lintDebug'
+      - name: Upload the debug APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: HyperGesture-circle-to-search-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: reports
+          path: |
+            app/build/reports/
+          retention-days: 7
