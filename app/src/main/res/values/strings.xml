@@ -92,7 +92,7 @@
     <string name="label_circle_to_search_hold">Hold for Circle to Search</string>
     <string name="label_circle_to_search_system_timing">Use the system touch and hold delay (%1$d ms)</string>
     <string name="label_circle_to_search_assistant">Needs Google as the default digital assistant app.</string>
-    <string name="action_open_default_apps">Default apps</string>
+    <string name="action_open_default_apps">Assistant settings</string>
     <string name="toast_circle_to_search_failed">Circle to Search did not start. Check that Google is the default digital assistant app.</string>
     <string name="action_reset_defaults">Reset to defaults</string>
 

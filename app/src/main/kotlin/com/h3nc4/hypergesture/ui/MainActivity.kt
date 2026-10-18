@@ -697,7 +697,11 @@ private fun CircleToSearchCard(
                             .padding(end = 12.dp),
                     )
                     TextButton(onClick = {
+                        // VOICE_INPUT_SETTINGS is AOSP's "assist and voice input" screen,
+                        // where the digital assistant app is chosen; the default apps list
+                        // is the fallback on builds that do not route it there.
                         context.startFirst(
+                            Intent(Settings.ACTION_VOICE_INPUT_SETTINGS),
                             Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS),
                             Intent(Settings.ACTION_SETTINGS),
                         )
