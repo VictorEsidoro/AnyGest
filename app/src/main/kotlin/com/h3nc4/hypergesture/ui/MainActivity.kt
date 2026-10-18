@@ -301,6 +301,9 @@ private fun StatusCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp),
                 )
                 StatusBadge(status.healthy, status.label)
             }
@@ -351,7 +354,9 @@ private fun SurviveRebootCard(onOpenAutostart: () -> Unit, onOpenAppInfo: () -> 
                 text = stringResource(R.string.survive_reboot_body),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Stacked, not side by side: HyperOS's own screen names are long in some
+            // languages, and a Row squeezes the second button into one letter per line.
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilledTonalButton(onClick = onOpenAutostart) {
                     Text(stringResource(R.string.action_open_autostart))
                 }
@@ -577,7 +582,13 @@ private fun ThresholdSlider(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 12.dp),
+            )
             Text(
                 text = formatter(local.roundToInt()),
                 style = MaterialTheme.typography.bodyMedium,
@@ -737,7 +748,9 @@ private fun UsageAccessRow() {
                 else R.string.label_usage_access_missing,
             ),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(end = 12.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
         )
         if (!granted) {
             TextButton(onClick = {
@@ -772,10 +785,13 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Weighted so a long label wraps instead of squeezing the switch.
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(end = 12.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
         )
         Switch(checked = checked, onCheckedChange = onChange)
     }
