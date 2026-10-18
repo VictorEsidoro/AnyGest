@@ -25,6 +25,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
+import android.view.ViewConfiguration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -661,14 +662,26 @@ private fun CircleToSearchCard(
             ) { updated -> onUpdate { it.copy(circleToSearchEnabled = updated) } }
 
             if (configuration.circleToSearchEnabled) {
-                ThresholdSlider(
-                    label = stringResource(R.string.label_circle_to_search_hold),
-                    value = configuration.circleToSearchHoldMs.toFloat(),
-                    // Capped below the default arm window, after which a resting finger
-                    // is no longer tracked and the long press could never fire.
-                    range = 250f..900f,
-                    formatter = { stringResource(R.string.value_ms, it) },
-                ) { updated -> onUpdate { it.copy(circleToSearchHoldMs = updated.toLong()) } }
+                ToggleRow(
+                    label = stringResource(
+                        R.string.label_circle_to_search_system_timing,
+                        ViewConfiguration.getLongPressTimeout(),
+                    ),
+                    checked = configuration.circleToSearchFollowsSystemTiming,
+                ) { updated ->
+                    onUpdate { it.copy(circleToSearchFollowsSystemTiming = updated) }
+                }
+
+                if (!configuration.circleToSearchFollowsSystemTiming) {
+                    ThresholdSlider(
+                        label = stringResource(R.string.label_circle_to_search_hold),
+                        value = configuration.circleToSearchHoldMs.toFloat(),
+                        // Capped below the default arm window, after which a resting finger
+                        // is no longer tracked and the long press could never fire.
+                        range = 250f..900f,
+                        formatter = { stringResource(R.string.value_ms, it) },
+                    ) { updated -> onUpdate { it.copy(circleToSearchHoldMs = updated.toLong()) } }
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

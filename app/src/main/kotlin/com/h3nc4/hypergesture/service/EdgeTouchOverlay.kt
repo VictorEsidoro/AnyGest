@@ -105,7 +105,13 @@ internal class EdgeTouchOverlay(
         val view = TouchCaptureView(
             context = context,
             edge = edge,
-            tracker = GestureTracker(edge, configuration, geometry.density),
+            tracker = GestureTracker(
+                edge,
+                configuration,
+                geometry.density,
+                // Display coordinates, like the rawX the tracker is fed.
+                handleCenterXPx = if (edge == ScreenEdge.BOTTOM) geometry.widthPx / 2f else null,
+            ),
             hapticsEnabled = configuration.hapticFeedbackEnabled,
             belly = bellies[edge],
             onStreamStart = ::onStreamStart,

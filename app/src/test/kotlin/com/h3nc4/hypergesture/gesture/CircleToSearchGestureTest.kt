@@ -23,24 +23,24 @@ import org.junit.Test
 
 class CircleToSearchGestureTest {
 
-    /** Same phone density as GestureTrackerTest: 12dp stillness = 33px. */
+    /** Same phone density as GestureTrackerTest: 8dp slop = 22px, 108dp handle = 297px. */
     private val density = 2.75f
 
     private fun sample(x: Float, y: Float, t: Long) = TouchSample(x, y, t)
 
-    private fun tracker(edge: ScreenEdge = ScreenEdge.BOTTOM, enabled: Boolean = true) =
-        GestureTracker(
-            edge,
-            GestureConfiguration(circleToSearchEnabled = enabled, circleToSearchHoldMs = 500L),
-            density,
-        )
+    private fun tracker(
+        edge: ScreenEdge = ScreenEdge.BOTTOM,
+        enabled: Boolean = true,
+        configuration: GestureConfiguration = GestureConfiguration(circleToSearchEnabled = enabled),
+        handleCenterXPx: Float? = null,
+    ) = GestureTracker(edge, configuration, density, handleCenterXPx)
 
     private val fired = TrackerAction.Fire(GestureAction.CircleToSearch, ScreenEdge.BOTTOM)
 
     @Test
-    fun `a bottom DOWN schedules the long press when the feature is on`() {
+    fun `a bottom DOWN waits the platform long-press timeout by default`() {
         assertEquals(
-            TrackerAction.ScheduleLongPress(500L),
+            TrackerAction.ScheduleLongPress(400L),
             tracker().onDown(sample(540f, 2395f, 0L)),
         )
     }
@@ -63,7 +63,7 @@ class CircleToSearchGestureTest {
     fun `a still finger fires Circle to Search when the timer elapses`() {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
-        // Jitter well inside the 33px stillness radius.
+        // Jitter well inside the 22px touch slop.
         assertEquals(TrackerAction.None, t.onMove(sample(545f, 2390f, 200L)))
         assertEquals(fired, t.onLongPressElapsed())
     }
@@ -124,8 +124,8 @@ class CircleToSearchGestureTest {
     fun `a finger that strayed and came back does not fire`() {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
-        // 40px sideways is past the stillness radius but short of any swipe.
-        assertEquals(TrackerAction.None, t.onMove(sample(580f, 2395f, 100L)))
+        // 25px sideways is past the 22px slop but short of any swipe.
+        assertEquals(TrackerAction.None, t.onMove(sample(565f, 2395f, 100L)))
         assertEquals(TrackerAction.None, t.onMove(sample(540f, 2395f, 200L)))
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
     }
@@ -135,6 +135,70 @@ class CircleToSearchGestureTest {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
         t.onCancel()
+        assertEquals(TrackerAction.None, t.onLongPressElapsed())
+    }
+
+    @Test
+    fun `the timer follows a changed system delay`() {
+        val configuration = GestureConfiguration(
+            circleToSearchEnabled = true,
+            platform = PlatformDefaults(longPressTimeoutMs = 1000L),
+        )
+        assertEquals(
+            TrackerAction.ScheduleLongPress(1000L),
+            tracker(configuration = configuration).onDown(sample(540f, 2395f, 0L)),
+        )
+    }
+
+    @Test
+    fun `a manual hold replaces the system delay only when system timing is off`() {
+        val configuration = GestureConfiguration(
+            circleToSearchEnabled = true,
+            circleToSearchFollowsSystemTiming = false,
+            circleToSearchHoldMs = 650L,
+        )
+        assertEquals(
+            TrackerAction.ScheduleLongPress(650L),
+            tracker(configuration = configuration).onDown(sample(540f, 2395f, 0L)),
+        )
+    }
+
+    @Test
+    fun `a long press over the handle fires`() {
+        val t = tracker(handleCenterXPx = 540f)
+        // 140px from the centre is inside the 148.5px half handle.
+        assertTrue(t.onDown(sample(680f, 2395f, 0L)) is TrackerAction.ScheduleLongPress)
+        assertEquals(fired, t.onLongPressElapsed())
+    }
+
+    @Test
+    fun `a long press beside the handle is left to the app underneath`() {
+        val t = tracker(handleCenterXPx = 540f)
+        assertEquals(TrackerAction.None, t.onDown(sample(900f, 2395f, 0L)))
+        assertEquals(TrackerAction.None, t.onLongPressElapsed())
+        assertEquals(
+            TrackerAction.Unused(RejectionReason.NO_MOVEMENT),
+            t.onUp(sample(900f, 2395f, 700L)),
+        )
+    }
+
+    @Test
+    fun `the handle never shrinks below the 48dp touch target`() {
+        val configuration = GestureConfiguration(
+            circleToSearchEnabled = true,
+            platform = PlatformDefaults(handleWidthDp = 20f),
+        )
+        // 60px from the centre: outside a 20dp handle, inside the 66px half of 48dp.
+        val t = tracker(configuration = configuration, handleCenterXPx = 540f)
+        assertTrue(t.onDown(sample(600f, 2395f, 0L)) is TrackerAction.ScheduleLongPress)
+    }
+
+    @Test
+    fun `slop is measured as a distance, not per axis`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        // 18px on each axis is under 22px either way, but 25.5px as a distance.
+        assertEquals(TrackerAction.None, t.onMove(sample(558f, 2413f, 100L)))
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
     }
 }

@@ -84,11 +84,50 @@ data class GestureConfiguration(
      */
     val circleToSearchEnabled: Boolean = false,
     /**
-     * How long the finger has to rest on the bottom strip. Kept below
+     * On by default: the system's own handle long press waits for the platform long-press
+     * timeout, which the user can change under accessibility ("touch and hold delay").
+     */
+    val circleToSearchFollowsSystemTiming: Boolean = true,
+    /**
+     * Manual hold, used only when [circleToSearchFollowsSystemTiming] is off. Kept below
      * [maximumArmDurationMs], after which a lingering touch is no longer tracked at all.
      */
-    val circleToSearchHoldMs: Long = 500L,
-)
+    val circleToSearchHoldMs: Long = PlatformDefaults.LONG_PRESS_TIMEOUT_MS,
+    /**
+     * Platform values, read from the device at runtime and never persisted. The defaults
+     * are AOSP's, so a plain JVM test behaves like an untouched phone.
+     */
+    val platform: PlatformDefaults = PlatformDefaults(),
+) {
+    /** What the long-press timer actually waits for. */
+    val effectiveCircleToSearchHoldMs: Long
+        get() = if (circleToSearchFollowsSystemTiming) {
+            platform.longPressTimeoutMs
+        } else {
+            circleToSearchHoldMs
+        }
+}
+
+/**
+ * The numbers Launcher3 uses for a long press on the navigation handle, so the gesture feels
+ * like the system's: the platform long-press timeout, the platform touch slop as the
+ * movement that cancels it, and only over the handle itself rather than the whole edge.
+ */
+data class PlatformDefaults(
+    /** ViewConfiguration.getLongPressTimeout(); AOSP has defaulted to 400ms since Android 12. */
+    val longPressTimeoutMs: Long = LONG_PRESS_TIMEOUT_MS,
+    /** ViewConfiguration.getScaledTouchSlop() in dp; AOSP config_viewConfigurationTouchSlop. */
+    val touchSlopDp: Float = 8f,
+    /** SystemUI navigation_home_handle_width: the strip of the edge a long press counts on. */
+    val handleWidthDp: Float = 108f,
+) {
+    companion object {
+        const val LONG_PRESS_TIMEOUT_MS = 400L
+
+        /** Launcher3 never lets the handle's long-press target shrink below this. */
+        const val MIN_TOUCH_TARGET_DP = 48f
+    }
+}
 
 enum class RejectionReason {
     NO_MOVEMENT,

@@ -59,6 +59,7 @@ class GestureSettingsRepository(private val context: Context) {
             preferences[HAPTIC_FEEDBACK] = updated.hapticFeedbackEnabled
             preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
             preferences[CIRCLE_TO_SEARCH_HOLD_MS] = updated.circleToSearchHoldMs
+            preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = updated.circleToSearchFollowsSystemTiming
         }
     }
 
@@ -85,6 +86,8 @@ class GestureSettingsRepository(private val context: Context) {
                 preferences[CIRCLE_TO_SEARCH] ?: defaults.circleToSearchEnabled,
             circleToSearchHoldMs =
                 preferences[CIRCLE_TO_SEARCH_HOLD_MS] ?: defaults.circleToSearchHoldMs,
+            circleToSearchFollowsSystemTiming = preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING]
+                ?: defaults.circleToSearchFollowsSystemTiming,
         )
     }
 
@@ -127,5 +130,7 @@ class GestureSettingsRepository(private val context: Context) {
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback_enabled")
         val CIRCLE_TO_SEARCH = booleanPreferencesKey("circle_to_search_enabled")
         val CIRCLE_TO_SEARCH_HOLD_MS = longPreferencesKey("circle_to_search_hold_ms")
+        val CIRCLE_TO_SEARCH_SYSTEM_TIMING =
+            booleanPreferencesKey("circle_to_search_follows_system_timing")
     }
 }

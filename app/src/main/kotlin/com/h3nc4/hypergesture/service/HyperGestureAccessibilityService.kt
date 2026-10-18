@@ -37,6 +37,7 @@ import android.view.accessibility.AccessibilityEvent
 import com.h3nc4.hypergesture.diagnostics.FailureLog
 import com.h3nc4.hypergesture.gesture.GestureAction
 import com.h3nc4.hypergesture.gesture.GestureConfiguration
+import com.h3nc4.hypergesture.gesture.PlatformDefaults
 import com.h3nc4.hypergesture.gesture.ScreenEdge
 import com.h3nc4.hypergesture.gesture.TouchSample
 import com.h3nc4.hypergesture.settings.GestureSettingsRepository
@@ -116,7 +117,7 @@ class HyperGestureAccessibilityService : AccessibilityService(), TouchReplayer {
 
         scope.launch {
             settings.configuration.collect { updated ->
-                configuration = updated
+                configuration = updated.copy(platform = platformDefaults())
                 installOverlay()
             }
         }
@@ -141,6 +142,22 @@ class HyperGestureAccessibilityService : AccessibilityService(), TouchReplayer {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
 
     override fun onInterrupt() = Unit
+
+    /**
+     * Read on every settings emission and reinstall, so a changed "touch and hold delay" in
+     * accessibility settings is picked up the next time anything is adjusted; the AOSP
+     * defaults stand in if the platform refuses.
+     */
+    private fun platformDefaults(): PlatformDefaults {
+        val fallback = PlatformDefaults()
+        val touchSlopDp = runCatching {
+            ViewConfiguration.get(this).scaledTouchSlop / resources.displayMetrics.density
+        }.getOrDefault(fallback.touchSlopDp)
+        return fallback.copy(
+            longPressTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong(),
+            touchSlopDp = touchSlopDp,
+        )
+    }
 
     private fun installOverlay() {
         val geometry = ScreenGeometry.current(this, windowManager)

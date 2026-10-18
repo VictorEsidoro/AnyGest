@@ -36,6 +36,11 @@ class GestureTracker(
     private val edge: ScreenEdge,
     private val configuration: GestureConfiguration,
     private val density: Float,
+    /**
+     * Display x of the navigation handle's centre. A long press only counts over the handle,
+     * as with the system's; null accepts the whole edge (plain JVM tests).
+     */
+    private val handleCenterXPx: Float? = null,
 ) {
 
     // What an armed gesture became, as one field. A boolean beside a nullable also described a
@@ -87,13 +92,21 @@ class GestureTracker(
 
     private val stillnessPx: Float get() = configuration.holdStillnessDp * density
 
+    private val longPressSlopPx: Float get() = configuration.platform.touchSlopDp * density
+
+    private val handleHalfWidthPx: Float
+        get() = density / 2f * maxOf(
+            configuration.platform.handleWidthDp,
+            PlatformDefaults.MIN_TOUCH_TARGET_DP,
+        )
+
     fun onDown(sample: TouchSample): TrackerAction {
         start = sample
         tracked = sample
         arm = null
-        longPressPending = longPressAction != null
+        longPressPending = longPressAction != null && overHandle(sample)
         return if (longPressPending) {
-            TrackerAction.ScheduleLongPress(configuration.circleToSearchHoldMs)
+            TrackerAction.ScheduleLongPress(configuration.effectiveCircleToSearchHoldMs)
         } else {
             TrackerAction.None
         }
@@ -101,7 +114,7 @@ class GestureTracker(
 
     fun onMove(sample: TouchSample): TrackerAction {
         val origin = tracked ?: return TrackerAction.None
-        if (longPressPending && strayed(origin, sample)) longPressPending = false
+        if (longPressPending && strayedBeyondSlop(origin, sample)) longPressPending = false
         val state = arm
         return if (state == null) whileArming(origin, sample) else whileArmed(origin, state, sample)
     }
@@ -196,6 +209,19 @@ class GestureTracker(
     private fun strayed(reference: TouchSample, sample: TouchSample): Boolean =
         abs(sample.xPx - reference.xPx) > stillnessPx ||
             abs(sample.yPx - reference.yPx) > stillnessPx
+
+    // Launcher3 aborts a handle long press once the finger passes the platform touch slop,
+    // measured as a distance rather than per axis.
+    private fun strayedBeyondSlop(reference: TouchSample, sample: TouchSample): Boolean {
+        val dx = sample.xPx - reference.xPx
+        val dy = sample.yPx - reference.yPx
+        return dx * dx + dy * dy > longPressSlopPx * longPressSlopPx
+    }
+
+    private fun overHandle(sample: TouchSample): Boolean {
+        val center = handleCenterXPx ?: return true
+        return abs(sample.xPx - center) <= handleHalfWidthPx
+    }
 
     // A swipe along the bottom edge rather than up from it. Only the bottom edge offers this:
     // on a side edge the sideways axis is the one that already means Back.
