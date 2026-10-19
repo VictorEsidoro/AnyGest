@@ -35,7 +35,7 @@ Also:
 
 - **Everything is adjustable**: edge width, swipe distance, hold times and vibration.
 - **In English and Portuguese**, with an in-app language picker.
-- **Lightweight**: about 1 MB, no internet, no ads, no data collection.
+- **Lightweight**: about 2.5 MB, no internet, no ads, no data collection.
 
 ## What this fork adds
 

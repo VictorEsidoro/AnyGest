@@ -35,7 +35,7 @@ E também:
 
 - **Tudo ajustável**: largura da borda, distância do gesto, tempo de espera e vibração.
 - **Em português e inglês**, com seletor de idioma dentro do app.
-- **Leve**: cerca de 1 MB, sem internet, sem anúncios, sem coletar nada.
+- **Leve**: cerca de 2,5 MB, sem internet, sem anúncios, sem coletar nada.
 
 ## O que este fork adiciona
 
