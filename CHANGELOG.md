@@ -8,7 +8,7 @@ Versões em português logo abaixo de cada versão.
 
 A major version: the app gets its own identity. It is now **AnyGest**, with its own package name, credits and (see Changed) its own look. The gesture engine and its settings are unchanged.
 
-**Breaking: 3.0.0 does not install over 2.0.0.** The package name changed, so Android treats AnyGest as a different app. Uninstall HyperGesture once before installing it (with both on, each gesture can fire twice). Settings are not carried over. The signing key is the same, so from 3.0.0 on every update installs over the previous one.
+**Breaking: 3.0.0 does not install over 2.0.0.** The package name changed, so Android treats AnyGest as a different app. Uninstall HyperGesture once before installing it (with both on, each gesture can fire twice). Settings are not carried over. From 3.0.0 on, every AnyGest update installs over the previous one, as long as the same signing key is kept.
 
 ### Changed
 
@@ -23,7 +23,7 @@ A major version: the app gets its own identity. It is now **AnyGest**, with its 
 
 Versão major: o app ganha identidade própria. Agora ele é o **AnyGest**, com pacote, créditos e (veja Alterado) visual próprios. O motor de gestos e as configurações dele não mudaram.
 
-**Quebra de compatibilidade: a 3.0.0 não instala por cima da 2.0.0.** O nome do pacote mudou, então o Android trata o AnyGest como outro app. Desinstale o HyperGesture uma vez antes de instalar (com os dois ligados, cada gesto pode disparar duas vezes). As configurações não são levadas. A chave de assinatura é a mesma, então da 3.0.0 em diante toda atualização instala por cima da anterior.
+**Quebra de compatibilidade: a 3.0.0 não instala por cima da 2.0.0.** O nome do pacote mudou, então o Android trata o AnyGest como outro app. Desinstale o HyperGesture uma vez antes de instalar (com os dois ligados, cada gesto pode disparar duas vezes). As configurações não são levadas. Da 3.0.0 em diante, toda atualização do AnyGest instala por cima da anterior, desde que a mesma chave de assinatura seja mantida.
 
 #### Alterado
 
