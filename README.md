@@ -19,7 +19,7 @@ HyperOS ties its gesture navigation to the stock launcher. Switch to Niagara, No
 
 HyperGesture gives you the gestures back. It's one app, and that's all it needs: no Shizuku, root, ADB, PC, companion app or internet connection.
 
-**[Download the latest release](https://github.com/h3nc4/HyperGesture/releases/latest)**
+**[Download the latest release](https://github.com/VictorEsidoro/HyperGesture/releases/latest)**
 
 ## Your gestures
 
@@ -47,7 +47,7 @@ Tune those if a gesture fires when you did not mean it, or fails to fire when yo
 
 HyperGesture isn't on any app store, so you install the APK yourself.
 
-**1. Download and install it.** On your phone, open [the latest release](https://github.com/h3nc4/HyperGesture/releases/latest), download `hypergesture.apk`, and install it.
+**1. Download and install it.** On your phone, open [the latest release](https://github.com/VictorEsidoro/HyperGesture/releases/latest), download `hypergesture.apk`, and install it.
 
 **2. Allow restricted settings.** This step is not optional, and skipping it is the most common reason the app appears to do nothing:
 

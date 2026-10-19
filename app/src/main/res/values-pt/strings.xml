@@ -128,7 +128,7 @@
     <!-- Créditos. -->
     <string name="section_credits">Créditos</string>
     <string name="section_credits_summary">As pessoas e os projetos por trás deste app</string>
-    <string name="credits_body">O HyperGesture foi criado por Henrique Almeida (h3nc4). Esta versão é um fork de Victor Esidoro que adiciona o Circule para pesquisar na alça de navegação, a tradução para português do Brasil e o seletor de idioma. Abrir o Circule para pesquisar sem root usa a técnica do MiCTS, de parallelcc, e do CTSLauncher, de chenxiaolong. Os três projetos são software livre sob a licença GPL-3.0.</string>
+    <string name="credits_body">O HyperGesture foi criado por Henrique Almeida (h3nc4). Esta versão é um fork de Victor Esidoro que adiciona o Circule para pesquisar na alça de navegação, ajusta tudo aos valores do próprio sistema (tempo de toque longo, tolerância de movimento e área da alça) para uma navegação tão fluida quanto a original, e traz a tradução para português do Brasil e o seletor de idioma. Abrir o Circule para pesquisar sem root usa a técnica do MiCTS, de parallelcc, e do CTSLauncher, de chenxiaolong. Os três projetos são software livre sob a licença GPL-3.0.</string>
     <string name="credits_link_hypergesture">HyperGesture original (h3nc4)</string>
     <string name="credits_link_micts">MiCTS (parallelcc)</string>
     <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>

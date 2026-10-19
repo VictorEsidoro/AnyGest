@@ -22,7 +22,7 @@ Based on HyperGesture 1.0.0 (upstream commit `0922bda`).
 
 - Long labels wrap instead of squeezing switches and buttons (translated names are much longer).
 - "View source" points to this fork; the original project is linked under Credits.
-- Fork-only CI workflow that runs the unit tests and lint and builds a signed release APK.
+- Fork-only CI workflow that runs the unit tests and lint, builds a signed release APK and publishes it as a GitHub Release with the `.apk` attached directly (no zip).
 
 ### Português
 
@@ -42,4 +42,4 @@ Baseado no HyperGesture 1.0.0 (commit `0922bda` do original).
 
 - Textos longos quebram a linha em vez de espremer chaves e botões.
 - "Ver código-fonte" aponta para este fork; o projeto original está nos Créditos.
-- Workflow de CI exclusivo do fork, que roda os testes e o lint e gera um APK release assinado.
+- Workflow de CI exclusivo do fork, que roda os testes e o lint, gera um APK release assinado e publica um Release no GitHub com o `.apk` direto para download, sem zip.
