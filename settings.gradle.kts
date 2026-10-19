@@ -31,6 +31,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HyperGesture"
+rootProject.name = "AnyGest"
 
 include(":app")

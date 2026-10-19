@@ -22,20 +22,20 @@ plugins {
 }
 
 android {
-    namespace = "com.h3nc4.hypergesture"
+    namespace = "io.github.victoresidoro.anygest"
     compileSdk = 37
 
     // AGP's default differs from the dev image's; pinning keeps builds offline-capable.
     buildToolsVersion = "37.0.0"
 
     defaultConfig {
-        applicationId = "com.h3nc4.hypergesture"
+        applicationId = "io.github.victoresidoro.anygest"
         // 30 for WindowMetrics insets + setSystemGestureExclusionRects, which the
         // edge overlays need to be positioned correctly.
         minSdk = 30
         targetSdk = 37
-        versionCode = 8
-        versionName = "2.0.0"
+        versionCode = 9
+        versionName = "3.0.0"
     }
 
     // android.keystore and .env are both gitignored. Missing either degrades to an

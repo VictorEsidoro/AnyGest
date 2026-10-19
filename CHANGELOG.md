@@ -1,8 +1,32 @@
 # Changelog
 
-Changes in this fork ([VictorEsidoro/HyperGesture](https://github.com/VictorEsidoro/HyperGesture)) on top of [HyperGesture](https://github.com/h3nc4/HyperGesture) by Henrique Almeida ([h3nc4](https://github.com/h3nc4)).
+Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/AnyGest)), based on [HyperGesture](https://github.com/h3nc4/HyperGesture) by Henrique Almeida ([h3nc4](https://github.com/h3nc4)). Up to 2.0.0 the project was published as a fork named HyperGesture.
 
 Versões em português logo abaixo de cada versão.
+
+## 3.0.0
+
+A major version: the app gets its own identity. It is now **AnyGest**, with its own package name, credits and (see Changed) its own look. The gesture engine and its settings are unchanged.
+
+**Breaking: 3.0.0 does not install over 2.0.0.** The package name changed, so Android treats AnyGest as a different app. Uninstall HyperGesture once before installing it (with both on, each gesture can fire twice). Settings are not carried over. The signing key is the same, so from 3.0.0 on every update installs over the previous one.
+
+### Changed
+
+- **Name and package.** The app is called AnyGest and its package is now `io.github.victoresidoro.anygest` (it was `com.h3nc4.hypergesture`). This also renames the Accessibility service entry, the Control Center tile, the log tag and the debug override keys used by the e2e suite (`anygest_recents_hold_ms`, `anygest_app_switch`).
+- **Credits and README.** Victor Eduardo (@victoresidoro) now comes first, as the author of AnyGest, followed by Henrique Almeida (h3nc4) as the creator of HyperGesture, the project AnyGest is based on, and the Circle to Search technique. The original copyright and the GPL-3.0 stay as they were; the README states both copyrights and warns people coming from HyperGesture to uninstall it first.
+- **Release file.** The APK is now `anygest.apk`, and the permanent download link is `https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk`. The repository was renamed to AnyGest; GitHub keeps redirecting the old HyperGesture links.
+
+### Português
+
+Versão major: o app ganha identidade própria. Agora ele é o **AnyGest**, com pacote, créditos e (veja Alterado) visual próprios. O motor de gestos e as configurações dele não mudaram.
+
+**Quebra de compatibilidade: a 3.0.0 não instala por cima da 2.0.0.** O nome do pacote mudou, então o Android trata o AnyGest como outro app. Desinstale o HyperGesture uma vez antes de instalar (com os dois ligados, cada gesto pode disparar duas vezes). As configurações não são levadas. A chave de assinatura é a mesma, então da 3.0.0 em diante toda atualização instala por cima da anterior.
+
+#### Alterado
+
+- **Nome e pacote.** O app se chama AnyGest e o pacote agora é `io.github.victoresidoro.anygest` (era `com.h3nc4.hypergesture`). Isso também renomeia o serviço de Acessibilidade, o atalho do Centro de controle, a tag dos logs e as chaves de ajuste usadas pelo teste e2e (`anygest_recents_hold_ms`, `anygest_app_switch`).
+- **Créditos e README.** Victor Eduardo (@victoresidoro) agora vem primeiro, como autor do AnyGest, seguido de Henrique Almeida (h3nc4), criador do HyperGesture, projeto em que o AnyGest se baseia, e da técnica do Circule para pesquisar. O copyright original e a GPL-3.0 continuam como estavam; o README traz os dois copyrights e avisa quem vem do HyperGesture para desinstalá-lo antes.
+- **Arquivo da versão.** O APK agora é `anygest.apk`, e o link permanente de download é `https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk`. O repositório foi renomeado para AnyGest; o GitHub continua redirecionando os links antigos do HyperGesture.
 
 ## 2.0.0
 

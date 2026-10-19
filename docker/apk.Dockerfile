@@ -42,10 +42,10 @@ RUN ./scripts/version.sh "${VERSION}" \
 # The task output name depends on whether signing material was present.
 RUN mkdir -p /out \
   && cp "$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)" \
-  /out/hypergesture.apk
+  /out/anygest.apk
 
 ################################################################################
 # Final stage to extract only the APK
 FROM scratch AS final
 
-COPY --from=builder /out/hypergesture.apk /hypergesture.apk
+COPY --from=builder /out/anygest.apk /anygest.apk

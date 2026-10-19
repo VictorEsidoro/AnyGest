@@ -24,7 +24,7 @@
 #
 # Usage: e2e/run.sh [-a avd] [-p apk] [-k]
 #   -a  AVD name (default: hypergesture)
-#   -p  APK to test (default: debug). Point at hypergesture.apk to catch R8 breakage.
+#   -p  APK to test (default: debug). Point at anygest.apk to catch R8 breakage.
 #   -k  keep the emulator running afterwards
 #
 # From the host, add: docker run --rm --device /dev/kvm ... -c './e2e/run.sh'

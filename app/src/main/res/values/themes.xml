@@ -19,7 +19,7 @@
 -->
 <!-- Launcher-time theme only; Compose styles the app. See values-night for dark. -->
 <resources>
-    <style name="Theme.HyperGesture" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.AnyGest" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
     </style>
 </resources>

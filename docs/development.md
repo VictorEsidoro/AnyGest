@@ -17,7 +17,7 @@ Versions are pinned in `gradle/libs.versions.toml`, and Renovate raises the bump
 
 ```text
 app/
-  src/main/kotlin/com/h3nc4/hypergesture/
+  src/main/kotlin/io/github/victoresidoro/anygest/
     gesture/      Pure, Android-free recognition (unit tested)
     service/      AccessibilityService, edge overlays, global actions
     navigation/   NavigationIntegration + HyperOS/generic implementations
@@ -80,7 +80,7 @@ docker run --rm --device /dev/kvm \
   -c './e2e/run.sh'
 ```
 
-`-k` leaves the emulator running for interactive poking. `-p hypergesture.apk` runs the suite against a release build, worth doing before every release, because R8 obfuscation and shrinking can break things no JVM test sees. It has already caught one such bug: log and diagnostics strings built from `::class.simpleName` came out as `a`/`b`/`c` once minified, so `GestureAction` carries an explicit `id`.
+`-k` leaves the emulator running for interactive poking. `-p anygest.apk` runs the suite against a release build, worth doing before every release, because R8 obfuscation and shrinking can break things no JVM test sees. It has already caught one such bug: log and diagnostics strings built from `::class.simpleName` came out as `a`/`b`/`c` once minified, so `GestureAction` carries an explicit `id`.
 
 Every bug that ever reached a real device was in the Android integration, not the recognizer:
 
@@ -98,11 +98,11 @@ Signing material lives outside git:
 - `KEYSTORE_PASSWORD` in `.env`, gitignored and sourced by `scripts/build-apk.sh`
 
 ```sh
-./scripts/build-apk.sh 1.0.0   # produces ./hypergesture.apk
+./scripts/build-apk.sh 1.0.0   # produces ./anygest.apk
 ```
 
 The password reaches the build as a Docker build arg, and the final image stage is `FROM scratch` carrying only the APK, so a publishable layer contains neither the key nor the password. With either piece missing, the release build degrades to unsigned rather than failing, so CI can still verify that `assembleRelease` compiles.
 
-**Back up the keystore somewhere off this machine.** Android identifies an app by its signing certificate, so an update signed with a different key is refused by every device that already has HyperGesture on it, and the only recovery is a new package name. `android.keystore` and `.env` are gitignored and must never be committed, which also means git is not a backup: keep the key and its password in a password manager, `base64` the keystore if the manager only takes text.
+**Back up the keystore somewhere off this machine.** Android identifies an app by its signing certificate, so an update signed with a different key is refused by every device that already has AnyGest on it, and the only recovery is a new package name. `android.keystore` and `.env` are gitignored and must never be committed, which also means git is not a backup: keep the key and its password in a password manager, `base64` the keystore if the manager only takes text.
 
 Pushing a `v*.*.*` tag runs the same build in CI and attaches the APK to a GitHub release. That needs two repository secrets, `ANDROID_KEYSTORE_B64` (`base64 -w0 android.keystore`) and `KEYSTORE_PASSWORD`. Unlike a local build, CI stops with an error when either is missing rather than publishing an unsigned APK, and it runs `apksigner verify --print-certs` on the result so the certificate is visible in the job log. After a release, CI bumps `versionCode` on `main`, because Android refuses an install whose `versionCode` went backwards.

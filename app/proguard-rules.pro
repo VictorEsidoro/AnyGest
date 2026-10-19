@@ -16,8 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Instantiated by the platform from manifest names, so they must survive shrinking.
--keep class com.h3nc4.hypergesture.service.HyperGestureAccessibilityService { *; }
--keep class com.h3nc4.hypergesture.boot.BootCompletedReceiver { *; }
+-keep class io.github.victoresidoro.anygest.service.AnyGestAccessibilityService { *; }
+-keep class io.github.victoresidoro.anygest.boot.BootCompletedReceiver { *; }
 
 -keep class * extends android.accessibilityservice.AccessibilityService { *; }
 

@@ -58,7 +58,7 @@
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.HyperGesture">
+        android:theme="@style/Theme.AnyGest">
 
         <activity
             android:name=".ui.MainActivity"
@@ -71,7 +71,7 @@
 
         <!-- exported so the system can bind it; the permission limits that to the system. -->
         <service
-            android:name=".service.HyperGestureAccessibilityService"
+            android:name=".service.AnyGestAccessibilityService"
             android:exported="true"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

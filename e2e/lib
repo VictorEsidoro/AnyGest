@@ -44,8 +44,8 @@ ADB_BIN="${ANDROID_HOME}/platform-tools/adb"
 EMULATOR_BIN="${ANDROID_HOME}/emulator/emulator"
 
 AVD="${AVD:-hypergesture}"
-PKG="com.h3nc4.hypergesture"
-SERVICE="${PKG}/${PKG}.service.HyperGestureAccessibilityService"
+PKG="io.github.victoresidoro.anygest"
+SERVICE="${PKG}/${PKG}.service.AnyGestAccessibilityService"
 LOG_DIR="build/e2e-logs"
 
 # need_tool <path>
