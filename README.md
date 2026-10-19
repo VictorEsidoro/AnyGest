@@ -1,118 +1,216 @@
 # HyperGesture
 
-> Edge gestures for Xiaomi HyperOS, so you can keep the launcher you actually like.
+🇧🇷 Português · 🇺🇸 [English](README.en.md)
 
-## About this fork / Sobre este fork
+App de **gestos de navegação para o HyperOS (Xiaomi, Redmi e POCO)** que deixa você usar
+**o launcher que quiser** (Nova, Niagara, Lawnchair...) sem perder os gestos — e ainda abre o
+**Circule para pesquisar** com toque longo na alça de navegação, igual ao sistema. Funciona
+**sem root, sem Shizuku, sem ADB e sem computador**: é um app só.
 
-This is [VictorEsidoro/HyperGesture](https://github.com/VictorEsidoro/HyperGesture), a fork of **[HyperGesture](https://github.com/h3nc4/HyperGesture) by Henrique Almeida ([h3nc4](https://github.com/h3nc4))**, who created the app and everything below this section. The fork adds:
+**[⬇️ Baixar o APK mais recente](https://github.com/VictorEsidoro/HyperGesture/releases/latest/download/hypergesture.apk)**
+· [todas as versões](https://github.com/VictorEsidoro/HyperGesture/releases) ·
+[novidades](CHANGELOG.md)
 
-- **Circle to Search** on a long press of the gesture handle, without root. The launch technique comes from **[MiCTS](https://github.com/parallelcc/MiCTS) by parallelcc** and **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher) by chenxiaolong**.
-- A **Brazilian Portuguese** translation with HyperOS 3's exact screen names, and an in-app **language picker**.
+> Este é um **fork** do [HyperGesture](https://github.com/h3nc4/HyperGesture), criado por
+> **Henrique Almeida ([h3nc4](https://github.com/h3nc4))**. Veja em [Créditos](#créditos) quem
+> fez o quê.
 
-See [CHANGELOG.md](CHANGELOG.md) for the details. Built with help from Claude (Anthropic). Like the original, it is free software under the [GPL-3.0-or-later](LICENSE).
+## O problema que ele resolve
 
-Este é um fork do **HyperGesture, de Henrique Almeida (h3nc4)**, que criou o app e tudo o que está descrito abaixo desta seção. O fork adiciona o **Circule para pesquisar** com toque longo na alça de navegação, sem root, usando a técnica do **MiCTS (parallelcc)** e do **CTSLauncher (chenxiaolong)**, além da **tradução para português do Brasil** e do **seletor de idioma**. Detalhes no [CHANGELOG.md](CHANGELOG.md).
+O HyperOS amarra a navegação por gestos ao launcher da própria Xiaomi. Se você troca para o
+Nova, o Niagara ou o Lawnchair, os gestos de tela cheia param de funcionar e o celular volta
+para a **barra de três botões**, sem jeito de religar. O HyperGesture devolve os gestos.
 
-The rest of this README is upstream's and describes the original app and its releases.
+## O que o app faz
 
-HyperOS ties its gesture navigation to the stock launcher. Switch to Niagara, Nova or Lawnchair and full-screen gestures stop working. The phone drops you back to the three-button bar with no way to turn them on again.
+| Gesto | O que faz |
+|---|---|
+| Deslizar a partir da **borda esquerda ou direita** | Voltar |
+| Deslizar **de baixo para cima** | Tela inicial |
+| Deslizar de baixo para cima **e segurar** | Apps recentes |
+| Deslizar **para os lados na borda inferior** *(opcional)* | Trocar para o app anterior / próximo |
+| **Tocar e segurar no meio da borda inferior** *(opcional)* | **Circule para pesquisar** |
 
-HyperGesture gives you the gestures back. It's one app, and that's all it needs: no Shizuku, root, ADB, PC, companion app or internet connection.
+E também:
 
-**[Download the latest release](https://github.com/VictorEsidoro/HyperGesture/releases/latest)**
+- **Tudo ajustável**: largura da borda, distância do gesto, tempo de espera e vibração.
+- **Em português e inglês**, com seletor de idioma dentro do app.
+- **Leve**: cerca de 1 MB, sem internet, sem anúncios, sem coletar nada.
 
-## Your gestures
+## O que este fork adiciona
 
-| Gesture | Does |
-| --- | --- |
-| Swipe in from the **left or right edge** | Back |
-| Swipe up from the **bottom edge** | Home |
-| Swipe up from the bottom **and hold** | Recent apps |
+- **Circule para pesquisar com toque longo na alça de navegação**, sem root e sem nenhum
+  outro app (antes era preciso combinar o MiCTS com um app de gestos).
+- **Comportamento idêntico ao do sistema**: o toque longo usa os mesmos valores que o Android
+  usa na alça original — o **Atraso ao tocar e pressionar** que você escolheu em
+  Acessibilidade, a mesma tolerância de movimento e a mesma área (só sobre a alça, no centro).
+  Toques longos no resto da borda continuam chegando normalmente ao app que está embaixo.
+- **Tradução completa para português do Brasil**, com os nomes de telas **exatamente** como
+  aparecem no HyperOS 3, para você achar cada opção sem adivinhar.
+- **Seletor de idioma**: Automático (português se o telefone estiver em português, inglês nos
+  outros casos), Português (Brasil) ou English.
+- **Créditos** dentro do app e versões publicadas aqui com o `.apk` direto, sem zip.
 
-Every one of them is adjustable in Gesture settings:
+A lista completa, versão por versão, está no [CHANGELOG.md](CHANGELOG.md).
 
-- how far in from the edge it listens
-- the distance you have to swipe
-- what "hold" means
-- whether the left and right edges are active
+---
 
-Tune those if a gesture fires when you did not mean it, or fails to fire when you did.
+## Como colocar para funcionar (passo a passo para não programadores)
 
-## Requirements
+O app não está na Play Store, então você instala o arquivo `.apk` manualmente. São poucos
+passos e você só faz uma vez.
 
-- Android 11 or newer
-- Tested on a Redmi 14 running Android 16 / HyperOS OS3.0
+### Passo 1 — Baixar e instalar
 
-## Installing
+1. No celular, toque em **[Baixar o APK mais recente](https://github.com/VictorEsidoro/HyperGesture/releases/latest/download/hypergesture.apk)**.
+2. Abra o arquivo `hypergesture.apk` baixado e toque em instalar.
 
-HyperGesture isn't on any app store, so you install the APK yourself.
+> **O Play Protect reclamou?** É normal para apps instalados fora da loja. Use a opção de
+> instalar mesmo assim ou pause o Play Protect só durante a instalação.
+>
+> **Mandou o arquivo pelo WhatsApp?** Às vezes o arquivo chega alterado e a instalação falha
+> com "O app não foi instalado". Baixe direto pelo link acima ou passe pelo Google Drive.
 
-**1. Download and install it.** On your phone, open [the latest release](https://github.com/VictorEsidoro/HyperGesture/releases/latest), download `hypergesture.apk`, and install it.
+### Passo 2 — Permitir configurações restritas (obrigatório)
 
-**2. Allow restricted settings.** This step is not optional, and skipping it is the most common reason the app appears to do nothing:
+O Android bloqueia apps instalados fora da loja de usar Acessibilidade até você liberar.
+**Pular este passo é o motivo mais comum de o app parecer não fazer nada.**
 
-> Settings -> Apps -> HyperGesture -> **Allow restricted settings**
+> Configurações → Apps → HyperGesture → **Informações do app** → seção **Configurações
+> avançadas** → ative **Permitir configurações restritas**
 
-Android blocks sideloaded apps from using accessibility features until you opt in. Without this, the switch in step 3 will look like it turned on but the app will never actually start.
+Essa opção só aparece enquanto ainda não foi liberada. Se não aparecer, siga em frente.
 
-**3. Turn it on.** Settings -> Accessibility -> **HyperGesture** -> on.
+### Passo 3 — Ligar o serviço de gestos
 
-Then open HyperGesture. The first card should say **Active**. Try a swipe.
+> Configurações → **Acessibilidade** → **HyperGesture** → ative **Usar HyperGesture**
 
-## Using it
+Abra o app: o primeiro card deve mostrar **Ativo**. Faça um gesto para testar.
 
-Open the app and you'll see:
+### Passo 4 — Não deixar o HyperOS desligar o app
 
-- **Gesture service**: whether your gestures are running, and a shortcut to the Accessibility screen if they aren't.
-- **Your gestures**: a reminder of what each swipe does.
-- **Navigation bar**: an optional shortcut to hide the three-button bar and reclaim that screen space. See [What it can't do](#what-it-cant-do).
-- **Gesture settings**: tap to expand for the thresholds, a haptic-feedback switch and a reset button. It stays collapsed by default so a stray tap cannot move a slider.
-- **Diagnostics**: tap to expand. Device details and anything that recently went wrong. Useful if you're reporting a problem. It never leaves your phone.
+O HyperOS costuma encerrar apps em segundo plano para economizar bateria — e quando isso
+acontece com um app de Acessibilidade, a permissão é desligada junto. Para evitar:
 
-The app follows your system light/dark setting.
+1. No app Segurança, ative o **Início automático em segundo plano** para o HyperGesture
+   (o card **Mantenha o app ativo** tem um atalho para essa tela).
+2. Em **Informações do app** → **Energia**, escolha **Nenhuma restrição**.
+3. *(Opcional)* Na tela de apps recentes, segure o card do HyperGesture e toque no **cadeado**,
+   para o "Limpar tudo" não fechá-lo.
 
-## Privacy
+### Passo 5 — Ativar o Circule para pesquisar *(opcional)*
 
-HyperGesture asks for one permission, `RECEIVE_BOOT_COMPLETED`, and nothing else. It has no internet, storage or location access.
+1. No app, no card **Circule para pesquisar**, ative **Toque longo na borda inferior =
+   Circule para pesquisar**.
+2. O Google precisa ser o **App assistente digital**. O botão **Assistivo e voz** do próprio
+   card abre a tela certa.
+3. Pronto: toque e segure no meio da borda inferior. O celular vibra e o Circule para
+   pesquisar abre.
 
-Gesture navigation needs an accessibility service, which is a powerful thing to grant. To be concrete about this one: it watches for touches in thin strips along the screen edges and performs Back, Home and Recents. It does not read what's on your screen, your text, or your keystrokes, and it sends nothing anywhere. Everything in Diagnostics stays on the device.
+### Passo 6 — Esconder a barra de botões *(opcional)*
 
-## What it can't do
+O card **Modo de navegação** leva até a tela do sistema onde você pode escolher **Navegação
+por gestos** e esconder a barra de três botões para ganhar espaço. Com launcher de terceiros,
+os gestos que funcionam continuam sendo os do HyperGesture — é só uma questão de espaço na tela.
 
-**It can't turn on HyperOS's own gesture navigation.** That's locked behind permissions only the system itself holds, and no ordinary app can get them (including via Shizuku, which still needs ADB or root to start).
+---
 
-The **Navigation bar** button opens the navigation-mode screen, where you can hide the three-button bar and reclaim that screen space. Choosing gesture navigation there still leaves a third-party launcher without working native gestures, so HyperGesture's own gestures remain the ones that function, either way.
+## Conhecendo o app
 
-If HyperOS resets your navigation mode after a reboot, the app will show that in Diagnostics, but it can't change it back for you.
+| Card | O que você encontra |
+|---|---|
+| **Serviço de gestos** | Se os gestos estão rodando, e um atalho para Acessibilidade se não estiverem. |
+| **Mantenha o app ativo** | Atalhos para Início automático em segundo plano e Informações do app. |
+| **Modo de navegação** | Atalho para esconder a barra de três botões. |
+| **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
+| **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
+| **Seus gestos** | Um lembrete do que cada gesto faz. |
+| **Idioma do app** | Automático, Português (Brasil) ou English (Android 13 ou mais novo). |
+| **Configurações dos gestos** | Larguras, distâncias, tempos e vibração. Fica recolhido para um toque sem querer não mexer em nada. |
+| **Diagnóstico** | Detalhes do aparelho e o último erro. Útil para relatar problemas — nada sai do celular. |
+| **Créditos** | Quem fez o app e de onde vem cada parte. |
 
-The details are in [docs/hyperos-navigation.md](docs/hyperos-navigation.md).
+---
 
-## If something goes wrong
+## Privacidade
 
-**Gestures stopped working, or Accessibility says "This service is malfunctioning."** Turn HyperGesture off and on again under Settings -> Accessibility. Android remembers that a service once failed and won't restart it on its own, even after an app update.
+- **Sem internet**: o app não tem permissão de acesso à rede. Nada sai do seu celular.
+- **Acessibilidade usada só para navegar**: o serviço observa toques em faixas finas nas bordas
+  da tela. **Não lê** o conteúdo da tela, textos ou o que você digita.
+- **Dados de uso do app** só são pedidos se você ligar a troca de apps, para saber qual foi o
+  app anterior.
+- **Circule para pesquisar**: ao abrir, quem lê a tela é o **app Google** — exatamente como
+  acontece quando você usa o gesto da alça no launcher da Xiaomi. O HyperGesture só pede para
+  ele abrir.
 
-**The Accessibility switch does nothing.** You missed step 2 above. Allow restricted settings, then try again.
+---
 
-**Taps near the bottom of the screen feel slightly slow.** Known. The app has to briefly take each touch near an edge to see whether it becomes a swipe, then hand it back if it doesn't. Reducing the edge activation width in Gesture settings shrinks the area this affects.
+## O que ele não consegue fazer
 
-**A gesture fires when you didn't mean it, or won't fire when you do.** Adjust the swipe distance for that edge in Gesture settings. The bottom edge is deliberately more sensitive than the sides, because a swipe starting on the navigation bar has already travelled some distance before the app sees it.
+- **Não liga os gestos nativos do HyperOS.** Isso depende de permissões que só o sistema tem.
+  O HyperGesture faz os gestos por conta própria.
+- **A animação de abrir e fechar apps** (o app "encolhendo" de volta para o ícone) é do sistema
+  e só funciona completa com o launcher da Xiaomi. Com outro launcher, a transição é a padrão
+  do Android.
+- **O Circule para pesquisar depende do Google**: precisa do app Google como assistente digital
+  e de o recurso estar liberado para o seu aparelho.
 
-## Documentation
+---
 
-| Where | What it answers |
-| --- | --- |
-| `README.md` | What HyperGesture is, installing it, using it |
-| [`docs/hyperos-navigation.md`](docs/hyperos-navigation.md) | What HyperOS does and doesn't permit about the navigation bar |
-| [`docs/development.md`](docs/development.md) | Building, testing, releasing, debugging on a device |
+## Problemas comuns
 
-## License
+| Sintoma | O que fazer |
+|---|---|
+| "O app não foi instalado" | Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
+| A chave de Acessibilidade não liga | Faltou o **Passo 2** (Permitir configurações restritas). |
+| Os gestos param sozinhos / a Acessibilidade desliga | Faça o **Passo 4**. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o HyperGesture em Acessibilidade. |
+| O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |
+| Toque longo na borda abre o Circule para pesquisar sem querer | Ele só vale no centro, sobre a alça. Se ainda atrapalhar, desligue **Usar o Atraso ao tocar e pressionar do sistema** e aumente o tempo manual. |
+| Toques perto da borda de baixo parecem um pouco lentos | É esperado: o app precisa "segurar" cada toque na borda para ver se vira gesto. Diminuir a **Largura da área de ativação** reduz a área afetada. |
+| Um gesto dispara sem querer ou não dispara | Ajuste a distância do deslize daquela borda em **Configurações dos gestos**. |
 
-<!-- vale off -->
+---
 
-HyperGesture is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+## Créditos
 
-HyperGesture is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+- **[HyperGesture](https://github.com/h3nc4/HyperGesture)**, de **Henrique Almeida
+  ([h3nc4](https://github.com/h3nc4))** — criou o app: os gestos, a captura de toques nas
+  bordas, a troca de apps, as telas e toda a base sobre a qual este fork foi construído.
+- **[MiCTS](https://github.com/parallelcc/MiCTS)**, de **parallelcc**, e
+  **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)**, de **chenxiaolong** — mostraram
+  como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de
+  assistente do Android. A técnica usada aqui é a deles.
+- **Victor Esidoro ([VictorEsidoro](https://github.com/VictorEsidoro))** — idealizou e conduziu
+  este fork: o Circule para pesquisar integrado ao app de gestos, o ajuste aos valores do
+  próprio sistema para uma navegação tão fluida quanto a original, a tradução para o português
+  com os nomes reais das telas do HyperOS e o seletor de idioma.
+- Desenvolvido com a ajuda do **Claude** (Anthropic).
 
-You should have received a copy of the GNU General Public License along with HyperGesture. If not, see https://www.gnu.org/licenses/.
+Os três projetos são software livre sob a licença **GPL-3.0**, e este também.
 
-Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+---
+
+## Para desenvolvedores
+
+Projeto Android em **Kotlin + Jetpack Compose**, com o reconhecimento de gestos isolado em
+código puro (sem tipos do Android) para ser testado na JVM. O passo a passo de build, testes e
+depuração no aparelho está em [`docs/development.md`](docs/development.md), e o que o HyperOS
+permite ou não sobre a barra de navegação está em
+[`docs/hyperos-navigation.md`](docs/hyperos-navigation.md).
+
+Neste fork, o workflow [`fork-apk.yaml`](.github/workflows/fork-apk.yaml) roda os testes e o
+lint, gera o APK release assinado e publica um Release com o `.apk` sempre que o `versionName`
+muda. A assinatura usa os segredos `ANDROID_KEYSTORE_B64` e `KEYSTORE_PASSWORD`, os mesmos
+nomes do projeto original.
+
+---
+
+## Licença
+
+HyperGesture é software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da
+**GNU General Public License**, versão 3 ou (a seu critério) qualquer versão posterior, como
+publicada pela Free Software Foundation. É distribuído **sem nenhuma garantia**. Veja o texto
+completo em [LICENSE](LICENSE).
+
+Copyright (C) 2026 Henrique Almeida &lt;me@h3nc4.com&gt; — alterações deste fork (C) 2026
+Victor Esidoro.
