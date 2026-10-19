@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+  Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 
-  This file is part of HyperGesture.
+  This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
-<!-- A swipe leaving the left edge, drawn as vectors so the repo has no binary assets. -->
+<!-- The A of AnyGest, its crossbar an arrow coming from the right edge towards the left (Android's classic Back gesture), drawn as vectors so the repo has no binary assets. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -25,21 +25,16 @@
     android:viewportHeight="108">
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="5"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000"
-        android:pathData="M34,30 L34,78" />
-    <path
-        android:strokeColor="#8AB4F8"
-        android:strokeWidth="5"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000"
-        android:pathData="M44,54 L74,54" />
-    <path
-        android:strokeColor="#8AB4F8"
-        android:strokeWidth="5"
+        android:strokeWidth="4"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M64,44 L74,54 L64,64" />
+        android:pathData="M33,84 L54,24 L75,84" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M75,66 H47 M54,59 L47,66 L54,73" />
 </vector>

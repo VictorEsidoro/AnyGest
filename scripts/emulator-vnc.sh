@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ echo "    http://localhost:${novnc_port}/vnc.html?autoconnect=true&resize=scale"
 echo >&2
 echo "  Enable the accessibility service, then swipe from the edges:" >&2
 echo "    adb shell settings put secure enabled_accessibility_services \\" >&2
-echo "      com.h3nc4.hypergesture/com.h3nc4.hypergesture.service.HyperGestureAccessibilityService" >&2
+echo "      io.github.victoresidoro.anygest/io.github.victoresidoro.anygest.service.AnyGestAccessibilityService" >&2
 echo "    adb shell settings put secure accessibility_enabled 1" >&2
 echo >&2
 echo "  Logs: ${log_dir}/" >&2

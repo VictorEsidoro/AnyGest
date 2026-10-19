@@ -15,7 +15,7 @@ startActivity(
 
 Confirmed working on a Redmi 14 running Android 16 and HyperOS OS3.0. It opens the navigation-mode screen and the user taps the option. `adb shell am start` reaches that screen by the same `ActivityManager.startActivity` path, so no privileged permission is involved.
 
-Choosing gesture navigation there hides the bar and gains screen space. It does not give a third-party launcher working native gestures, so HyperGesture's own recognizer remains the thing that performs navigation.
+Choosing gesture navigation there hides the bar and gains screen space. It does not give a third-party launcher working native gestures, so AnyGest's own recognizer remains the thing that performs navigation.
 
 ## TODO: apply the overlay directly
 

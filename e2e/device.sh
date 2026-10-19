@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 # Installs the app on a booted device and binds it, ready for any suite.
 #
 # Usage: e2e/device.sh [-p apk]
-#   -p  APK to install (default: debug). Point at hypergesture.apk to catch R8 breakage.
+#   -p  APK to install (default: debug). Point at anygest.apk to catch R8 breakage.
 
 set -e
 
@@ -70,12 +70,12 @@ override() {
 
 # This emulator stalls input mid-swipe for longer than the 100ms default, so a continuous
 # swipe reads as a deliberate hold and becomes Recents.
-override hypergesture_recents_hold_ms 400 \
+override anygest_recents_hold_ms 400 \
   "Bottom-swipe cases would read a stalled swipe as a hold."
 
 # App switching ships off, since it needs usage access the user grants by hand, so the
 # app-switch cases would never reach the gesture.
-override hypergesture_app_switch 1 \
+override anygest_app_switch 1 \
   "The app-switch cases cannot reach the gesture while the feature is off."
 
 service_bound() {

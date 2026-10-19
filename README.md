@@ -1,4 +1,4 @@
-# HyperGesture
+# AnyGest
 
 🇧🇷 Português · 🇺🇸 [English](README.en.md)
 
@@ -7,19 +7,24 @@ App de **gestos de navegação para o HyperOS (Xiaomi, Redmi e POCO)** que deixa
 **Circule para pesquisar** com toque longo na alça de navegação, igual ao sistema. Funciona
 **sem root, sem Shizuku, sem ADB e sem computador**: é um app só.
 
-**[⬇️ Baixar o APK mais recente](https://github.com/VictorEsidoro/HyperGesture/releases/latest/download/hypergesture.apk)**
-· [todas as versões](https://github.com/VictorEsidoro/HyperGesture/releases) ·
+**[⬇️ Baixar o APK mais recente](https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk)**
+· [todas as versões](https://github.com/VictorEsidoro/AnyGest/releases) ·
 [novidades](CHANGELOG.md)
 
-> Este é um **fork** do [HyperGesture](https://github.com/h3nc4/HyperGesture), criado por
-> **Henrique Almeida ([h3nc4](https://github.com/h3nc4))**. Veja em [Créditos](#créditos) quem
-> fez o quê.
+> **AnyGest**, por **Victor Eduardo ([@victoresidoro](https://github.com/VictorEsidoro))** —
+> baseado no [HyperGesture](https://github.com/h3nc4/HyperGesture), de **Henrique Almeida
+> ([h3nc4](https://github.com/h3nc4))**. Veja em [Créditos](#créditos) quem fez o quê.
+>
+> **Já usava o HyperGesture?** O AnyGest é um app novo para o Android (pacote diferente), então
+> **não atualiza por cima**: desinstale o HyperGesture uma vez antes de instalar o AnyGest, para
+> os gestos não ficarem em dobro. As configurações não são levadas, mas refazer leva poucos
+> minutos.
 
 ## O problema que ele resolve
 
 O HyperOS amarra a navegação por gestos ao launcher da própria Xiaomi. Se você troca para o
 Nova, o Niagara ou o Lawnchair, os gestos de tela cheia param de funcionar e o celular volta
-para a **barra de três botões**, sem jeito de religar. O HyperGesture devolve os gestos.
+para a **barra de três botões**, sem jeito de religar. O AnyGest devolve os gestos.
 
 ## O que o app faz
 
@@ -37,7 +42,7 @@ E também:
 - **Em português e inglês**, com seletor de idioma dentro do app.
 - **Leve**: cerca de 2,5 MB, sem internet, sem anúncios, sem coletar nada.
 
-## O que este fork adiciona
+## O que o AnyGest adiciona ao HyperGesture
 
 - **Circule para pesquisar com toque longo na alça de navegação**, sem root e sem nenhum
   outro app (antes era preciso combinar o MiCTS com um app de gestos).
@@ -67,18 +72,31 @@ passos e você só faz uma vez.
 
 ### Passo 1 — Baixar e instalar
 
-1. No celular, toque em **[Baixar o APK mais recente](https://github.com/VictorEsidoro/HyperGesture/releases/latest/download/hypergesture.apk)**.
-2. Abra o arquivo `hypergesture.apk` baixado e toque em instalar.
+1. No celular, toque em **[Baixar o APK mais recente](https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk)**.
+2. Abra o arquivo `anygest.apk` baixado e toque em instalar.
 
-> **O Play Protect reclamou?** É normal para apps instalados fora da loja. Use a opção de
-> instalar mesmo assim ou pause o Play Protect só durante a instalação.
+> ⚠️ **Apareceu só "O app não foi instalado", sem dizer o porquê? Quase certo que é o Play
+> Protect.** Na **primeira vez** que um app novo é instalado fora da loja, o Play Protect pode
+> barrá-lo e o Android mostra só essa mensagem. Não é erro do arquivo nem da assinatura, e
+> acontece mesmo com o APK baixado direto do GitHub. O jeito de resolver:
+>
+> 1. Abra a **Play Store**, toque na sua **foto de perfil** → **Play Protect** → engrenagem ⚙️.
+> 2. Desligue **Analisar apps com o Play Protect** *(os nomes podem variar um pouco conforme a
+>    versão)*.
+> 3. Instale o AnyGest.
+> 4. **Volte a ligar** o Play Protect.
+>
+> Depois de instalado, as atualizações do AnyGest não dão esse problema.
+>
+> **Estava com o HyperGesture instalado?** Desinstale-o antes (Configurações → Apps →
+> HyperGesture → Desinstalar). Os dois ligados ao mesmo tempo podem fazer cada gesto disparar duas vezes.
 >
 > **Mandou o arquivo pelo WhatsApp?** Às vezes o arquivo chega alterado e a instalação falha
 > com "O app não foi instalado". Baixe direto pelo link acima ou passe pelo Google Drive.
 
 ### Passo 2 — Seguir os Primeiros passos do app
 
-Abra o HyperGesture. O card **Primeiros passos**, no topo, mostra o que falta, em ordem, e cada
+Abra o AnyGest. O card **Primeiros passos**, no topo, mostra o que falta, em ordem, e cada
 passo tem um botão que abre a tela certa do sistema:
 
 | Cor | Significa |
@@ -90,21 +108,21 @@ passo tem um botão que abre a tela certa do sistema:
 
 Os passos essenciais, na ordem:
 
-1. **Permitir configurações restritas** — Configurações → Apps → HyperGesture →
+1. **Permitir configurações restritas** — Configurações → Apps → AnyGest →
    **Informações do app** → seção **Configurações avançadas** → ative **Permitir configurações
    restritas**. Sem isso o Android não deixa ligar a Acessibilidade. **Pular este passo é o
    motivo mais comum de o app parecer não fazer nada.** A opção só aparece enquanto ainda não
    foi liberada.
-2. **Ligar o HyperGesture** — **Acessibilidade** → **HyperGesture** → ative **Usar
-   HyperGesture**.
+2. **Ligar o AnyGest** — **Acessibilidade** → **AnyGest** → ative **Usar
+   AnyGest**.
 3. **Economia de bateria: Nenhuma restrição** — em **Informações do app** → **Energia**, na
    seção **Economia de bateria**, escolha **Nenhuma restrição**.
-4. **Início automático em segundo plano** — ative para o HyperGesture, para os gestos voltarem
+4. **Início automático em segundo plano** — ative para o AnyGest, para os gestos voltarem
    sozinhos depois de reiniciar.
 
 O HyperOS costuma encerrar apps em segundo plano para economizar bateria — e quando isso
 acontece com um app de Acessibilidade, a permissão é desligada junto. Os passos 3 e 4 evitam
-isso. *(Opcional)* Na tela de apps recentes, segure o card do HyperGesture e toque no
+isso. *(Opcional)* Na tela de apps recentes, segure o card do AnyGest e toque no
 **cadeado**, para o "Limpar tudo" não fechá-lo.
 
 Quando tudo estiver verde, o card encolhe para **Tudo pronto**. Se o HyperOS parar o serviço
@@ -118,11 +136,11 @@ No card **Atalho no Centro de controle**, toque em **Adicionar ao Centro de cont
 Por que ele importa: se o HyperOS parar o serviço de gestos com a barra de botões escondida,
 você fica sem Voltar e sem Início, e a única saída seria reiniciar o celular. O Centro de
 controle continua abrindo ao deslizar do topo da tela, e o atalho mostra se os gestos estão
-funcionando. Se estiverem parados, um toque nele abre direto a página do HyperGesture em
+funcionando. Se estiverem parados, um toque nele abre direto a página do AnyGest em
 Acessibilidade para religar.
 
 Se o botão não aparecer ou não fizer nada, edite o Centro de controle e adicione o atalho do
-HyperGesture manualmente.
+AnyGest manualmente.
 
 ### Passo 4 — Ativar o Circule para pesquisar *(opcional)*
 
@@ -137,9 +155,9 @@ HyperGesture manualmente.
 
 O card **Barra de botões** mostra se a barra está escondida e leva até a tela do sistema onde
 você pode escolher **Navegação por gestos** e esconder a barra de três botões para ganhar
-espaço. Ele só libera depois que o HyperGesture estiver ligado: barra escondida sem gestos deixa
+espaço. Ele só libera depois que o AnyGest estiver ligado: barra escondida sem gestos deixa
 você sem como navegar. Com launcher de terceiros, os gestos que funcionam continuam sendo os do
-HyperGesture — é só uma questão de espaço na tela.
+AnyGest — é só uma questão de espaço na tela.
 
 ---
 
@@ -149,7 +167,7 @@ HyperGesture — é só uma questão de espaço na tela.
 |---|---|
 | **Primeiros passos** | O que falta para os gestos funcionarem, em ordem e com cores, e um botão para cada tela do sistema. Encolhe para "Tudo pronto" quando acaba. |
 | **Atalho no Centro de controle** | Por que o atalho importa, se ele já foi adicionado e o botão para adicionar. |
-| **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o HyperGesture ligado. |
+| **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o AnyGest ligado. |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
@@ -169,7 +187,7 @@ HyperGesture — é só uma questão de espaço na tela.
 - **Dados de uso do app** só são pedidos se você ligar a troca de apps, para saber qual foi o
   app anterior.
 - **Circule para pesquisar**: ao abrir, quem lê a tela é o **app Google** — exatamente como
-  acontece quando você usa o gesto da alça no launcher da Xiaomi. O HyperGesture só pede para
+  acontece quando você usa o gesto da alça no launcher da Xiaomi. O AnyGest só pede para
   ele abrir.
 
 ---
@@ -177,7 +195,7 @@ HyperGesture — é só uma questão de espaço na tela.
 ## O que ele não consegue fazer
 
 - **Não liga os gestos nativos do HyperOS.** Isso depende de permissões que só o sistema tem.
-  O HyperGesture faz os gestos por conta própria.
+  O AnyGest faz os gestos por conta própria.
 - **A animação de abrir e fechar apps** (o app "encolhendo" de volta para o ícone) é do sistema
   e só funciona completa com o launcher da Xiaomi. Com outro launcher, a transição é a padrão
   do Android.
@@ -190,10 +208,11 @@ HyperGesture — é só uma questão de espaço na tela.
 
 | Sintoma | O que fazer |
 |---|---|
-| "O app não foi instalado" | Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
+| "O app não foi instalado" | Primeiro, **desligue o Play Protect só para instalar** (veja o aviso no Passo 1): na primeira instalação ele costuma barrar e a mensagem não diz o motivo. Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
+| Cada gesto parece disparar duas vezes | Provavelmente o HyperGesture antigo ainda está instalado e ligado. Desinstale-o: o AnyGest é outro app e não o substitui sozinho. |
 | A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
-| Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria e Início automático nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o HyperGesture em Acessibilidade. |
-| Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do HyperGesture: ele abre a Acessibilidade para religar. |
+| Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria e Início automático nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |
+| Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |
 | Toque longo na borda abre o Circule para pesquisar sem querer | Ele só vale no centro, sobre a alça. Se ainda atrapalhar, desligue **Usar o Atraso ao tocar e pressionar do sistema** e aumente o tempo manual. |
 | Toques perto da borda de baixo parecem um pouco lentos | É esperado: o app precisa "segurar" cada toque na borda para ver se vira gesto. Diminuir a **Largura da área de ativação** reduz a área afetada. |
@@ -203,15 +222,8 @@ HyperGesture — é só uma questão de espaço na tela.
 
 ## Créditos
 
-- **[HyperGesture](https://github.com/h3nc4/HyperGesture)**, de **Henrique Almeida
-  ([h3nc4](https://github.com/h3nc4))** — criou o app: os gestos, a captura de toques nas
-  bordas, a troca de apps, as telas e toda a base sobre a qual este fork foi construído.
-- **[MiCTS](https://github.com/parallelcc/MiCTS)**, de **parallelcc**, e
-  **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)**, de **chenxiaolong** — mostraram
-  como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de
-  assistente do Android. A técnica usada aqui é a deles.
 - **Victor Eduardo ([@victoresidoro](https://github.com/VictorEsidoro))** — idealizou e conduziu
-  este fork, que reformulou o app:
+  o AnyGest, baseado no HyperGesture, e reformulou o app:
   - o Circule para pesquisar com toque longo na alça de navegação, sem root e sem outro app;
   - o ajuste aos valores do próprio sistema (Atraso ao tocar e pressionar, tolerância de
     movimento e área da alça) para uma navegação tão fluida quanto a original;
@@ -222,10 +234,21 @@ HyperGesture — é só uma questão de espaço na tela.
   - a proteção que só deixa esconder a barra de botões com os gestos ligados;
   - a tradução para português do Brasil com os nomes reais das telas do HyperOS, e o seletor
     de idioma;
+  - o nome, o pacote e o ícone próprios do AnyGest;
   - as versões publicadas com o APK direto, o changelog e a documentação.
+- **[HyperGesture](https://github.com/h3nc4/HyperGesture)**, de **Henrique Almeida
+  ([h3nc4](https://github.com/h3nc4))** — criou o app em que o AnyGest se baseia: os gestos, a
+  captura de toques nas bordas, a troca de apps, as telas e toda a base sobre a qual ele foi
+  construído.
+- **[MiCTS](https://github.com/parallelcc/MiCTS)**, de **parallelcc**, e
+  **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)**, de **chenxiaolong** — mostraram
+  como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de
+  assistente do Android. A técnica usada aqui é a deles.
+- **[Material Symbols](https://fonts.google.com/icons)**, do Google (licença Apache 2.0) — os ícones
+  de traço fino dos cards do app.
 - Desenvolvido com a ajuda do **Claude** (Anthropic).
 
-Os três projetos são software livre sob a licença **GPL-3.0**, e este também.
+Os três projetos são software livre sob a licença **GPL-3.0**, e o AnyGest também.
 
 ---
 
@@ -237,7 +260,7 @@ depuração no aparelho está em [`docs/development.md`](docs/development.md), e
 permite ou não sobre a barra de navegação está em
 [`docs/hyperos-navigation.md`](docs/hyperos-navigation.md).
 
-Neste fork, o workflow [`fork-apk.yaml`](.github/workflows/fork-apk.yaml) roda os testes e o
+No AnyGest, o workflow [`fork-apk.yaml`](.github/workflows/fork-apk.yaml) roda os testes e o
 lint, gera o APK release assinado e publica um Release com o `.apk` sempre que o `versionName`
 muda. Branches `dev/...` passam pelos mesmos testes e geram o APK para baixar em Actions, sem publicar release. A assinatura usa os segredos `ANDROID_KEYSTORE_B64` e `KEYSTORE_PASSWORD`, os mesmos
 nomes do projeto original.
@@ -246,10 +269,11 @@ nomes do projeto original.
 
 ## Licença
 
-HyperGesture é software livre: você pode redistribuí-lo e/ou modificá-lo sob os termos da
+O AnyGest é software livre, baseado no HyperGesture: você pode redistribuí-lo e/ou
+modificá-lo sob os termos da
 **GNU General Public License**, versão 3 ou (a seu critério) qualquer versão posterior, como
 publicada pela Free Software Foundation. É distribuído **sem nenhuma garantia**. Veja o texto
 completo em [LICENSE](LICENSE).
 
-Copyright (C) 2026 Henrique Almeida &lt;me@h3nc4.com&gt; — alterações deste fork (C) 2026
-Victor Eduardo (@victoresidoro).
+Copyright (C) 2026 Victor Eduardo (@victoresidoro) — AnyGest.
+Copyright (C) 2026 Henrique Almeida &lt;me@h3nc4.com&gt; — HyperGesture, o código original.

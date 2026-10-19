@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Builds the release APK in a container, dropping hypergesture.apk in the repo root.
+# Builds the release APK in a container, dropping anygest.apk in the repo root.
 set -e
 
 cd "$(dirname "$0")/../"

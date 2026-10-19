@@ -2,7 +2,7 @@
 <!--
   Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 
-  This file is part of HyperGesture.
+  This file is part of AnyGest.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -->
 <resources>
-    <string name="app_name">HyperGesture</string>
+    <string name="app_name">AnyGest</string>
     <string name="app_tagline">Edge gestures for HyperOS</string>
 
     <!-- Shown by the system in the accessibility settings list. -->
-    <string name="accessibility_service_description">Recognises swipes from the screen edges and performs Back, Home and Recents. Used for navigation only: HyperGesture never reads screen content, text or keystrokes, and sends nothing off your device.</string>
+    <string name="accessibility_service_description">Recognises swipes from the screen edges and performs Back, Home and Recents. Used for navigation only: AnyGest never reads screen content, text or keystrokes, and sends nothing off your device.</string>
     <string name="accessibility_service_summary">Edge gesture navigation</string>
 
     <!-- Gesture cheat sheet. -->
@@ -103,7 +103,7 @@
     <string name="diag_local_only">Everything here stays on your device.</string>
     <string name="action_view_source">View source</string>
     <!-- This build's own source: the fork, which links back to upstream in Credits. -->
-    <string name="url_source" translatable="false">https://github.com/VictorEsidoro/HyperGesture</string>
+    <string name="url_source" translatable="false">https://github.com/VictorEsidoro/AnyGest</string>
 
     <!-- App language. Language names stay in their own language in every translation. -->
     <string name="section_language">App language</string>
@@ -115,8 +115,8 @@
     <!-- Credits. -->
     <string name="section_credits">Credits</string>
     <string name="section_credits_summary">The people and projects behind this app</string>
-    <string name="credits_fork_title">Victor Eduardo (@victoresidoro) — author of this version</string>
-    <string name="credits_fork_intro">Conceived and led this fork, which reworked the app:</string>
+    <string name="credits_fork_title">Victor Eduardo (@victoresidoro) — author of AnyGest</string>
+    <string name="credits_fork_intro">Conceived and led AnyGest, based on HyperGesture, and reworked the app:</string>
     <string-array name="credits_fork_items">
         <item>Circle to Search on a long press of the navigation handle, with no root and no other app</item>
         <item>Tuning to the system\'s own values (touch and hold delay, touch slop and handle area) for navigation as fluid as the stock one</item>
@@ -128,19 +128,19 @@
         <item>The Brazilian Portuguese translation with HyperOS\'s real screen names, and the language picker</item>
         <item>Releases with the APK attached directly, a changelog and full documentation</item>
     </string-array>
-    <string name="credits_original_title">Henrique Almeida (h3nc4) — creator of HyperGesture</string>
-    <string name="credits_original_body">Created the app: the gestures, the edge touch capture, app switching and the whole foundation this fork is built on.</string>
+    <string name="credits_original_title">Henrique Almeida (h3nc4) — creator of HyperGesture, the project AnyGest is based on</string>
+    <string name="credits_original_body">Created the app: the gestures, the edge touch capture, app switching and the whole foundation AnyGest is built on.</string>
     <string name="credits_cts_title">parallelcc (MiCTS) and chenxiaolong (CTSLauncher)</string>
     <string name="credits_cts_body">Showed how to open Circle to Search without root by talking directly to Android\'s assistant service. The technique used here is theirs.</string>
-    <string name="credits_license">All three projects are free software under the GPL-3.0, and so is this one.</string>
+    <string name="credits_license">All three projects are free software under the GPL-3.0, and so is AnyGest.</string>
     <string name="credits_link_hypergesture">Original HyperGesture (h3nc4)</string>
     <string name="credits_link_micts">MiCTS (parallelcc)</string>
     <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>
-    <string name="credits_link_fork">This fork (@victoresidoro)</string>
+    <string name="credits_link_fork">AnyGest (@victoresidoro)</string>
     <string name="url_credits_hypergesture" translatable="false">https://github.com/h3nc4/HyperGesture</string>
     <string name="url_credits_micts" translatable="false">https://github.com/parallelcc/MiCTS</string>
     <string name="url_credits_ctslauncher" translatable="false">https://github.com/chenxiaolong/CTSLauncher</string>
-    <string name="url_credits_fork" translatable="false">https://github.com/VictorEsidoro/HyperGesture</string>
+    <string name="url_credits_fork" translatable="false">https://github.com/VictorEsidoro/AnyGest</string>
 
     <!-- First steps checklist -->
     <string name="setup_title">First steps</string>
@@ -157,13 +157,13 @@
     <string name="setup_action_confirm">I did it</string>
     <string name="setup_locked_body">Finish the step above first.</string>
     <string name="setup_restricted_title">Allow restricted settings</string>
-    <string name="setup_restricted_body">In App info, open the Advanced settings section and turn on Allow restricted settings. Without it Android will not let HyperGesture use Accessibility. The option only appears until it has been allowed; if you do not see it, tap I did it.</string>
-    <string name="setup_accessibility_title">Turn HyperGesture on</string>
-    <string name="setup_accessibility_body">In Accessibility, tap HyperGesture and turn on Use HyperGesture.</string>
+    <string name="setup_restricted_body">In App info, open the Advanced settings section and turn on Allow restricted settings. Without it Android will not let AnyGest use Accessibility. The option only appears until it has been allowed; if you do not see it, tap I did it.</string>
+    <string name="setup_accessibility_title">Turn AnyGest on</string>
+    <string name="setup_accessibility_body">In Accessibility, tap AnyGest and turn on Use AnyGest.</string>
     <string name="setup_battery_title">Battery: no restrictions</string>
     <string name="setup_battery_body">In App info, open the battery page and choose no restrictions, so HyperOS does not stop your gestures. If this step stays amber after you chose it, tap I did it.</string>
     <string name="setup_autostart_title">Autostart</string>
-    <string name="setup_autostart_body">Turn on autostart for HyperGesture so your gestures come back on their own after a restart. HyperOS does not let apps check this, so tap I did it once it is on.</string>
+    <string name="setup_autostart_body">Turn on autostart for AnyGest so your gestures come back on their own after a restart. HyperOS does not let apps check this, so tap I did it once it is on.</string>
     <string name="setup_tile_action">Add to Control Center</string>
     <string name="setup_usage_title">Usage access (app switching)</string>
     <string name="setup_usage_body">Switching apps from the bottom edge needs usage access to know which app came before.</string>
@@ -176,15 +176,15 @@
     <string name="tile_card_title">Control Center shortcut</string>
     <string name="tile_card_added">Added</string>
     <string name="tile_card_missing">Recommended</string>
-    <string name="tile_card_body">If HyperOS stops the gesture service while the button bar is hidden, you are left with no Back and no Home, and the only way out would be restarting the phone. The Control Center still opens with a swipe from the top of the screen, and this shortcut shows whether your gestures are running: when they are stopped, one tap on it opens HyperGesture\'s Accessibility page so you can turn it back on.</string>
-    <string name="tile_card_manual">If the button below is missing or does nothing, edit the Control Center and add the HyperGesture shortcut by hand.</string>
+    <string name="tile_card_body">If HyperOS stops the gesture service while the button bar is hidden, you are left with no Back and no Home, and the only way out would be restarting the phone. The Control Center still opens with a swipe from the top of the screen, and this shortcut shows whether your gestures are running: when they are stopped, one tap on it opens AnyGest\'s Accessibility page so you can turn it back on.</string>
+    <string name="tile_card_manual">If the button below is missing or does nothing, edit the Control Center and add the AnyGest shortcut by hand.</string>
 
     <!-- Button bar card -->
     <string name="navigation_card_title">Button bar</string>
     <string name="navigation_card_hidden">Hidden</string>
     <string name="navigation_card_visible">Visible</string>
     <string name="navigation_card_body">In Navigation mode, choose gesture navigation to hide the three-button bar and gain screen space. Your gestures work either way. To bring the bar back, choose the buttons on the same screen.</string>
-    <string name="navigation_card_locked">Turn HyperGesture on first (First steps): with the service stopped, a hidden bar leaves you with no way to navigate.</string>
+    <string name="navigation_card_locked">Turn AnyGest on first (First steps): with the service stopped, a hidden bar leaves you with no way to navigate.</string>
 
     <!-- Control Center tile -->
     <string name="tile_active">Active</string>

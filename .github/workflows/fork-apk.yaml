@@ -3,7 +3,7 @@
 #
 # Signing uses the same repository secrets as upstream's release workflow:
 #   ANDROID_KEYSTORE_B64  the keystore, base64-encoded
-#   KEYSTORE_PASSWORD     its store and key password (alias "hypergesture")
+#   KEYSTORE_PASSWORD     its store and key password (alias "hypergesture", the one inside the existing keystore)
 
 name: Fork release APK
 
@@ -103,14 +103,14 @@ jobs:
             "$(./scripts/devcontainer-image.sh)" \
             -c 'set -e
               apksigner="$(find "${ANDROID_HOME}/build-tools" -name apksigner | sort | tail -n1)"
-              "${apksigner}" verify --print-certs /apk/hypergesture.apk'
+              "${apksigner}" verify --print-certs /apk/anygest.apk'
       - name: Name the APK after its version
-        run: mv hypergesture.apk "hypergesture-${{ steps.version.outputs.version }}.apk"
+        run: mv anygest.apk "anygest-${{ steps.version.outputs.version }}.apk"
       - name: Upload the release APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: hypergesture-${{ steps.version.outputs.version }}
-          path: hypergesture-${{ steps.version.outputs.version }}.apk
+          name: anygest-${{ steps.version.outputs.version }}
+          path: anygest-${{ steps.version.outputs.version }}.apk
           if-no-files-found: error
           retention-days: 90
 
@@ -154,18 +154,18 @@ jobs:
         if: steps.release.outputs.exists == 'false'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: hypergesture-${{ steps.release.outputs.version }}
-      # A fixed asset name keeps .../releases/latest/download/hypergesture.apk valid forever.
+          name: anygest-${{ steps.release.outputs.version }}
+      # A fixed asset name keeps .../releases/latest/download/anygest.apk valid forever.
       - name: Give the APK its permanent name
         if: steps.release.outputs.exists == 'false'
-        run: mv "hypergesture-${{ steps.release.outputs.version }}.apk" hypergesture.apk
+        run: mv "anygest-${{ steps.release.outputs.version }}.apk" anygest.apk
       - name: Run softprops/action-gh-release
         if: steps.release.outputs.exists == 'false'
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           tag_name: v${{ steps.release.outputs.version }}
           target_commitish: ${{ github.sha }}
-          name: HyperGesture ${{ steps.release.outputs.version }}
+          name: AnyGest ${{ steps.release.outputs.version }}
           body_path: release-notes.md
-          files: hypergesture.apk
+          files: anygest.apk
           make_latest: true

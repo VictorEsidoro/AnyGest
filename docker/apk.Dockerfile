@@ -1,6 +1,6 @@
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ################################################################################
-# A Dockerfile to build the HyperGesture release APK using the dev image toolchain.
+# A Dockerfile to build the AnyGest release APK using the dev image toolchain.
 
 ARG DEV_IMAGE_TAG="1.0.0@sha256:7356c794012a3a9c55eecfc4604f5c4098427f3f15b6eea455f5c1c8b962f860"
 
@@ -42,10 +42,10 @@ RUN ./scripts/version.sh "${VERSION}" \
 # The task output name depends on whether signing material was present.
 RUN mkdir -p /out \
   && cp "$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)" \
-  /out/hypergesture.apk
+  /out/anygest.apk
 
 ################################################################################
 # Final stage to extract only the APK
 FROM scratch AS final
 
-COPY --from=builder /out/hypergesture.apk /hypergesture.apk
+COPY --from=builder /out/anygest.apk /anygest.apk

@@ -1,6 +1,6 @@
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ################################################################################
-# Development container for HyperGesture. The only place the toolchain is installed, so
+# Development container for AnyGest. The only place the toolchain is installed, so
 # the JDK, the Android SDK and Android Studio all stay off the host.
 
 ########################################
