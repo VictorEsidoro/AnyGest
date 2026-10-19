@@ -231,6 +231,8 @@ space.
   **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)** by **chenxiaolong** — showed how
   to open Circle to Search **without root** by talking directly to Android's assistant service.
   The technique used here is theirs.
+- **[Material Symbols](https://fonts.google.com/icons)** by Google (Apache 2.0 licence) — the
+  thin-line icons on the app's cards.
 - Built with help from **Claude** (Anthropic).
 
 All three projects are free software under the **GPL-3.0**, and so is AnyGest.

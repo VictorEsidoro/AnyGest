@@ -89,6 +89,7 @@ internal fun SetupCard(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                CardIcon(R.drawable.ic_sym_checklist, Modifier.padding(end = 12.dp))
                 Column(
                     modifier = Modifier
                         .weight(1f)

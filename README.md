@@ -234,6 +234,8 @@ AnyGest — é só uma questão de espaço na tela.
   **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)**, de **chenxiaolong** — mostraram
   como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de
   assistente do Android. A técnica usada aqui é a deles.
+- **[Material Symbols](https://fonts.google.com/icons)**, do Google (licença Apache 2.0) — os ícones
+  de traço fino dos cards do app.
 - Desenvolvido com a ajuda do **Claude** (Anthropic).
 
 Os três projetos são software livre sob a licença **GPL-3.0**, e o AnyGest também.

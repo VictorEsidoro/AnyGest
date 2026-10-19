@@ -30,6 +30,7 @@ import android.os.LocaleList
 import android.provider.Settings
 import android.view.ViewConfiguration
 import androidx.activity.ComponentActivity
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -220,6 +221,7 @@ private fun AnyGestScreen(
         // must not silently change navigation behaviour.
         ExpandableCard(
             title = stringResource(R.string.section_gestures),
+            icon = R.drawable.ic_sym_tune,
             summary = stringResource(R.string.section_gestures_summary),
             expanded = settingsExpanded,
             onToggle = { settingsExpanded = !settingsExpanded },
@@ -231,6 +233,7 @@ private fun AnyGestScreen(
 
         ExpandableCard(
             title = stringResource(R.string.section_diagnostics),
+            icon = R.drawable.ic_sym_bug_report,
             summary = stringResource(R.string.section_diagnostics_summary),
             expanded = diagnosticsExpanded,
             onToggle = {
@@ -245,6 +248,7 @@ private fun AnyGestScreen(
 
         ExpandableCard(
             title = stringResource(R.string.section_credits),
+            icon = R.drawable.ic_sym_favorite,
             summary = stringResource(R.string.section_credits_summary),
             expanded = creditsExpanded,
             onToggle = { creditsExpanded = !creditsExpanded },
@@ -346,6 +350,7 @@ private const val MIUI_AUTOSTART_ACTION = "miui.intent.action.OP_AUTO_START"
 private fun TileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit) {
     InfoCard(
         title = stringResource(R.string.tile_card_title),
+        icon = R.drawable.ic_sym_dashboard_customize,
         badge = stringResource(if (added) R.string.tile_card_added else R.string.tile_card_missing),
         healthy = added,
         body = stringResource(R.string.tile_card_body),
@@ -359,6 +364,7 @@ private fun TileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit)
 private fun NavigationBarCard(hidden: Boolean, canChange: Boolean, onOpen: () -> Unit) {
     InfoCard(
         title = stringResource(R.string.navigation_card_title),
+        icon = R.drawable.ic_sym_bottom_navigation,
         badge = stringResource(
             if (hidden) R.string.navigation_card_hidden else R.string.navigation_card_visible,
         ),
@@ -376,6 +382,7 @@ private fun NavigationBarCard(hidden: Boolean, canChange: Boolean, onOpen: () ->
 @Composable
 private fun InfoCard(
     title: String,
+    @DrawableRes icon: Int,
     badge: String,
     healthy: Boolean,
     body: String,
@@ -391,10 +398,9 @@ private fun InfoCard(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                CardTitle(
+                    icon = icon,
+                    title = title,
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 12.dp),
@@ -434,10 +440,9 @@ private fun GestureCheatSheet() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(R.string.gestures_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+            CardTitle(
+                icon = R.drawable.ic_sym_gesture,
+                title = stringResource(R.string.gestures_title),
             )
             listOf(
                 R.string.gesture_back_name to R.string.gesture_back_how,
@@ -467,6 +472,7 @@ private fun GestureCheatSheet() {
 @Composable
 private fun ExpandableCard(
     title: String,
+    @DrawableRes icon: Int,
     summary: String,
     expanded: Boolean,
     onToggle: () -> Unit,
@@ -486,7 +492,12 @@ private fun ExpandableCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.padding(end = 12.dp)) {
+                CardIcon(icon, Modifier.padding(end = 12.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp),
+                ) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
@@ -645,10 +656,9 @@ private fun AppSwitchCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
-                text = stringResource(R.string.section_app_switch),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+            CardTitle(
+                icon = R.drawable.ic_sym_swap_horiz,
+                title = stringResource(R.string.section_app_switch),
             )
             Text(
                 text = stringResource(R.string.section_app_switch_body),
@@ -677,10 +687,9 @@ private fun CircleToSearchCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
-                text = stringResource(R.string.section_circle_to_search),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+            CardTitle(
+                icon = R.drawable.ic_sym_search,
+                title = stringResource(R.string.section_circle_to_search),
             )
             Text(
                 text = stringResource(R.string.section_circle_to_search_body),
@@ -761,10 +770,9 @@ private fun LanguageCardContent() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
-                text = stringResource(R.string.section_language),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+            CardTitle(
+                icon = R.drawable.ic_sym_language,
+                title = stringResource(R.string.section_language),
             )
             Text(
                 text = stringResource(R.string.section_language_body),
