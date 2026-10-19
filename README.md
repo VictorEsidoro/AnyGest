@@ -2,6 +2,19 @@
 
 > Edge gestures for Xiaomi HyperOS, so you can keep the launcher you actually like.
 
+## About this fork / Sobre este fork
+
+This is [VictorEsidoro/HyperGesture](https://github.com/VictorEsidoro/HyperGesture), a fork of **[HyperGesture](https://github.com/h3nc4/HyperGesture) by Henrique Almeida ([h3nc4](https://github.com/h3nc4))**, who created the app and everything below this section. The fork adds:
+
+- **Circle to Search** on a long press of the gesture handle, without root. The launch technique comes from **[MiCTS](https://github.com/parallelcc/MiCTS) by parallelcc** and **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher) by chenxiaolong**.
+- A **Brazilian Portuguese** translation with HyperOS 3's exact screen names, and an in-app **language picker**.
+
+See [CHANGELOG.md](CHANGELOG.md) for the details. Built with help from Claude (Anthropic). Like the original, it is free software under the [GPL-3.0-or-later](LICENSE).
+
+Este é um fork do **HyperGesture, de Henrique Almeida (h3nc4)**, que criou o app e tudo o que está descrito abaixo desta seção. O fork adiciona o **Circule para pesquisar** com toque longo na alça de navegação, sem root, usando a técnica do **MiCTS (parallelcc)** e do **CTSLauncher (chenxiaolong)**, além da **tradução para português do Brasil** e do **seletor de idioma**. Detalhes no [CHANGELOG.md](CHANGELOG.md).
+
+The rest of this README is upstream's and describes the original app and its releases.
+
 HyperOS ties its gesture navigation to the stock launcher. Switch to Niagara, Nova or Lawnchair and full-screen gestures stop working. The phone drops you back to the three-button bar with no way to turn them on again.
 
 HyperGesture gives you the gestures back. It's one app, and that's all it needs: no Shizuku, root, ADB, PC, companion app or internet connection.

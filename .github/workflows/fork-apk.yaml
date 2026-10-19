@@ -1,7 +1,11 @@
-# Builds an installable debug APK of this branch and publishes it as a workflow artifact.
+# Builds this fork's signed release APK and publishes it as a workflow artifact.
 # Fork-only helper: upstream's own CI runs on main/release branches and is untouched.
+#
+# Signing uses the same repository secrets as upstream's release workflow:
+#   ANDROID_KEYSTORE_B64  the keystore, base64-encoded
+#   KEYSTORE_PASSWORD     its store and key password (alias "hypergesture")
 
-name: Fork debug APK
+name: Fork release APK
 
 on:
   push:
@@ -16,8 +20,8 @@ env:
   DEV_DOCKER_ARGS: -v ${HOME:?}/ci-cache/gradle:/cache/gradle -e GRADLE_USER_HOME=/cache/gradle
 
 jobs:
-  apk:
-    name: Unit tests and debug APK
+  checks:
+    name: Unit tests and lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -29,36 +33,64 @@ jobs:
         uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2
         with:
           docker-args: ${{ env.DEV_DOCKER_ARGS }}
-      - name: Unit tests and debug APK
-        run: $DEV_RUN -c 'gradle --no-daemon testDebugUnitTest assembleDebug'
-      # Prints what an installer checks: signature schemes, SDK levels, testOnly/debuggable.
-      - name: Inspect the APK
-        continue-on-error: true
-        run: |
-          $DEV_RUN -c '
-            bt="$(ls -d "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/opt/android-sdk}}"/build-tools/* | sort -V | tail -1)"
-            apk="$(ls app/build/outputs/apk/debug/*.apk | head -1)"
-            echo "APK: ${apk}  build-tools: ${bt}"; ls -la app/build/outputs/apk/debug/
-            "${bt}/apksigner" verify --verbose --print-certs "${apk}" | head -20
-            "${bt}/aapt2" dump badging "${apk}" | grep -E "^(package|sdkVersion|targetSdkVersion|application-debuggable|testOnly|native-code)" || true
-            "${bt}/aapt2" dump xmltree --file AndroidManifest.xml "${apk}" | grep -iE "testOnly|debuggable|minSdk|targetSdk" || true
-          '
-      # Reported but never allowed to block the APK.
-      - name: Android lint
-        continue-on-error: true
-        run: $DEV_RUN -c 'gradle --no-daemon lintDebug'
-      - name: Upload the debug APK
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: HyperGesture-circle-to-search-debug
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
+      - name: Unit tests and lint
+        run: $DEV_RUN -c 'gradle --no-daemon testDebugUnitTest lintDebug'
       - name: Upload test and lint reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: reports
-          path: |
-            app/build/reports/
+          path: app/build/reports/
           retention-days: 7
+
+  release-apk:
+    name: Signed release APK
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run docker/setup-buildx-action
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Restore keystore
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: printf '%s' "${ANDROID_KEYSTORE_B64}" | base64 --decode >android.keystore
+      # An unsigned or throwaway-signed APK would not install over the previous one, so a
+      # missing secret stops the run instead of producing one.
+      - name: Verify signing material is present
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          test -s android.keystore || {
+            echo '::error::ANDROID_KEYSTORE_B64 is missing or not valid base64' && exit 1
+          }
+          test -n "${KEYSTORE_PASSWORD}" || {
+            echo '::error::KEYSTORE_PASSWORD is missing' && exit 1
+          }
+      - name: Read the version
+        id: version
+        run: |
+          version="$(sed -n 's/^[[:space:]]*versionName = "\(.*\)"/\1/p' app/build.gradle.kts)"
+          test -n "${version}"
+          echo "version=${version}" >>"${GITHUB_OUTPUT}"
+      - name: Build signed APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: ./scripts/build-apk.sh "${{ steps.version.outputs.version }}"
+      - name: Verify the APK signature
+        run: |
+          docker run --rm --entrypoint bash \
+            -v "${PWD}:/apk:ro" \
+            "$(./scripts/devcontainer-image.sh)" \
+            -c 'set -e
+              apksigner="$(find "${ANDROID_HOME}/build-tools" -name apksigner | sort | tail -n1)"
+              "${apksigner}" verify --print-certs /apk/hypergesture.apk'
+      - name: Name the APK after its version
+        run: mv hypergesture.apk "hypergesture-${{ steps.version.outputs.version }}.apk"
+      - name: Upload the release APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: hypergesture-${{ steps.version.outputs.version }}
+          path: hypergesture-${{ steps.version.outputs.version }}.apk
+          if-no-files-found: error
+          retention-days: 90

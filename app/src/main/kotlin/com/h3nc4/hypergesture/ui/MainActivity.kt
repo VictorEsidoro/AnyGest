@@ -19,14 +19,18 @@ package com.h3nc4.hypergesture.ui
 
 import android.app.Activity
 import android.app.AppOpsManager
+import android.app.LocaleManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import android.os.Process
 import android.provider.Settings
 import android.view.ViewConfiguration
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,6 +43,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -48,6 +53,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -68,6 +74,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -116,6 +123,7 @@ private fun HyperGestureScreen(
     var diagnostics by remember { mutableStateOf(DiagnosticsCollector.collect(context)) }
     var settingsExpanded by remember { mutableStateOf(false) }
     var diagnosticsExpanded by remember { mutableStateOf(false) }
+    var creditsExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -155,6 +163,8 @@ private fun HyperGestureScreen(
 
         GestureCheatSheet()
 
+        LanguageCard()
+
         // Both sections stay collapsed by default: an accidental tap while scrolling
         // must not silently change navigation behaviour.
         ExpandableCard(
@@ -180,6 +190,15 @@ private fun HyperGestureScreen(
             DiagnosticsContent(diagnostics) {
                 diagnostics = DiagnosticsCollector.collect(context)
             }
+        }
+
+        ExpandableCard(
+            title = stringResource(R.string.section_credits),
+            summary = stringResource(R.string.section_credits_summary),
+            expanded = creditsExpanded,
+            onToggle = { creditsExpanded = !creditsExpanded },
+        ) {
+            CreditsContent()
         }
     }
 }
@@ -721,6 +740,105 @@ private fun CircleToSearchCard(
                     }
                 }
             }
+        }
+    }
+}
+
+/** An empty tag means "follow the phone"; Android then picks values-pt or the English default. */
+private enum class AppLanguage(val tag: String) { Automatic(""), Portuguese("pt-BR"), English("en") }
+
+/**
+ * Per-app language needs Android 13's LocaleManager; on older versions the app simply
+ * follows the phone, so the card is not shown at all.
+ */
+@Composable
+private fun LanguageCard() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    LanguageCardContent()
+}
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@Composable
+private fun LanguageCardContent() {
+    val context = LocalContext.current
+    val manager = remember { context.getSystemService(LocaleManager::class.java) } ?: return
+    var selected by remember { mutableStateOf(currentLanguage(manager)) }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.section_language),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = stringResource(R.string.section_language_body),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+            AppLanguage.entries.forEach { option ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = selected == option,
+                            role = Role.RadioButton,
+                            onClick = {
+                                selected = option
+                                // The system recreates the activity in the new language.
+                                manager.applicationLocales = LocaleList.forLanguageTags(option.tag)
+                            },
+                        )
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(selected = selected == option, onClick = null)
+                    Text(
+                        text = stringResource(
+                            when (option) {
+                                AppLanguage.Automatic -> R.string.language_automatic
+                                AppLanguage.Portuguese -> R.string.language_portuguese
+                                AppLanguage.English -> R.string.language_english
+                            },
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 12.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+private fun currentLanguage(manager: LocaleManager): AppLanguage {
+    val chosen = manager.applicationLocales
+    if (chosen.isEmpty) return AppLanguage.Automatic
+    return if (chosen[0].language == "pt") AppLanguage.Portuguese else AppLanguage.English
+}
+
+/** Credit where it is due: the app, and the technique behind Circle to Search. */
+@Composable
+private fun CreditsContent() {
+    val context = LocalContext.current
+    Text(
+        text = stringResource(R.string.credits_body),
+        style = MaterialTheme.typography.bodySmall,
+    )
+    listOf(
+        R.string.credits_link_hypergesture to R.string.url_credits_hypergesture,
+        R.string.credits_link_micts to R.string.url_credits_micts,
+        R.string.credits_link_ctslauncher to R.string.url_credits_ctslauncher,
+        R.string.credits_link_fork to R.string.url_credits_fork,
+    ).forEach { (label, url) ->
+        val target = stringResource(url)
+        TextButton(onClick = { context.startFirst(Intent(Intent.ACTION_VIEW, target.toUri())) }) {
+            Text(stringResource(label))
         }
     }
 }

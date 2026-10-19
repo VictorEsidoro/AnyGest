@@ -119,4 +119,18 @@
     <string name="diag_recorded_failure">Falha registrada</string>
     <string name="diag_local_only">Tudo aqui fica só no seu aparelho.</string>
     <string name="action_view_source">Ver código-fonte</string>
+
+    <!-- Idioma do app. -->
+    <string name="section_language">Idioma do app</string>
+    <string name="section_language_body">Automático acompanha o telefone: português quando o telefone estiver em português, inglês para qualquer outro idioma.</string>
+    <string name="language_automatic">Automático (idioma do telefone)</string>
+
+    <!-- Créditos. -->
+    <string name="section_credits">Créditos</string>
+    <string name="section_credits_summary">As pessoas e os projetos por trás deste app</string>
+    <string name="credits_body">O HyperGesture foi criado por Henrique Almeida (h3nc4). Esta versão é um fork de Victor Esidoro que adiciona o Circule para pesquisar na alça de navegação, a tradução para português do Brasil e o seletor de idioma. Abrir o Circule para pesquisar sem root usa a técnica do MiCTS, de parallelcc, e do CTSLauncher, de chenxiaolong. Os três projetos são software livre sob a licença GPL-3.0.</string>
+    <string name="credits_link_hypergesture">HyperGesture original (h3nc4)</string>
+    <string name="credits_link_micts">MiCTS (parallelcc)</string>
+    <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>
+    <string name="credits_link_fork">Este fork (VictorEsidoro)</string>
 </resources>

@@ -118,5 +118,26 @@
     <string name="diag_recorded_failure">Recorded failure</string>
     <string name="diag_local_only">Everything here stays on your device.</string>
     <string name="action_view_source">View source</string>
-    <string name="url_source" translatable="false">https://github.com/h3nc4/HyperGesture</string>
+    <!-- This build's own source: the fork, which links back to upstream in Credits. -->
+    <string name="url_source" translatable="false">https://github.com/VictorEsidoro/HyperGesture</string>
+
+    <!-- App language. Language names stay in their own language in every translation. -->
+    <string name="section_language">App language</string>
+    <string name="section_language_body">Automatic follows the phone: Portuguese when the phone is in Portuguese, English for any other language.</string>
+    <string name="language_automatic">Automatic (phone language)</string>
+    <string name="language_portuguese" translatable="false">Português (Brasil)</string>
+    <string name="language_english" translatable="false">English</string>
+
+    <!-- Credits. -->
+    <string name="section_credits">Credits</string>
+    <string name="section_credits_summary">The people and projects behind this app</string>
+    <string name="credits_body">HyperGesture was created by Henrique Almeida (h3nc4). This build is a fork by Victor Esidoro that adds Circle to Search on the gesture handle, a Brazilian Portuguese translation and a language picker. Starting Circle to Search without root uses the technique of MiCTS by parallelcc and CTSLauncher by chenxiaolong. All three projects are free software under the GPL-3.0.</string>
+    <string name="credits_link_hypergesture">Original HyperGesture (h3nc4)</string>
+    <string name="credits_link_micts">MiCTS (parallelcc)</string>
+    <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>
+    <string name="credits_link_fork">This fork (VictorEsidoro)</string>
+    <string name="url_credits_hypergesture" translatable="false">https://github.com/h3nc4/HyperGesture</string>
+    <string name="url_credits_micts" translatable="false">https://github.com/parallelcc/MiCTS</string>
+    <string name="url_credits_ctslauncher" translatable="false">https://github.com/chenxiaolong/CTSLauncher</string>
+    <string name="url_credits_fork" translatable="false">https://github.com/VictorEsidoro/HyperGesture</string>
 </resources>
