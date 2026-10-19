@@ -19,6 +19,9 @@ permissions:
   contents: read
 
 env:
+  # Brasília time, so the files inside downloaded artifacts carry the maintainer's clock
+  # instead of UTC (zip stores local time with no zone).
+  TZ: America/Sao_Paulo
   DEV_DOCKER_ARGS: -v ${HOME:?}/ci-cache/gradle:/cache/gradle -e GRADLE_USER_HOME=/cache/gradle
 
 jobs:

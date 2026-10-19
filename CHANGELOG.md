@@ -21,8 +21,13 @@ A major version: the app's main screen and the whole setup flow were rebuilt aro
 
 ### Changed
 
+- **Lighter on battery.** The gesture service no longer subscribes to window-change events it never used, which woke it on every app or dialog switch all day long. Release builds also drop the debug logs written on every edge touch.
 - **Credits** list everything this fork added, under Victor Eduardo (@victoresidoro), alongside the original author and the Circle to Search technique.
-- The fork's CI also builds `dev/**` branches into a downloadable APK, without publishing a release, and repeats compiler, test and lint errors on the run's summary page.
+- The fork's CI also builds `dev/**` branches into a downloadable APK, without publishing a release, and repeats compiler, test and lint errors on the run's summary page. It runs on Brasília time, so files inside downloaded artifacts carry the local clock.
+
+### Fixed
+
+- The status bar is readable inside the app again: its icons were white on the light background, so the clock and battery disappeared.
 
 ### Português
 
@@ -41,8 +46,13 @@ Versão major: a tela principal e todo o fluxo de configuração foram refeitos 
 
 #### Alterações
 
+- **Mais leve na bateria.** O serviço de gestos deixou de assinar eventos de troca de janela que nunca usou e que o acordavam a cada troca de app ou diálogo, o dia inteiro. As versões release também descartam os logs de depuração gravados a cada toque na borda.
 - **Créditos** listam tudo o que este fork adicionou, com Victor Eduardo (@victoresidoro), ao lado do autor original e da técnica do Circule para pesquisar.
-- O CI do fork também gera APK para download das branches `dev/**`, sem publicar release, e repete os erros de compilação, testes e lint na página de resumo da execução.
+- O CI do fork também gera APK para download das branches `dev/**`, sem publicar release, e repete os erros de compilação, testes e lint na página de resumo da execução. Ele roda no horário de Brasília, então os arquivos dentro dos artefatos baixados trazem o horário local.
+
+#### Correções
+
+- A barra de status voltou a aparecer dentro do app: os ícones ficavam brancos sobre o fundo claro, e o relógio e a bateria sumiam.
 
 ## 1.1.1
 

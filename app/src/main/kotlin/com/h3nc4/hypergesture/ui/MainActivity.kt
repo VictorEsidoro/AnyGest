@@ -32,6 +32,7 @@ import android.view.ViewConfiguration
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -102,6 +103,9 @@ import kotlin.math.roundToInt
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Android draws this app edge to edge, and without this the status bar keeps its
+        // white icons on the light background: the clock and battery vanished.
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val settings = GestureSettingsRepository(applicationContext)
         setContent {

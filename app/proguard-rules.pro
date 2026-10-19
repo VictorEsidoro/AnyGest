@@ -20,3 +20,10 @@
 -keep class com.h3nc4.hypergesture.boot.BootCompletedReceiver { *; }
 
 -keep class * extends android.accessibilityservice.AccessibilityService { *; }
+
+# Debug and verbose logs run on every edge touch; release builds drop them and the strings
+# built for them. Info, warnings and errors stay: they are what a bug report relies on.
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}
