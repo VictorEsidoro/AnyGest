@@ -215,6 +215,7 @@ space.
   - tuning to the system's own values (touch and hold delay, touch slop and handle area) for
     navigation as fluid as the stock one;
   - one vibration per gesture;
+  - a lighter service that only wakes up when you touch an edge;
   - the First steps checklist, ordered and colour-coded, that guides the whole setup;
   - the Control Center shortcut, to bring gestures back without restarting the phone;
   - a safeguard that only lets the button bar be hidden while gestures are on;

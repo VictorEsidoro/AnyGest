@@ -216,6 +216,7 @@ HyperGesture — é só uma questão de espaço na tela.
   - o ajuste aos valores do próprio sistema (Atraso ao tocar e pressionar, tolerância de
     movimento e área da alça) para uma navegação tão fluida quanto a original;
   - uma vibração só por gesto;
+  - um serviço mais leve na bateria, que só acorda quando você toca na borda;
   - a lista de Primeiros passos, em ordem e com cores, que guia toda a configuração;
   - o atalho no Centro de controle, para religar os gestos sem reiniciar o celular;
   - a proteção que só deixa esconder a barra de botões com os gestos ligados;

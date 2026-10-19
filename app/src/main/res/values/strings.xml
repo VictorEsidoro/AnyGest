@@ -121,6 +121,7 @@
         <item>Circle to Search on a long press of the navigation handle, with no root and no other app</item>
         <item>Tuning to the system\'s own values (touch and hold delay, touch slop and handle area) for navigation as fluid as the stock one</item>
         <item>One vibration per gesture</item>
+        <item>A lighter service that only wakes up when you touch an edge</item>
         <item>The First steps checklist, ordered and colour-coded, that guides the whole setup</item>
         <item>The Control Center shortcut, to bring gestures back without restarting the phone</item>
         <item>A safeguard that only lets the button bar be hidden while gestures are on</item>
