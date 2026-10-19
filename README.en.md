@@ -210,9 +210,17 @@ space.
   to open Circle to Search **without root** by talking directly to Android's assistant service.
   The technique used here is theirs.
 - **Victor Eduardo ([@victoresidoro](https://github.com/VictorEsidoro))** — conceived and led this
-  fork: Circle to Search built into the gesture app, tuning it to the system's own values for
-  navigation as fluid as the stock one, the Portuguese translation with HyperOS's real screen
-  names, and the language picker.
+  fork, which reworked the app:
+  - Circle to Search on a long press of the navigation handle, with no root and no other app;
+  - tuning to the system's own values (touch and hold delay, touch slop and handle area) for
+    navigation as fluid as the stock one;
+  - one vibration per gesture;
+  - the First steps checklist, ordered and colour-coded, that guides the whole setup;
+  - the Control Center shortcut, to bring gestures back without restarting the phone;
+  - a safeguard that only lets the button bar be hidden while gestures are on;
+  - the Brazilian Portuguese translation with HyperOS's real screen names, and the language
+    picker;
+  - releases with the APK attached directly, the changelog and the documentation.
 - Built with help from **Claude** (Anthropic).
 
 All three projects are free software under the **GPL-3.0**, and so is this one.

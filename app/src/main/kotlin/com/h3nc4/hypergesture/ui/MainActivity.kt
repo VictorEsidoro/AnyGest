@@ -73,6 +73,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -808,13 +809,34 @@ private fun currentLanguage(manager: LocaleManager): AppLanguage {
     return if (chosen[0].language == "pt") AppLanguage.Portuguese else AppLanguage.English
 }
 
-/** Credit where it is due: the app, and the technique behind Circle to Search. */
+/** Credit where it is due: this version, the original app and the Circle to Search technique. */
 @Composable
 private fun CreditsContent() {
     val context = LocalContext.current
+    CreditsBlock(
+        title = stringResource(R.string.credits_fork_title),
+        body = stringResource(R.string.credits_fork_intro),
+    )
+    stringArrayResource(R.array.credits_fork_items).forEach { item ->
+        Text(
+            text = "•  $item",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 8.dp, top = 2.dp),
+        )
+    }
+    CreditsBlock(
+        title = stringResource(R.string.credits_original_title),
+        body = stringResource(R.string.credits_original_body),
+    )
+    CreditsBlock(
+        title = stringResource(R.string.credits_cts_title),
+        body = stringResource(R.string.credits_cts_body),
+    )
     Text(
-        text = stringResource(R.string.credits_body),
+        text = stringResource(R.string.credits_license),
         style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 12.dp),
     )
     listOf(
         R.string.credits_link_hypergesture to R.string.url_credits_hypergesture,
@@ -827,6 +849,17 @@ private fun CreditsContent() {
             Text(stringResource(label))
         }
     }
+}
+
+@Composable
+private fun CreditsBlock(title: String, body: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    Text(text = body, style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable

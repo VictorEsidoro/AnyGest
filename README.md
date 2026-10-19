@@ -211,9 +211,17 @@ HyperGesture — é só uma questão de espaço na tela.
   como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de
   assistente do Android. A técnica usada aqui é a deles.
 - **Victor Eduardo ([@victoresidoro](https://github.com/VictorEsidoro))** — idealizou e conduziu
-  este fork: o Circule para pesquisar integrado ao app de gestos, o ajuste aos valores do
-  próprio sistema para uma navegação tão fluida quanto a original, a tradução para o português
-  com os nomes reais das telas do HyperOS e o seletor de idioma.
+  este fork, que reformulou o app:
+  - o Circule para pesquisar com toque longo na alça de navegação, sem root e sem outro app;
+  - o ajuste aos valores do próprio sistema (Atraso ao tocar e pressionar, tolerância de
+    movimento e área da alça) para uma navegação tão fluida quanto a original;
+  - uma vibração só por gesto;
+  - a lista de Primeiros passos, em ordem e com cores, que guia toda a configuração;
+  - o atalho no Centro de controle, para religar os gestos sem reiniciar o celular;
+  - a proteção que só deixa esconder a barra de botões com os gestos ligados;
+  - a tradução para português do Brasil com os nomes reais das telas do HyperOS, e o seletor
+    de idioma;
+  - as versões publicadas com o APK direto, o changelog e a documentação.
 - Desenvolvido com a ajuda do **Claude** (Anthropic).
 
 Os três projetos são software livre sob a licença **GPL-3.0**, e este também.

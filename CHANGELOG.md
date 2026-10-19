@@ -4,7 +4,9 @@ Changes in this fork ([VictorEsidoro/HyperGesture](https://github.com/VictorEsid
 
 Versões em português logo abaixo de cada versão.
 
-## 1.2.0
+## 2.0.0
+
+A major version: the app's main screen and the whole setup flow were rebuilt around a guided checklist, so the app a new user meets is a different one. The gesture engine and its settings are unchanged, and 2.0.0 installs over 1.1.1.
 
 ### Added
 
@@ -19,9 +21,12 @@ Versões em português logo abaixo de cada versão.
 
 ### Changed
 
+- **Credits** list everything this fork added, under Victor Eduardo (@victoresidoro), alongside the original author and the Circle to Search technique.
 - The fork's CI also builds `dev/**` branches into a downloadable APK, without publishing a release, and repeats compiler, test and lint errors on the run's summary page.
 
 ### Português
+
+Versão major: a tela principal e todo o fluxo de configuração foram refeitos em torno de uma lista guiada, então o app que um usuário novo encontra é outro. O motor de gestos e as configurações dele não mudaram, e a 2.0.0 instala por cima da 1.1.1.
 
 #### Novidades
 
@@ -36,6 +41,7 @@ Versões em português logo abaixo de cada versão.
 
 #### Alterações
 
+- **Créditos** listam tudo o que este fork adicionou, com Victor Eduardo (@victoresidoro), ao lado do autor original e da técnica do Circule para pesquisar.
 - O CI do fork também gera APK para download das branches `dev/**`, sem publicar release, e repete os erros de compilação, testes e lint na página de resumo da execução.
 
 ## 1.1.1

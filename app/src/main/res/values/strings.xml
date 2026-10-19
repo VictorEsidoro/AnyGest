@@ -115,7 +115,23 @@
     <!-- Credits. -->
     <string name="section_credits">Credits</string>
     <string name="section_credits_summary">The people and projects behind this app</string>
-    <string name="credits_body">HyperGesture was created by Henrique Almeida (h3nc4). This build is a fork by Victor Eduardo (@victoresidoro) that adds Circle to Search on the gesture handle, tunes it to the system\'s own values (long-press timeout, touch slop and handle area) so it feels exactly like the stock gesture, and adds a Brazilian Portuguese translation and a language picker. Starting Circle to Search without root uses the technique of MiCTS by parallelcc and CTSLauncher by chenxiaolong. All three projects are free software under the GPL-3.0.</string>
+    <string name="credits_fork_title">Victor Eduardo (@victoresidoro) — author of this version</string>
+    <string name="credits_fork_intro">Conceived and led this fork, which reworked the app:</string>
+    <string-array name="credits_fork_items">
+        <item>Circle to Search on a long press of the navigation handle, with no root and no other app</item>
+        <item>Tuning to the system\'s own values (touch and hold delay, touch slop and handle area) for navigation as fluid as the stock one</item>
+        <item>One vibration per gesture</item>
+        <item>The First steps checklist, ordered and colour-coded, that guides the whole setup</item>
+        <item>The Control Center shortcut, to bring gestures back without restarting the phone</item>
+        <item>A safeguard that only lets the button bar be hidden while gestures are on</item>
+        <item>The Brazilian Portuguese translation with HyperOS\'s real screen names, and the language picker</item>
+        <item>Releases with the APK attached directly, a changelog and full documentation</item>
+    </string-array>
+    <string name="credits_original_title">Henrique Almeida (h3nc4) — creator of HyperGesture</string>
+    <string name="credits_original_body">Created the app: the gestures, the edge touch capture, app switching and the whole foundation this fork is built on.</string>
+    <string name="credits_cts_title">parallelcc (MiCTS) and chenxiaolong (CTSLauncher)</string>
+    <string name="credits_cts_body">Showed how to open Circle to Search without root by talking directly to Android\'s assistant service. The technique used here is theirs.</string>
+    <string name="credits_license">All three projects are free software under the GPL-3.0, and so is this one.</string>
     <string name="credits_link_hypergesture">Original HyperGesture (h3nc4)</string>
     <string name="credits_link_micts">MiCTS (parallelcc)</string>
     <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>

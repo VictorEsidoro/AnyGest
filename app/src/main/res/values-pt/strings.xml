@@ -112,7 +112,23 @@
     <!-- Créditos. -->
     <string name="section_credits">Créditos</string>
     <string name="section_credits_summary">As pessoas e os projetos por trás deste app</string>
-    <string name="credits_body">O HyperGesture foi criado por Henrique Almeida (h3nc4). Esta versão é um fork de Victor Eduardo (@victoresidoro) que adiciona o Circule para pesquisar na alça de navegação, ajusta tudo aos valores do próprio sistema (tempo de toque longo, tolerância de movimento e área da alça) para uma navegação tão fluida quanto a original, e traz a tradução para português do Brasil e o seletor de idioma. Abrir o Circule para pesquisar sem root usa a técnica do MiCTS, de parallelcc, e do CTSLauncher, de chenxiaolong. Os três projetos são software livre sob a licença GPL-3.0.</string>
+    <string name="credits_fork_title">Victor Eduardo (@victoresidoro) — autor desta versão</string>
+    <string name="credits_fork_intro">Idealizou e conduziu este fork, que reformulou o app:</string>
+    <string-array name="credits_fork_items">
+        <item>Circule para pesquisar com toque longo na alça de navegação, sem root e sem outro app</item>
+        <item>Ajuste aos valores do próprio sistema (Atraso ao tocar e pressionar, tolerância de movimento e área da alça) para uma navegação tão fluida quanto a original</item>
+        <item>Uma vibração só por gesto</item>
+        <item>Lista de Primeiros passos, em ordem e com cores, que guia toda a configuração</item>
+        <item>Atalho no Centro de controle, para religar os gestos sem reiniciar o celular</item>
+        <item>Proteção que só deixa esconder a barra de botões com os gestos ligados</item>
+        <item>Tradução para português do Brasil com os nomes reais das telas do HyperOS, e seletor de idioma</item>
+        <item>Versões publicadas com o APK direto, changelog e documentação completa</item>
+    </string-array>
+    <string name="credits_original_title">Henrique Almeida (h3nc4) — criador do HyperGesture</string>
+    <string name="credits_original_body">Criou o app: os gestos, a captura de toques nas bordas, a troca de apps e toda a base sobre a qual este fork foi construído.</string>
+    <string name="credits_cts_title">parallelcc (MiCTS) e chenxiaolong (CTSLauncher)</string>
+    <string name="credits_cts_body">Mostraram como abrir o Circule para pesquisar sem root, falando direto com o serviço de assistente do Android. A técnica usada aqui é a deles.</string>
+    <string name="credits_license">Os três projetos são software livre sob a licença GPL-3.0, e este também.</string>
     <string name="credits_link_hypergesture">HyperGesture original (h3nc4)</string>
     <string name="credits_link_micts">MiCTS (parallelcc)</string>
     <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>
