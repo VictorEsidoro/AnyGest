@@ -4,6 +4,18 @@ Changes in this fork ([VictorEsidoro/HyperGesture](https://github.com/VictorEsid
 
 Versões em português logo abaixo de cada versão.
 
+## Unreleased
+
+### Fixed
+
+- Credits name the fork's author as **Victor Eduardo (@victoresidoro)**, in the app (both languages), the READMEs and the copyright headers.
+
+### Português
+
+#### Correções
+
+- Os créditos passam a citar o autor do fork como **Victor Eduardo (@victoresidoro)**: no app (nos dois idiomas), nos READMEs e nos cabeçalhos de copyright.
+
 ## 1.0.0-victor.1
 
 Based on HyperGesture 1.0.0 (upstream commit `0922bda`).
