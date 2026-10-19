@@ -17,6 +17,7 @@
 
 package com.h3nc4.hypergesture.setup
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
@@ -74,6 +75,7 @@ class GestureTileService : TileService() {
     }
 
     // The Intent overload throws on Android 14+, and the PendingIntent one is missing below it.
+    @SuppressLint("StartActivityAndCollapseDeprecated")
     private fun open(intent: Intent) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
