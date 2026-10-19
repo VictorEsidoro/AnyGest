@@ -1,4 +1,4 @@
-// Copyright (C) 2026  Victor Esidoro
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
 // This file is part of HyperGesture.
 //

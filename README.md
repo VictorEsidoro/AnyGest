@@ -180,7 +180,7 @@ os gestos que funcionam continuam sendo os do HyperGesture — é só uma quest�
   **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)**, de **chenxiaolong** — mostraram
   como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de
   assistente do Android. A técnica usada aqui é a deles.
-- **Victor Esidoro ([VictorEsidoro](https://github.com/VictorEsidoro))** — idealizou e conduziu
+- **Victor Eduardo ([@victoresidoro](https://github.com/VictorEsidoro))** — idealizou e conduziu
   este fork: o Circule para pesquisar integrado ao app de gestos, o ajuste aos valores do
   próprio sistema para uma navegação tão fluida quanto a original, a tradução para o português
   com os nomes reais das telas do HyperOS e o seletor de idioma.
@@ -213,4 +213,4 @@ publicada pela Free Software Foundation. É distribuído **sem nenhuma garantia*
 completo em [LICENSE](LICENSE).
 
 Copyright (C) 2026 Henrique Almeida &lt;me@h3nc4.com&gt; — alterações deste fork (C) 2026
-Victor Esidoro.
+Victor Eduardo (@victoresidoro).

@@ -181,7 +181,7 @@ gestures that work are still HyperGesture's — it's only about screen space.
   **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)** by **chenxiaolong** — showed how
   to open Circle to Search **without root** by talking directly to Android's assistant service.
   The technique used here is theirs.
-- **Victor Esidoro ([VictorEsidoro](https://github.com/VictorEsidoro))** — conceived and led this
+- **Victor Eduardo ([@victoresidoro](https://github.com/VictorEsidoro))** — conceived and led this
   fork: Circle to Search built into the gesture app, tuning it to the system's own values for
   navigation as fluid as the stock one, the Portuguese translation with HyperOS's real screen
   names, and the language picker.
@@ -221,5 +221,5 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License along with HyperGesture. If
 not, see https://www.gnu.org/licenses/.
 
-Copyright (C) 2026  Henrique Almeida &lt;me@h3nc4.com&gt; — changes in this fork (C) 2026 Victor
-Esidoro.
+Copyright (C) 2026  Henrique Almeida &lt;me@h3nc4.com&gt; — changes in this fork (C) 2026 Victor Eduardo
+(@victoresidoro).
