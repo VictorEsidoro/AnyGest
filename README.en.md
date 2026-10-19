@@ -48,6 +48,11 @@ Also:
 - **Full Brazilian Portuguese translation**, using HyperOS 3's **exact** screen names.
 - **Language picker**: Automatic (Portuguese when the phone is in Portuguese, English otherwise),
   Português (Brasil) or English.
+- **First steps inside the app**: an ordered list with colours (red to do, green done, amber to
+  check) that opens each system screen and unlocks the next step only once the previous one is
+  done.
+- **Control Center shortcut**: shows whether gestures are running and, if HyperOS stops the
+  service while the button bar is hidden, takes you straight back to Accessibility — no restart.
 - **Credits** inside the app, and releases published here with the `.apk` attached directly, no
   zip.
 
@@ -71,37 +76,50 @@ steps, once.
 > **Sent the file through WhatsApp?** It sometimes arrives altered and the install fails with
 > "App not installed". Download it from the link above or move it through Google Drive.
 
-### Step 2 — Allow restricted settings (required)
+### Step 2 — Follow the app's First steps
 
-Android blocks sideloaded apps from using Accessibility until you allow it. **Skipping this step
-is the most common reason the app seems to do nothing.**
+Open HyperGesture. The **First steps** card at the top shows what is left, in order, and every
+step has a button that opens the right system screen:
 
-> Settings → Apps → HyperGesture → **App info** → **Advanced settings** section → turn on
-> **Allow restricted settings**
+| Colour | Means |
+|---|---|
+| 🔴 Red | Required and not done yet |
+| 🟢 Green | Done |
+| 🟡 Amber | The app cannot check it on its own: check it and tap **I did it** |
+| ⚪ Grey | Optional, or locked until the step before it |
 
-The option only appears until it has been allowed. If you don't see it, move on.
+The essential steps, in order:
 
-### Step 3 — Turn the gesture service on
-
-> Settings → **Accessibility** → **HyperGesture** → turn on **Use HyperGesture**
-
-Open the app: the first card should say **Active**. Try a gesture.
-
-### Step 4 — Keep HyperOS from turning it off
+1. **Allow restricted settings** — Settings → Apps → HyperGesture → **App info** → **Advanced
+   settings** section → turn on **Allow restricted settings**. Without it Android will not let
+   you turn Accessibility on. **Skipping this is the most common reason the app seems to do
+   nothing.** The option only appears until it has been allowed.
+2. **Turn HyperGesture on** — **Accessibility** → **HyperGesture** → turn on **Use
+   HyperGesture**.
+3. **Battery: no restrictions** — on the app's battery page, choose no restrictions.
+4. **Autostart** — turn it on for HyperGesture, so gestures come back by themselves after a
+   restart.
 
 HyperOS likes to stop background apps to save battery — and when that happens to an
-Accessibility app, its permission is switched off too. To prevent it:
-
-1. In the Security app, turn on **autostart** for HyperGesture (the **Keep me running** card
-   has a shortcut to that screen).
-2. In **App info** → battery, choose **no restrictions**.
-3. *(Optional)* In the recent apps screen, hold HyperGesture's card and tap the **lock**, so
-   "Clear all" won't close it.
+Accessibility app, its permission is switched off too. Steps 3 and 4 prevent it. *(Optional)*
+In the recent apps screen, hold HyperGesture's card and tap the **lock**, so "Clear all" won't
+close it.
 
 The exact names of these HyperOS screens vary by language; the Portuguese README lists the
 pt-BR ones exactly as HyperOS 3 shows them.
 
-### Step 5 — Turn on Circle to Search *(optional)*
+Once everything is green, the card folds to **All set**. If HyperOS stops the service later, it
+opens again by itself, showing what to redo.
+
+### Step 3 — Add the Control Center shortcut *(recommended)*
+
+In First steps, tap **Add to Control Center**. The shortcut shows whether gestures are running
+and, if they are not, tapping it opens HyperGesture's Accessibility page. The Control Center
+opens with a swipe from the top, so it works even with the button bar hidden and the service
+stopped. If the button does nothing, edit the Control Center and add the HyperGesture tile by
+hand.
+
+### Step 4 — Turn on Circle to Search *(optional)*
 
 1. In the app's **Circle to Search** card, turn on **Bottom edge long press = Circle to
    Search**.
@@ -109,11 +127,13 @@ pt-BR ones exactly as HyperOS 3 shows them.
 3. Done: touch and hold the middle of the bottom edge. The phone vibrates and Circle to Search
    opens.
 
-### Step 6 — Hide the button bar *(optional)*
+### Step 5 — Hide the button bar *(optional)*
 
-The **Navigation mode** card takes you to the system screen where you can pick gesture
-navigation and hide the three-button bar to reclaim the space. With a third-party launcher, the
-gestures that work are still HyperGesture's — it's only about screen space.
+The **Hide the button bar** step in First steps takes you to the system screen where you can
+pick gesture navigation and hide the three-button bar to reclaim the space. It unlocks only once
+HyperGesture is on: a hidden bar with no gestures leaves you with no way to navigate. With a
+third-party launcher, the gestures that work are still HyperGesture's — it's only about screen
+space.
 
 ---
 
@@ -121,9 +141,7 @@ gestures that work are still HyperGesture's — it's only about screen space.
 
 | Card | What you'll find |
 |---|---|
-| **Gesture service** | Whether your gestures are running, and a shortcut to Accessibility if not. |
-| **Keep me running** | Shortcuts to autostart and App info. |
-| **Navigation mode** | A shortcut to hide the three-button bar. |
+| **First steps** | What is left for gestures to work, in order and colour-coded, with a button for each system screen. Folds to "All set" when done. |
 | **App switching** | Turns on the sideways swipe along the bottom edge. Needs **usage access**. |
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |
@@ -131,6 +149,7 @@ gestures that work are still HyperGesture's — it's only about screen space.
 | **Gesture settings** | Widths, distances, times and vibration. Collapsed by default so a stray tap changes nothing. |
 | **Diagnostics** | Device details and the last error. Useful for reporting problems — nothing leaves the phone. |
 | **Credits** | Who made the app and where each part comes from. |
+| **Control Center shortcut** | Outside the app: shows whether gestures are running and opens Accessibility if not. |
 
 ---
 
@@ -163,8 +182,9 @@ gestures that work are still HyperGesture's — it's only about screen space.
 | Symptom | What to do |
 |---|---|
 | "App not installed" | If it came through WhatsApp, download it again from the link or through Drive. If a **test (debug)** build is installed, uninstall it first — the signature is different. |
-| The Accessibility switch won't turn on | You missed **Step 2** (Allow restricted settings). |
-| Gestures stop on their own / Accessibility turns off | Do **Step 4**. If you see "This service is malfunctioning", turn HyperGesture off and on again in Accessibility. |
+| The Accessibility switch won't turn on | You missed **Allow restricted settings** (the first item in First steps). |
+| Gestures stop on their own / Accessibility turns off | Check the battery and autostart items in First steps. If you see "This service is malfunctioning", turn HyperGesture off and on again in Accessibility. |
+| Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the HyperGesture shortcut: it opens Accessibility so you can turn it back on. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
 | A long press on the edge opens Circle to Search by accident | It only counts in the middle, over the handle. If it still gets in the way, turn off **Use the system touch and hold delay** and raise the manual time. |
 | Taps near the bottom edge feel slightly slow | Expected: the app has to briefly hold each edge touch to see whether it becomes a gesture. Lowering the **Edge activation width** shrinks the affected area. |
@@ -201,7 +221,7 @@ doesn't allow about the navigation bar is in
 
 In this fork, the [`fork-apk.yaml`](.github/workflows/fork-apk.yaml) workflow runs the tests and
 lint, builds the signed release APK and publishes a Release with the `.apk` whenever
-`versionName` changes. Signing uses the `ANDROID_KEYSTORE_B64` and `KEYSTORE_PASSWORD` secrets,
+`versionName` changes. `dev/...` branches go through the same tests and build an APK to download from Actions, without publishing a release. Signing uses the `ANDROID_KEYSTORE_B64` and `KEYSTORE_PASSWORD` secrets,
 the same names as upstream.
 
 ---

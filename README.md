@@ -49,6 +49,11 @@ E também:
   aparecem no HyperOS 3, para você achar cada opção sem adivinhar.
 - **Seletor de idioma**: Automático (português se o telefone estiver em português, inglês nos
   outros casos), Português (Brasil) ou English.
+- **Primeiros passos dentro do app**: uma lista em ordem, com cores (vermelho pendente, verde
+  feito, amarelo para conferir), que leva a cada tela do sistema e só libera o próximo passo
+  quando o anterior está feito.
+- **Atalho no Centro de controle**: mostra se os gestos estão funcionando e, se o HyperOS parar
+  o serviço com a barra de botões escondida, leva direto à Acessibilidade — sem reiniciar.
 - **Créditos** dentro do app e versões publicadas aqui com o `.apk` direto, sem zip.
 
 A lista completa, versão por versão, está no [CHANGELOG.md](CHANGELOG.md).
@@ -71,34 +76,49 @@ passos e você só faz uma vez.
 > **Mandou o arquivo pelo WhatsApp?** Às vezes o arquivo chega alterado e a instalação falha
 > com "O app não foi instalado". Baixe direto pelo link acima ou passe pelo Google Drive.
 
-### Passo 2 — Permitir configurações restritas (obrigatório)
+### Passo 2 — Seguir os Primeiros passos do app
 
-O Android bloqueia apps instalados fora da loja de usar Acessibilidade até você liberar.
-**Pular este passo é o motivo mais comum de o app parecer não fazer nada.**
+Abra o HyperGesture. O card **Primeiros passos**, no topo, mostra o que falta, em ordem, e cada
+passo tem um botão que abre a tela certa do sistema:
 
-> Configurações → Apps → HyperGesture → **Informações do app** → seção **Configurações
-> avançadas** → ative **Permitir configurações restritas**
+| Cor | Significa |
+|---|---|
+| 🔴 Vermelho | Obrigatório e ainda não feito |
+| 🟢 Verde | Feito |
+| 🟡 Amarelo | O app não consegue conferir sozinho: confira e toque em **Já fiz** |
+| ⚪ Cinza | Opcional, ou bloqueado até o passo anterior |
 
-Essa opção só aparece enquanto ainda não foi liberada. Se não aparecer, siga em frente.
+Os passos essenciais, na ordem:
 
-### Passo 3 — Ligar o serviço de gestos
-
-> Configurações → **Acessibilidade** → **HyperGesture** → ative **Usar HyperGesture**
-
-Abra o app: o primeiro card deve mostrar **Ativo**. Faça um gesto para testar.
-
-### Passo 4 — Não deixar o HyperOS desligar o app
+1. **Permitir configurações restritas** — Configurações → Apps → HyperGesture →
+   **Informações do app** → seção **Configurações avançadas** → ative **Permitir configurações
+   restritas**. Sem isso o Android não deixa ligar a Acessibilidade. **Pular este passo é o
+   motivo mais comum de o app parecer não fazer nada.** A opção só aparece enquanto ainda não
+   foi liberada.
+2. **Ligar o HyperGesture** — **Acessibilidade** → **HyperGesture** → ative **Usar
+   HyperGesture**.
+3. **Economia de bateria: Nenhuma restrição** — em **Informações do app** → **Energia**, na
+   seção **Economia de bateria**, escolha **Nenhuma restrição**.
+4. **Início automático em segundo plano** — ative para o HyperGesture, para os gestos voltarem
+   sozinhos depois de reiniciar.
 
 O HyperOS costuma encerrar apps em segundo plano para economizar bateria — e quando isso
-acontece com um app de Acessibilidade, a permissão é desligada junto. Para evitar:
+acontece com um app de Acessibilidade, a permissão é desligada junto. Os passos 3 e 4 evitam
+isso. *(Opcional)* Na tela de apps recentes, segure o card do HyperGesture e toque no
+**cadeado**, para o "Limpar tudo" não fechá-lo.
 
-1. No app Segurança, ative o **Início automático em segundo plano** para o HyperGesture
-   (o card **Mantenha o app ativo** tem um atalho para essa tela).
-2. Em **Informações do app** → **Energia**, escolha **Nenhuma restrição**.
-3. *(Opcional)* Na tela de apps recentes, segure o card do HyperGesture e toque no **cadeado**,
-   para o "Limpar tudo" não fechá-lo.
+Quando tudo estiver verde, o card encolhe para **Tudo pronto**. Se o HyperOS parar o serviço
+depois, ele abre de novo sozinho, mostrando o que refazer.
 
-### Passo 5 — Ativar o Circule para pesquisar *(opcional)*
+### Passo 3 — Adicionar o atalho no Centro de controle *(recomendado)*
+
+Nos Primeiros passos, toque em **Adicionar ao Centro de controle**. O atalho mostra se os
+gestos estão funcionando e, se não estiverem, um toque nele abre a Acessibilidade do
+HyperGesture. Como o Centro de controle abre deslizando do topo, ele funciona mesmo com a barra
+de botões escondida e o serviço parado. Se o botão não fizer nada, edite o Centro de controle e
+adicione o atalho do HyperGesture manualmente.
+
+### Passo 4 — Ativar o Circule para pesquisar *(opcional)*
 
 1. No app, no card **Circule para pesquisar**, ative **Toque longo na borda inferior =
    Circule para pesquisar**.
@@ -107,11 +127,13 @@ acontece com um app de Acessibilidade, a permissão é desligada junto. Para evi
 3. Pronto: toque e segure no meio da borda inferior. O celular vibra e o Circule para
    pesquisar abre.
 
-### Passo 6 — Esconder a barra de botões *(opcional)*
+### Passo 5 — Esconder a barra de botões *(opcional)*
 
-O card **Modo de navegação** leva até a tela do sistema onde você pode escolher **Navegação
-por gestos** e esconder a barra de três botões para ganhar espaço. Com launcher de terceiros,
-os gestos que funcionam continuam sendo os do HyperGesture — é só uma questão de espaço na tela.
+O passo **Esconder a barra de botões**, nos Primeiros passos, leva até a tela do sistema onde
+você pode escolher **Navegação por gestos** e esconder a barra de três botões para ganhar
+espaço. Ele só libera depois que o HyperGesture estiver ligado: barra escondida sem gestos deixa
+você sem como navegar. Com launcher de terceiros, os gestos que funcionam continuam sendo os do
+HyperGesture — é só uma questão de espaço na tela.
 
 ---
 
@@ -119,9 +141,7 @@ os gestos que funcionam continuam sendo os do HyperGesture — é só uma quest�
 
 | Card | O que você encontra |
 |---|---|
-| **Serviço de gestos** | Se os gestos estão rodando, e um atalho para Acessibilidade se não estiverem. |
-| **Mantenha o app ativo** | Atalhos para Início automático em segundo plano e Informações do app. |
-| **Modo de navegação** | Atalho para esconder a barra de três botões. |
+| **Primeiros passos** | O que falta para os gestos funcionarem, em ordem e com cores, e um botão para cada tela do sistema. Encolhe para "Tudo pronto" quando acaba. |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
@@ -129,6 +149,7 @@ os gestos que funcionam continuam sendo os do HyperGesture — é só uma quest�
 | **Configurações dos gestos** | Larguras, distâncias, tempos e vibração. Fica recolhido para um toque sem querer não mexer em nada. |
 | **Diagnóstico** | Detalhes do aparelho e o último erro. Útil para relatar problemas — nada sai do celular. |
 | **Créditos** | Quem fez o app e de onde vem cada parte. |
+| **Atalho no Centro de controle** | Fora do app: mostra se os gestos estão ativos e leva à Acessibilidade se não estiverem. |
 
 ---
 
@@ -162,8 +183,9 @@ os gestos que funcionam continuam sendo os do HyperGesture — é só uma quest�
 | Sintoma | O que fazer |
 |---|---|
 | "O app não foi instalado" | Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
-| A chave de Acessibilidade não liga | Faltou o **Passo 2** (Permitir configurações restritas). |
-| Os gestos param sozinhos / a Acessibilidade desliga | Faça o **Passo 4**. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o HyperGesture em Acessibilidade. |
+| A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
+| Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria e Início automático nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o HyperGesture em Acessibilidade. |
+| Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do HyperGesture: ele abre a Acessibilidade para religar. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |
 | Toque longo na borda abre o Circule para pesquisar sem querer | Ele só vale no centro, sobre a alça. Se ainda atrapalhar, desligue **Usar o Atraso ao tocar e pressionar do sistema** e aumente o tempo manual. |
 | Toques perto da borda de baixo parecem um pouco lentos | É esperado: o app precisa "segurar" cada toque na borda para ver se vira gesto. Diminuir a **Largura da área de ativação** reduz a área afetada. |
@@ -200,7 +222,7 @@ permite ou não sobre a barra de navegação está em
 
 Neste fork, o workflow [`fork-apk.yaml`](.github/workflows/fork-apk.yaml) roda os testes e o
 lint, gera o APK release assinado e publica um Release com o `.apk` sempre que o `versionName`
-muda. A assinatura usa os segredos `ANDROID_KEYSTORE_B64` e `KEYSTORE_PASSWORD`, os mesmos
+muda. Branches `dev/...` passam pelos mesmos testes e geram o APK para baixar em Actions, sem publicar release. A assinatura usa os segredos `ANDROID_KEYSTORE_B64` e `KEYSTORE_PASSWORD`, os mesmos
 nomes do projeto original.
 
 ---
