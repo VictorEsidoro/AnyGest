@@ -18,15 +18,15 @@
 package com.h3nc4.hypergesture.ui
 
 import android.app.Activity
-import android.app.AppOpsManager
 import android.app.LocaleManager
+import android.app.StatusBarManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.os.LocaleList
-import android.os.Process
 import android.provider.Settings
 import android.view.ViewConfiguration
 import androidx.activity.ComponentActivity
@@ -34,7 +34,6 @@ import androidx.annotation.RequiresApi
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,12 +43,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +61,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,7 +69,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -84,14 +81,14 @@ import com.h3nc4.hypergesture.R
 import com.h3nc4.hypergesture.diagnostics.Diagnostics
 import com.h3nc4.hypergesture.diagnostics.DiagnosticsCollector
 import com.h3nc4.hypergesture.gesture.GestureConfiguration
-import com.h3nc4.hypergesture.navigation.EnableRequestOutcome
 import com.h3nc4.hypergesture.navigation.NavigationIntegrationFactory
 import com.h3nc4.hypergesture.settings.GestureSettingsRepository
+import com.h3nc4.hypergesture.setup.GestureTileService
+import com.h3nc4.hypergesture.setup.SetupChecklist
+import com.h3nc4.hypergesture.setup.SetupFactsReader
+import com.h3nc4.hypergesture.setup.SetupStep
+import com.h3nc4.hypergesture.setup.SetupStore
 import com.h3nc4.hypergesture.ui.theme.HyperGestureTheme
-import com.h3nc4.hypergesture.ui.theme.onSuccessContainer
-import com.h3nc4.hypergesture.ui.theme.onWarningContainer
-import com.h3nc4.hypergesture.ui.theme.successContainer
-import com.h3nc4.hypergesture.ui.theme.warningContainer
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -121,6 +118,16 @@ private fun HyperGestureScreen(
     val integration = remember { NavigationIntegrationFactory.create(context) }
 
     var diagnostics by remember { mutableStateOf(DiagnosticsCollector.collect(context)) }
+    // Bumped on every resume and confirmation: the checklist reads system state that changes
+    // in other apps (Settings), which never recomposes this screen on its own.
+    var setupRevision by remember { mutableIntStateOf(0) }
+    LifecycleResumeEffect(Unit) {
+        setupRevision++
+        onPauseOrDispose {}
+    }
+    val setupStates = remember(configuration, setupRevision) {
+        SetupChecklist.evaluate(SetupFactsReader.read(context, configuration))
+    }
     var settingsExpanded by remember { mutableStateOf(false) }
     var diagnosticsExpanded by remember { mutableStateOf(false) }
     var creditsExpanded by remember { mutableStateOf(false) }
@@ -134,19 +141,28 @@ private fun HyperGestureScreen(
     ) {
         Header()
 
-        AccessibilityStatusCard(enabled = diagnostics.accessibilityServiceEnabled) {
-            context.startFirst(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        }
-
-        SurviveRebootCard(
-            onOpenAutostart = { openAutostart(context) },
-            onOpenAppInfo = { openAppInfo(context) },
-        )
-
-        NavigationStatusCard(
-            available = diagnostics.navigationIntegrationAvailable,
-            onRequestEnable = integration::requestEnable,
-            onStateChanged = { diagnostics = DiagnosticsCollector.collect(context) },
+        SetupCard(
+            states = setupStates,
+            onAction = { step ->
+                when (step) {
+                    // Both live on the app's own info page, in sections HyperOS names itself.
+                    SetupStep.RESTRICTED_SETTINGS, SetupStep.BATTERY -> openAppInfo(context)
+                    SetupStep.ACCESSIBILITY -> context.startFirst(
+                        GestureTileService.accessibilityIntent(context),
+                        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
+                    )
+                    SetupStep.AUTOSTART -> openAutostart(context)
+                    SetupStep.HIDE_NAVIGATION_BAR -> integration.requestEnable()
+                    SetupStep.QUICK_SETTINGS_TILE -> requestTile(context) { setupRevision++ }
+                    SetupStep.USAGE_ACCESS ->
+                        context.startFirst(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                    SetupStep.DIGITAL_ASSISTANT -> openAssistantSettings(context)
+                }
+            },
+            onConfirm = { step ->
+                SetupStore(context).confirm(step)
+                setupRevision++
+            },
         )
 
         // Never collapsed: this is the one gesture that needs a permission before it works,
@@ -219,170 +235,36 @@ private fun Header() {
     }
 }
 
-@Composable
-private fun AccessibilityStatusCard(enabled: Boolean, onOpenSettings: () -> Unit) {
-    StatusCard(
-        title = stringResource(R.string.status_accessibility_title),
-        status = StatusBadgeState(
-            healthy = enabled,
-            healthyLabel = stringResource(R.string.status_active),
-            unhealthyLabel = stringResource(R.string.status_inactive),
-        ),
-        body = stringResource(
-            if (enabled) {
-                R.string.status_accessibility_enabled
-            } else {
-                R.string.status_accessibility_disabled
-            },
-        ),
-        hint = stringResource(R.string.status_accessibility_restricted_hint)
-            .takeUnless { enabled },
-        actionLabel = stringResource(R.string.action_open_accessibility_settings),
-        onAction = onOpenSettings,
-    )
-}
+/**
+ * VOICE_INPUT_SETTINGS is AOSP's "assist and voice input" screen, where the digital assistant
+ * app is chosen; the default apps list is the fallback on builds that do not route it there.
+ */
+private fun openAssistantSettings(context: Context) = context.startFirst(
+    Intent(Settings.ACTION_VOICE_INPUT_SETTINGS),
+    Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS),
+    Intent(Settings.ACTION_SETTINGS),
+)
 
-@Composable
-private fun NavigationStatusCard(
-    available: Boolean,
-    onRequestEnable: () -> EnableRequestOutcome,
-    onStateChanged: () -> Unit,
-) {
-    // The outcome is held, not its message: resolving the string during composition keeps
-    // it correct across a locale or configuration change.
-    val lastOutcome = remember { mutableStateOf<EnableRequestOutcome?>(null) }
-    StatusCard(
-        title = stringResource(R.string.status_navigation_title),
-        status = StatusBadgeState(
-            healthy = available,
-            healthyLabel = stringResource(R.string.status_navigation_available),
-            unhealthyLabel = stringResource(R.string.status_navigation_unavailable),
-        ),
-        body = stringResource(
-            if (available) {
-                R.string.status_navigation_available_body
-            } else {
-                R.string.status_navigation_unavailable_body
-            },
-        ),
-        hint = when (val shown = lastOutcome.value) {
-            null -> null
-            else -> enableOutcomeMessage(shown)
-        },
-        actionLabel = stringResource(R.string.action_open_navigation_settings)
-            .takeIf { available },
-        onAction = {
-            lastOutcome.value = onRequestEnable()
-            onStateChanged()
-        },
-    )
-}
-
-@Composable
-private fun enableOutcomeMessage(outcome: EnableRequestOutcome): String = when (outcome) {
-    is EnableRequestOutcome.LaunchedSettings -> stringResource(R.string.outcome_launched)
-    EnableRequestOutcome.Unsupported -> stringResource(R.string.outcome_unsupported)
-    is EnableRequestOutcome.Failed ->
-        stringResource(R.string.outcome_failed, outcome.reason)
-}
-
-/** Healthy plus both labels travel together; splitting them bloated every call site. */
-private data class StatusBadgeState(
-    val healthy: Boolean,
-    val healthyLabel: String,
-    val unhealthyLabel: String,
-) {
-    val label: String get() = if (healthy) healthyLabel else unhealthyLabel
-}
-
-@Composable
-private fun StatusCard(
-    title: String,
-    status: StatusBadgeState,
-    body: String,
-    hint: String?,
-    actionLabel: String?,
-    onAction: () -> Unit,
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+/**
+ * Android 13's one-tap prompt to place the tile. Builds that refuse it still let the user add
+ * the tile by editing the Control Center, which the step's text explains.
+ */
+private fun requestTile(context: Context, onResult: () -> Unit) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val statusBar = context.getSystemService(StatusBarManager::class.java) ?: return
+    runCatching {
+        statusBar.requestAddTileService(
+            GestureTileService.component(context),
+            context.getString(R.string.app_name),
+            Icon.createWithResource(context, R.drawable.ic_tile),
+            context.mainExecutor,
+        ) { result ->
+            if (result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ||
+                result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 12.dp),
-                )
-                StatusBadge(status.healthy, status.label)
+                SetupStore(context).tileAdded = true
             }
-            Text(text = body, style = MaterialTheme.typography.bodyMedium)
-            hint?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            actionLabel?.let {
-                FilledTonalButton(onClick = onAction) { Text(it) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusBadge(healthy: Boolean, label: String) {
-    val background = if (healthy) successContainer else warningContainer
-    val foreground: Color = if (healthy) onSuccessContainer else onWarningContainer
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelMedium,
-        color = foreground,
-        modifier = Modifier
-            .background(background, RoundedCornerShape(50))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    )
-}
-
-@Composable
-private fun SurviveRebootCard(onOpenAutostart: () -> Unit, onOpenAppInfo: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.survive_reboot_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = stringResource(R.string.survive_reboot_body),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            // Stacked, not side by side: HyperOS's own screen names are long in some
-            // languages, and a Row squeezes the second button into one letter per line.
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = onOpenAutostart) {
-                    Text(stringResource(R.string.action_open_autostart))
-                }
-                FilledTonalButton(onClick = onOpenAppInfo) {
-                    Text(stringResource(R.string.action_open_app_info))
-                }
-            }
+            onResult()
         }
     }
 }
@@ -726,16 +608,7 @@ private fun CircleToSearchCard(
                             .weight(1f)
                             .padding(end = 12.dp),
                     )
-                    TextButton(onClick = {
-                        // VOICE_INPUT_SETTINGS is AOSP's "assist and voice input" screen,
-                        // where the digital assistant app is chosen; the default apps list
-                        // is the fallback on builds that do not route it there.
-                        context.startFirst(
-                            Intent(Settings.ACTION_VOICE_INPUT_SETTINGS),
-                            Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS),
-                            Intent(Settings.ACTION_SETTINGS),
-                        )
-                    }) {
+                    TextButton(onClick = { openAssistantSettings(context) }) {
                         Text(stringResource(R.string.action_open_default_apps))
                     }
                 }
@@ -846,16 +719,16 @@ private fun CreditsContent() {
 @Composable
 private fun UsageAccessRow() {
     val context = LocalContext.current
-    var granted by remember { mutableStateOf(hasUsageAccess(context)) }
+    var granted by remember { mutableStateOf(SetupFactsReader.hasUsageAccess(context)) }
     // Settings grants the op in another activity, so the row reads it again on the way back.
     LifecycleResumeEffect(Unit) {
-        granted = hasUsageAccess(context)
+        granted = SetupFactsReader.hasUsageAccess(context)
         onPauseOrDispose {}
     }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { granted = hasUsageAccess(context) }
+            .clickable { granted = SetupFactsReader.hasUsageAccess(context) }
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -878,20 +751,6 @@ private fun UsageAccessRow() {
             }
         }
     }
-}
-
-// The app op, not the permission: PACKAGE_USAGE_STATS reads as denied through
-// checkSelfPermission even once the user has allowed it in Settings.
-private fun hasUsageAccess(context: Context): Boolean {
-    val ops = context.getSystemService(AppOpsManager::class.java) ?: return false
-    val mode = runCatching {
-        ops.unsafeCheckOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            Process.myUid(),
-            context.packageName,
-        )
-    }.getOrNull()
-    return mode == AppOpsManager.MODE_ALLOWED
 }
 
 @Composable

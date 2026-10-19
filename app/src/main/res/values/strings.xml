@@ -41,24 +41,10 @@
     <string name="gesture_circle_to_search_how">Touch and hold the middle of the bottom edge, where the gesture handle sits (when turned on)</string>
 
     <!-- Capability 1: the accessibility gesture service. -->
-    <string name="status_accessibility_title">Gesture service</string>
-    <string name="status_active">Active</string>
-    <string name="status_inactive">Not running</string>
-    <string name="status_accessibility_enabled">Your edge gestures are working.</string>
-    <string name="status_accessibility_disabled">Turn HyperGesture on under Accessibility to start using gestures.</string>
-    <string name="status_accessibility_restricted_hint">If the switch does nothing, first allow restricted settings: Apps → HyperGesture → menu → Allow restricted settings.</string>
     <string name="action_open_accessibility_settings">Open accessibility settings</string>
 
     <!-- Capability 2: the HyperOS navigation integration. -->
-    <string name="status_navigation_title">Navigation bar</string>
-    <string name="status_navigation_available">Available</string>
-    <string name="status_navigation_unavailable">Unavailable</string>
-    <string name="status_navigation_available_body">You can hide the navigation bar to reclaim screen space. Your gestures keep working either way.</string>
-    <string name="status_navigation_unavailable_body">This device offers no way for an app to change the navigation bar. Your gestures work regardless.</string>
     <string name="action_open_navigation_settings">Open navigation settings</string>
-    <string name="outcome_launched">Opened navigation settings — choose gesture navigation to hide the bar.</string>
-    <string name="outcome_unsupported">Not supported on this device. This is a platform restriction, not a HyperGesture problem.</string>
-    <string name="outcome_failed">Could not open the screen: %1$s</string>
 
     <!-- Collapsed sections. -->
     <string name="section_gestures">Gesture settings</string>
@@ -96,8 +82,6 @@
     <string name="toast_circle_to_search_failed">Circle to Search did not start. Check that Google is the default digital assistant app.</string>
     <string name="action_reset_defaults">Reset to defaults</string>
 
-    <string name="survive_reboot_title">Keep me running</string>
-    <string name="survive_reboot_body">HyperOS stops the gestures unless both autostart and battery restriction settings are set. Under App info, set Power to No restrictions.</string>
     <string name="action_open_autostart">Autostart</string>
     <string name="action_open_app_info">App info</string>
 
@@ -140,4 +124,42 @@
     <string name="url_credits_micts" translatable="false">https://github.com/parallelcc/MiCTS</string>
     <string name="url_credits_ctslauncher" translatable="false">https://github.com/chenxiaolong/CTSLauncher</string>
     <string name="url_credits_fork" translatable="false">https://github.com/VictorEsidoro/HyperGesture</string>
+
+    <!-- First steps checklist -->
+    <string name="setup_title">First steps</string>
+    <string name="setup_summary_complete">All set: your gestures are working.</string>
+    <string name="setup_summary_blocking">Gestures are not working yet. Follow the steps in order.</string>
+    <string name="setup_summary_almost">Gestures work. A few steps are left to check.</string>
+    <string name="setup_badge_complete">All set</string>
+    <string name="setup_badge_blocking">Action needed</string>
+    <string name="setup_badge_almost">Almost there</string>
+    <string name="setup_status_done">Done</string>
+    <string name="setup_status_required">To do</string>
+    <string name="setup_status_unverified">Check</string>
+    <string name="setup_status_optional">Optional</string>
+    <string name="setup_status_locked">Locked</string>
+    <string name="setup_action_confirm">I did it</string>
+    <string name="setup_locked_body">Finish the step above first.</string>
+    <string name="setup_restricted_title">Allow restricted settings</string>
+    <string name="setup_restricted_body">In App info, open the Advanced settings section and turn on Allow restricted settings. Without it Android will not let HyperGesture use Accessibility. The option only appears until it has been allowed; if you do not see it, tap I did it.</string>
+    <string name="setup_accessibility_title">Turn HyperGesture on</string>
+    <string name="setup_accessibility_body">In Accessibility, tap HyperGesture and turn on Use HyperGesture.</string>
+    <string name="setup_battery_title">Battery: no restrictions</string>
+    <string name="setup_battery_body">In App info, open the battery page and choose no restrictions, so HyperOS does not stop your gestures. If this step stays amber after you chose it, tap I did it.</string>
+    <string name="setup_autostart_title">Autostart</string>
+    <string name="setup_autostart_body">Turn on autostart for HyperGesture so your gestures come back on their own after a restart. HyperOS does not let apps check this, so tap I did it once it is on.</string>
+    <string name="setup_navigation_title">Hide the button bar</string>
+    <string name="setup_navigation_body">In Navigation mode, choose gesture navigation to hide the three-button bar and gain screen space. Your gestures work either way.</string>
+    <string name="setup_navigation_locked_body">Only after HyperGesture is on: with the service stopped, a hidden bar leaves you with no way to navigate.</string>
+    <string name="setup_tile_title">Control Center shortcut</string>
+    <string name="setup_tile_body">A button in the Control Center that shows whether your gestures are running. If HyperOS stops them while the button bar is hidden, it takes you straight back to Accessibility. If the button below does nothing, edit the Control Center and add the HyperGesture tile by hand.</string>
+    <string name="setup_tile_action">Add to Control Center</string>
+    <string name="setup_usage_title">Usage access (app switching)</string>
+    <string name="setup_usage_body">Switching apps from the bottom edge needs usage access to know which app came before.</string>
+    <string name="setup_assistant_title">Google as the digital assistant (Circle to Search)</string>
+    <string name="setup_assistant_body">Circle to Search needs the Google app as the default digital assistant app. If it already is, tap I did it.</string>
+
+    <!-- Control Center tile -->
+    <string name="tile_active">Active</string>
+    <string name="tile_inactive">Stopped · tap to turn on</string>
 </resources>

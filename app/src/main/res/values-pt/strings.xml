@@ -43,24 +43,10 @@
     <string name="gesture_circle_to_search_how">Toque e segure no meio da borda inferior, onde fica a alça de navegação (quando ativado)</string>
 
     <!-- Capability 1: the accessibility gesture service. -->
-    <string name="status_accessibility_title">Serviço de gestos</string>
-    <string name="status_active">Ativo</string>
-    <string name="status_inactive">Parado</string>
-    <string name="status_accessibility_enabled">Seus gestos de borda estão funcionando.</string>
-    <string name="status_accessibility_disabled">Para usar os gestos, abra Acessibilidade, toque em HyperGesture e ative \"Usar HyperGesture\".</string>
-    <string name="status_accessibility_restricted_hint">Se a chave não ligar, ative antes \"Permitir configurações restritas\" em Informações do app do HyperGesture, na seção Configurações avançadas. A opção só aparece enquanto ainda não foi liberada.</string>
     <string name="action_open_accessibility_settings">Abrir Acessibilidade</string>
 
     <!-- Capability 2: the HyperOS navigation integration. -->
-    <string name="status_navigation_title">Modo de navegação</string>
-    <string name="status_navigation_available">Disponível</string>
-    <string name="status_navigation_unavailable">Indisponível</string>
-    <string name="status_navigation_available_body">Você pode esconder a barra de navegação para ganhar espaço na tela. Seus gestos funcionam de qualquer jeito.</string>
-    <string name="status_navigation_unavailable_body">Este aparelho não permite que um app mude a barra de navegação. Seus gestos funcionam mesmo assim.</string>
     <string name="action_open_navigation_settings">Abrir Modo de navegação</string>
-    <string name="outcome_launched">Modo de navegação aberto: escolha Navegação por gestos para esconder a barra.</string>
-    <string name="outcome_unsupported">Não é compatível com este aparelho. É uma restrição do sistema, não um problema do HyperGesture.</string>
-    <string name="outcome_failed">Não foi possível abrir a tela: %1$s</string>
 
     <!-- Collapsed sections. -->
     <string name="section_gestures">Configurações dos gestos</string>
@@ -98,8 +84,6 @@
     <string name="toast_circle_to_search_failed">O Circule para pesquisar não abriu. Confira se o Google é o App assistente digital, em Assistivo e voz.</string>
     <string name="action_reset_defaults">Restaurar padrões</string>
 
-    <string name="survive_reboot_title">Mantenha o app ativo</string>
-    <string name="survive_reboot_body">O HyperOS interrompe os gestos se o app não tiver Início automático em segundo plano e continuar sob a Economia de bateria. Em Informações do app → Energia, escolha Nenhuma restrição.</string>
     <string name="action_open_autostart">Início automático em segundo plano</string>
     <string name="action_open_app_info">Informações do app</string>
 
@@ -133,4 +117,42 @@
     <string name="credits_link_micts">MiCTS (parallelcc)</string>
     <string name="credits_link_ctslauncher">CTSLauncher (chenxiaolong)</string>
     <string name="credits_link_fork">Este fork (@victoresidoro)</string>
+
+    <!-- Lista de primeiros passos -->
+    <string name="setup_title">Primeiros passos</string>
+    <string name="setup_summary_complete">Tudo pronto: seus gestos estão funcionando.</string>
+    <string name="setup_summary_blocking">Os gestos ainda não funcionam. Siga os passos na ordem.</string>
+    <string name="setup_summary_almost">Os gestos funcionam. Faltam alguns passos para conferir.</string>
+    <string name="setup_badge_complete">Tudo pronto</string>
+    <string name="setup_badge_blocking">Falta configurar</string>
+    <string name="setup_badge_almost">Quase lá</string>
+    <string name="setup_status_done">Feito</string>
+    <string name="setup_status_required">Pendente</string>
+    <string name="setup_status_unverified">Confira</string>
+    <string name="setup_status_optional">Opcional</string>
+    <string name="setup_status_locked">Bloqueado</string>
+    <string name="setup_action_confirm">Já fiz</string>
+    <string name="setup_locked_body">Conclua o passo anterior primeiro.</string>
+    <string name="setup_restricted_title">Permitir configurações restritas</string>
+    <string name="setup_restricted_body">Em Informações do app, na seção Configurações avançadas, ative Permitir configurações restritas. Sem isso o Android não deixa o HyperGesture usar a Acessibilidade. A opção só aparece enquanto ainda não foi liberada; se ela não aparecer, toque em Já fiz.</string>
+    <string name="setup_accessibility_title">Ligar o HyperGesture</string>
+    <string name="setup_accessibility_body">Em Acessibilidade, toque em HyperGesture e ative Usar HyperGesture.</string>
+    <string name="setup_battery_title">Economia de bateria: Nenhuma restrição</string>
+    <string name="setup_battery_body">Em Informações do app → Energia, na seção Economia de bateria, escolha Nenhuma restrição, para o HyperOS não interromper seus gestos. Se o passo continuar amarelo depois de escolher, toque em Já fiz.</string>
+    <string name="setup_autostart_title">Início automático em segundo plano</string>
+    <string name="setup_autostart_body">Ative para o HyperGesture, para os gestos voltarem sozinhos depois de reiniciar o celular. O HyperOS não deixa o app conferir isso, então toque em Já fiz depois de ativar.</string>
+    <string name="setup_navigation_title">Esconder a barra de botões</string>
+    <string name="setup_navigation_body">Em Modo de navegação, escolha Navegação por gestos para esconder a barra de três botões e ganhar espaço na tela. Seus gestos funcionam de qualquer jeito.</string>
+    <string name="setup_navigation_locked_body">Só depois que o HyperGesture estiver ligado: com o serviço parado, a barra escondida deixa você sem como navegar.</string>
+    <string name="setup_tile_title">Atalho no Centro de controle</string>
+    <string name="setup_tile_body">Um botão no Centro de controle que mostra se seus gestos estão funcionando. Se o HyperOS parar o serviço com a barra de botões escondida, ele leva direto para a Acessibilidade. Se o botão abaixo não fizer nada, edite o Centro de controle e adicione o atalho do HyperGesture manualmente.</string>
+    <string name="setup_tile_action">Adicionar ao Centro de controle</string>
+    <string name="setup_usage_title">Dados de uso do app (troca de apps)</string>
+    <string name="setup_usage_body">Trocar de app pela borda inferior precisa do acesso aos Dados de uso do app, para saber qual foi o app anterior.</string>
+    <string name="setup_assistant_title">Google como App assistente digital (Circule para pesquisar)</string>
+    <string name="setup_assistant_body">O Circule para pesquisar precisa do app Google como App assistente digital, em Assistivo e voz. Se já estiver assim, toque em Já fiz.</string>
+
+    <!-- Atalho do Centro de controle -->
+    <string name="tile_active">Ativo</string>
+    <string name="tile_inactive">Parado · toque para ligar</string>
 </resources>

@@ -1,4 +1,4 @@
-# Builds this fork's signed release APK and publishes it as a workflow artifact.
+# Builds this fork's signed release APK; on the release branch, publishes it as a GitHub Release.
 # Fork-only helper: upstream's own CI runs on main/release branches and is untouched.
 #
 # Signing uses the same repository secrets as upstream's release workflow:
@@ -11,6 +11,8 @@ on:
   push:
     branches:
       - "circle-to-search"
+      # Work in progress: tested and built into a downloadable APK, never published.
+      - "dev/**"
   workflow_dispatch:
 
 permissions:
@@ -103,6 +105,8 @@ jobs:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
     needs: release-apk
+    # Only the release branch publishes; dev/** builds stop at the workflow artifact.
+    if: github.ref == 'refs/heads/circle-to-search'
     permissions:
       contents: write
     steps:
