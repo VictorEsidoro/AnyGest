@@ -1,6 +1,6 @@
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-name: HyperGesture Release
+name: AnyGest Release
 
 on:
   push:
@@ -89,12 +89,12 @@ jobs:
             "${{ needs.prepare.outputs.dev-image }}" \
             -c 'set -e
               apksigner="$(find "${ANDROID_HOME}/build-tools" -name apksigner | sort | tail -n1)"
-              "${apksigner}" verify --print-certs /apk/hypergesture.apk'
+              "${apksigner}" verify --print-certs /apk/anygest.apk'
       - name: Run actions/upload-artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: apk
-          path: hypergesture.apk
+          path: anygest.apk
           retention-days: 1
 
   release:
@@ -112,7 +112,7 @@ jobs:
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           generate_release_notes: true
-          files: hypergesture.apk
+          files: anygest.apk
 
   bump-version-code:
     name: Bump versionCode for the next release

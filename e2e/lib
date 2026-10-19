@@ -1,6 +1,6 @@
 # Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 #
-# This file is part of HyperGesture.
+# This file is part of AnyGest, based on HyperGesture.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,19 +20,19 @@
 # Sourced by every script here. A suite decides what to assert, this decides how to say it.
 
 # Find the checkout by locating this file, so a suite runs from anywhere.
-if [ -z "${HG_ROOT:-}" ]; then
+if [ -z "${ANYGEST_ROOT:-}" ]; then
   _start="$(dirname -- "$0")"
   _d="$(CDPATH='' cd -- "${_start}" 2>/dev/null && pwd)" || _d="${PWD}"
   while [ "${_d}" != '/' ] && [ ! -f "${_d}/e2e/lib" ]; do
     _d="$(dirname "${_d}")"
   done
   if [ ! -f "${_d}/e2e/lib" ]; then
-    echo "cannot locate the HyperGesture checkout, set HG_ROOT" >&2
+    echo "cannot locate the AnyGest checkout, set ANYGEST_ROOT" >&2
     exit 1
   fi
-  HG_ROOT="${_d}"
+  ANYGEST_ROOT="${_d}"
 fi
-cd "${HG_ROOT}" || exit 1
+cd "${ANYGEST_ROOT}" || exit 1
 
 ################################################################################
 # Tools and constants
@@ -108,9 +108,9 @@ reset_log() {
   "${ADB_BIN}" logcat -c >/dev/null 2>&1 || true
 }
 
-# Prints this case's HyperGesture log lines.
+# Prints this case's AnyGest log lines.
 gesture_log() {
-  "${ADB_BIN}" logcat -d -s HyperGesture 2>/dev/null | tr -d '\r'
+  "${ADB_BIN}" logcat -d -s AnyGest 2>/dev/null | tr -d '\r'
 }
 
 # assert_log <description> <grep-pattern>
@@ -211,7 +211,7 @@ warm_input() {
 # The strip spans the navigation-bar inset, but SystemUI outranks us there and claims a
 # synthetic touch starting on the bar. So swipes start inside our own strip instead.
 read_strip_height() {
-  "${ADB_BIN}" logcat -d -s HyperGesture 2>/dev/null | tr -d '\r' |
+  "${ADB_BIN}" logcat -d -s AnyGest 2>/dev/null | tr -d '\r' |
     sed -n 's/.*strip BOTTOM installed [0-9]*x\([0-9]*\).*/\1/p' | tail -1
 }
 
@@ -250,8 +250,8 @@ geometry() {
   done
   if [ -z "${strip_h}" ]; then
     echo "The strips were never installed (no 'strip BOTTOM installed' in 30s)." >&2
-    echo "Last HyperGesture log lines:" >&2
-    "${ADB_BIN}" logcat -d -s HyperGesture 2>/dev/null | tr -d '\r' | tail -10 | sed 's/^/    /' >&2
+    echo "Last AnyGest log lines:" >&2
+    "${ADB_BIN}" logcat -d -s AnyGest 2>/dev/null | tr -d '\r' | tail -10 | sed 's/^/    /' >&2
     exit 1
   fi
   BOTTOM_Y=$((HEIGHT - strip_h + 8))

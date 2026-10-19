@@ -3,8 +3,8 @@ name: Automerge Renovate
 on:
   workflow_run:
     workflows:
-      - HyperGesture Development CI
-      - HyperGesture Gesture E2E
+      - AnyGest Development CI
+      - AnyGest Gesture E2E
       - Security Analysis
     types:
       - completed

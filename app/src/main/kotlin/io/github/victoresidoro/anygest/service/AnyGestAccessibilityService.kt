@@ -1,6 +1,6 @@
 // Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 //
-// This file is part of HyperGesture.
+// This file is part of AnyGest, based on HyperGesture.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

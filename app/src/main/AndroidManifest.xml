@@ -2,7 +2,7 @@
 <!--
   Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 
-  This file is part of HyperGesture.
+  This file is part of AnyGest, based on HyperGesture.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
-        <!-- Lets the tile check that HyperGesture's own Accessibility page exists before
+        <!-- Lets the tile check that AnyGest's own Accessibility page exists before
              sending the user there; the full Accessibility list is the fallback. -->
         <intent>
             <action android:name="android.settings.ACCESSIBILITY_DETAILS_SETTINGS" />

@@ -3,7 +3,7 @@
 #
 # Signing uses the same repository secrets as upstream's release workflow:
 #   ANDROID_KEYSTORE_B64  the keystore, base64-encoded
-#   KEYSTORE_PASSWORD     its store and key password (alias "hypergesture")
+#   KEYSTORE_PASSWORD     its store and key password (alias "hypergesture", the one inside the existing keystore)
 
 name: Fork release APK
 
