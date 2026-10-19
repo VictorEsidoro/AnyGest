@@ -129,7 +129,6 @@
     <string name="setup_status_done">Feito</string>
     <string name="setup_status_required">Pendente</string>
     <string name="setup_status_unverified">Confira</string>
-    <string name="setup_status_optional">Opcional</string>
     <string name="setup_status_locked">Bloqueado</string>
     <string name="setup_action_confirm">Já fiz</string>
     <string name="setup_locked_body">Conclua o passo anterior primeiro.</string>
@@ -141,16 +140,27 @@
     <string name="setup_battery_body">Em Informações do app → Energia, na seção Economia de bateria, escolha Nenhuma restrição, para o HyperOS não interromper seus gestos. Se o passo continuar amarelo depois de escolher, toque em Já fiz.</string>
     <string name="setup_autostart_title">Início automático em segundo plano</string>
     <string name="setup_autostart_body">Ative para o HyperGesture, para os gestos voltarem sozinhos depois de reiniciar o celular. O HyperOS não deixa o app conferir isso, então toque em Já fiz depois de ativar.</string>
-    <string name="setup_navigation_title">Esconder a barra de botões</string>
-    <string name="setup_navigation_body">Em Modo de navegação, escolha Navegação por gestos para esconder a barra de três botões e ganhar espaço na tela. Seus gestos funcionam de qualquer jeito.</string>
-    <string name="setup_navigation_locked_body">Só depois que o HyperGesture estiver ligado: com o serviço parado, a barra escondida deixa você sem como navegar.</string>
-    <string name="setup_tile_title">Atalho no Centro de controle</string>
-    <string name="setup_tile_body">Um botão no Centro de controle que mostra se seus gestos estão funcionando. Se o HyperOS parar o serviço com a barra de botões escondida, ele leva direto para a Acessibilidade. Se o botão abaixo não fizer nada, edite o Centro de controle e adicione o atalho do HyperGesture manualmente.</string>
     <string name="setup_tile_action">Adicionar ao Centro de controle</string>
     <string name="setup_usage_title">Dados de uso do app (troca de apps)</string>
     <string name="setup_usage_body">Trocar de app pela borda inferior precisa do acesso aos Dados de uso do app, para saber qual foi o app anterior.</string>
     <string name="setup_assistant_title">Google como App assistente digital (Circule para pesquisar)</string>
     <string name="setup_assistant_body">O Circule para pesquisar precisa do app Google como App assistente digital, em Assistivo e voz. Se já estiver assim, toque em Já fiz.</string>
+
+    <string name="setup_action_undo">Desmarcar</string>
+
+    <!-- Card do atalho no Centro de controle -->
+    <string name="tile_card_title">Atalho no Centro de controle</string>
+    <string name="tile_card_added">Adicionado</string>
+    <string name="tile_card_missing">Recomendado</string>
+    <string name="tile_card_body">Se o HyperOS parar o serviço de gestos com a barra de botões escondida, você fica sem Voltar e sem Início, e a única saída seria reiniciar o celular. O Centro de controle continua abrindo ao deslizar do topo da tela, e este atalho mostra se seus gestos estão funcionando: se estiverem parados, um toque nele abre direto a página do HyperGesture em Acessibilidade para religar.</string>
+    <string name="tile_card_manual">Se o botão abaixo não aparecer ou não fizer nada, edite o Centro de controle e adicione o atalho do HyperGesture manualmente.</string>
+
+    <!-- Card da barra de botões -->
+    <string name="navigation_card_title">Barra de botões</string>
+    <string name="navigation_card_hidden">Escondida</string>
+    <string name="navigation_card_visible">Visível</string>
+    <string name="navigation_card_body">Em Modo de navegação, escolha Navegação por gestos para esconder a barra de três botões e ganhar espaço na tela. Seus gestos funcionam de qualquer jeito. Para trazer a barra de volta, escolha os botões na mesma tela.</string>
+    <string name="navigation_card_locked">Ligue o HyperGesture antes (Primeiros passos): com o serviço parado, a barra escondida deixa você sem como navegar.</string>
 
     <!-- Atalho do Centro de controle -->
     <string name="tile_active">Ativo</string>

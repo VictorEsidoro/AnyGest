@@ -86,7 +86,7 @@ passo tem um botão que abre a tela certa do sistema:
 | 🔴 Vermelho | Obrigatório e ainda não feito |
 | 🟢 Verde | Feito |
 | 🟡 Amarelo | O app não consegue conferir sozinho: confira e toque em **Já fiz** |
-| ⚪ Cinza | Opcional, ou bloqueado até o passo anterior |
+| ⚪ Cinza | Bloqueado até o passo anterior |
 
 Os passos essenciais, na ordem:
 
@@ -108,15 +108,21 @@ isso. *(Opcional)* Na tela de apps recentes, segure o card do HyperGesture e toq
 **cadeado**, para o "Limpar tudo" não fechá-lo.
 
 Quando tudo estiver verde, o card encolhe para **Tudo pronto**. Se o HyperOS parar o serviço
-depois, ele abre de novo sozinho, mostrando o que refazer.
+depois, ele abre de novo sozinho, mostrando o que refazer. Passos concluídos continuam com o
+botão para a tela do sistema, e um passo marcado com **Já fiz** pode ser desmarcado.
 
 ### Passo 3 — Adicionar o atalho no Centro de controle *(recomendado)*
 
-Nos Primeiros passos, toque em **Adicionar ao Centro de controle**. O atalho mostra se os
-gestos estão funcionando e, se não estiverem, um toque nele abre a Acessibilidade do
-HyperGesture. Como o Centro de controle abre deslizando do topo, ele funciona mesmo com a barra
-de botões escondida e o serviço parado. Se o botão não fizer nada, edite o Centro de controle e
-adicione o atalho do HyperGesture manualmente.
+No card **Atalho no Centro de controle**, toque em **Adicionar ao Centro de controle**.
+
+Por que ele importa: se o HyperOS parar o serviço de gestos com a barra de botões escondida,
+você fica sem Voltar e sem Início, e a única saída seria reiniciar o celular. O Centro de
+controle continua abrindo ao deslizar do topo da tela, e o atalho mostra se os gestos estão
+funcionando. Se estiverem parados, um toque nele abre direto a página do HyperGesture em
+Acessibilidade para religar.
+
+Se o botão não aparecer ou não fizer nada, edite o Centro de controle e adicione o atalho do
+HyperGesture manualmente.
 
 ### Passo 4 — Ativar o Circule para pesquisar *(opcional)*
 
@@ -129,7 +135,7 @@ adicione o atalho do HyperGesture manualmente.
 
 ### Passo 5 — Esconder a barra de botões *(opcional)*
 
-O passo **Esconder a barra de botões**, nos Primeiros passos, leva até a tela do sistema onde
+O card **Barra de botões** mostra se a barra está escondida e leva até a tela do sistema onde
 você pode escolher **Navegação por gestos** e esconder a barra de três botões para ganhar
 espaço. Ele só libera depois que o HyperGesture estiver ligado: barra escondida sem gestos deixa
 você sem como navegar. Com launcher de terceiros, os gestos que funcionam continuam sendo os do
@@ -142,6 +148,8 @@ HyperGesture — é só uma questão de espaço na tela.
 | Card | O que você encontra |
 |---|---|
 | **Primeiros passos** | O que falta para os gestos funcionarem, em ordem e com cores, e um botão para cada tela do sistema. Encolhe para "Tudo pronto" quando acaba. |
+| **Atalho no Centro de controle** | Por que o atalho importa, se ele já foi adicionado e o botão para adicionar. |
+| **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o HyperGesture ligado. |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
@@ -149,7 +157,7 @@ HyperGesture — é só uma questão de espaço na tela.
 | **Configurações dos gestos** | Larguras, distâncias, tempos e vibração. Fica recolhido para um toque sem querer não mexer em nada. |
 | **Diagnóstico** | Detalhes do aparelho e o último erro. Útil para relatar problemas — nada sai do celular. |
 | **Créditos** | Quem fez o app e de onde vem cada parte. |
-| **Atalho no Centro de controle** | Fora do app: mostra se os gestos estão ativos e leva à Acessibilidade se não estiverem. |
+| **O atalho em si** (no Centro de controle) | Fora do app: mostra se os gestos estão ativos e leva à Acessibilidade se não estiverem. |
 
 ---
 

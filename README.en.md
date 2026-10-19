@@ -86,7 +86,7 @@ step has a button that opens the right system screen:
 | 🔴 Red | Required and not done yet |
 | 🟢 Green | Done |
 | 🟡 Amber | The app cannot check it on its own: check it and tap **I did it** |
-| ⚪ Grey | Optional, or locked until the step before it |
+| ⚪ Grey | Locked until the step before it |
 
 The essential steps, in order:
 
@@ -109,15 +109,21 @@ The exact names of these HyperOS screens vary by language; the Portuguese README
 pt-BR ones exactly as HyperOS 3 shows them.
 
 Once everything is green, the card folds to **All set**. If HyperOS stops the service later, it
-opens again by itself, showing what to redo.
+opens again by itself, showing what to redo. Finished steps keep their button to the system
+screen, and a step marked with **I did it** can be unmarked.
 
 ### Step 3 — Add the Control Center shortcut *(recommended)*
 
-In First steps, tap **Add to Control Center**. The shortcut shows whether gestures are running
-and, if they are not, tapping it opens HyperGesture's Accessibility page. The Control Center
-opens with a swipe from the top, so it works even with the button bar hidden and the service
-stopped. If the button does nothing, edit the Control Center and add the HyperGesture tile by
-hand.
+On the **Control Center shortcut** card, tap **Add to Control Center**.
+
+Why it matters: if HyperOS stops the gesture service while the button bar is hidden, you are
+left with no Back and no Home, and the only way out would be restarting the phone. The Control
+Center still opens with a swipe from the top of the screen, and the shortcut shows whether
+gestures are running. When they are stopped, one tap on it opens HyperGesture's Accessibility
+page so you can turn it back on.
+
+If the button is missing or does nothing, edit the Control Center and add the HyperGesture
+shortcut by hand.
 
 ### Step 4 — Turn on Circle to Search *(optional)*
 
@@ -129,8 +135,8 @@ hand.
 
 ### Step 5 — Hide the button bar *(optional)*
 
-The **Hide the button bar** step in First steps takes you to the system screen where you can
-pick gesture navigation and hide the three-button bar to reclaim the space. It unlocks only once
+The **Button bar** card shows whether the bar is hidden and takes you to the system screen
+where you can pick gesture navigation and hide the three-button bar to reclaim the space. It unlocks only once
 HyperGesture is on: a hidden bar with no gestures leaves you with no way to navigate. With a
 third-party launcher, the gestures that work are still HyperGesture's — it's only about screen
 space.
@@ -142,6 +148,8 @@ space.
 | Card | What you'll find |
 |---|---|
 | **First steps** | What is left for gestures to work, in order and colour-coded, with a button for each system screen. Folds to "All set" when done. |
+| **Control Center shortcut** | Why the shortcut matters, whether it is added, and the button to add it. |
+| **Button bar** | Whether the bar is hidden, and a shortcut to Navigation mode. Unlocks only with HyperGesture on. |
 | **App switching** | Turns on the sideways swipe along the bottom edge. Needs **usage access**. |
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |
@@ -149,7 +157,7 @@ space.
 | **Gesture settings** | Widths, distances, times and vibration. Collapsed by default so a stray tap changes nothing. |
 | **Diagnostics** | Device details and the last error. Useful for reporting problems — nothing leaves the phone. |
 | **Credits** | Who made the app and where each part comes from. |
-| **Control Center shortcut** | Outside the app: shows whether gestures are running and opens Accessibility if not. |
+| **The shortcut itself** (in the Control Center) | Outside the app: shows whether gestures are running and opens Accessibility if not. |
 
 ---
 

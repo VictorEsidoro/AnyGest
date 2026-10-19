@@ -30,10 +30,6 @@ class SetupChecklistTest {
         accessibilityEnabled = false,
         batteryUnrestricted = false,
         isHyperOs = true,
-        navigationBarCanBeHidden = true,
-        navigationGestural = false,
-        tileAdded = false,
-        tileCanBeRequested = true,
         appSwitchEnabled = false,
         usageAccessGranted = false,
         circleToSearchEnabled = false,
@@ -113,34 +109,22 @@ class SetupChecklistTest {
     }
 
     @Test
-    fun `the navigation bar cannot be hidden before the service runs`() {
-        assertEquals(StepStatus.LOCKED, status(fresh, SetupStep.HIDE_NAVIGATION_BAR))
-        assertEquals(StepStatus.OPTIONAL, status(ready, SetupStep.HIDE_NAVIGATION_BAR))
-        assertEquals(
-            StepStatus.DONE,
-            status(ready.copy(navigationGestural = true), SetupStep.HIDE_NAVIGATION_BAR),
-        )
+    fun `the button bar can only be hidden while the service runs`() {
+        assertFalse(SetupChecklist.canChangeNavigationBar(false, navigationGestural = false))
+        assertTrue(SetupChecklist.canChangeNavigationBar(true, navigationGestural = false))
+        // A bar already hidden can always be brought back.
+        assertTrue(SetupChecklist.canChangeNavigationBar(false, navigationGestural = true))
     }
 
     @Test
-    fun `a bar already hidden is reported as done even with the service stopped`() {
-        val stranded = fresh.copy(navigationGestural = true)
-        assertEquals(StepStatus.DONE, status(stranded, SetupStep.HIDE_NAVIGATION_BAR))
-    }
-
-    @Test
-    fun `the navigation step is absent where the bar cannot be changed`() {
-        assertNull(status(ready.copy(navigationBarCanBeHidden = false), SetupStep.HIDE_NAVIGATION_BAR))
-    }
-
-    @Test
-    fun `the tile step follows the system answer`() {
-        assertEquals(StepStatus.OPTIONAL, status(ready, SetupStep.QUICK_SETTINGS_TILE))
-        assertEquals(
-            StepStatus.DONE,
-            status(ready.copy(tileAdded = true), SetupStep.QUICK_SETTINGS_TILE),
-        )
-        assertNull(status(ready.copy(tileCanBeRequested = false), SetupStep.QUICK_SETTINGS_TILE))
+    fun `a hand-made confirmation can be taken back`() {
+        assertTrue(state(ready, SetupStep.AUTOSTART).canUndo)
+        // Battery read from the system, restricted settings proven by the running service.
+        assertFalse(state(ready, SetupStep.BATTERY).canUndo)
+        assertFalse(state(ready, SetupStep.RESTRICTED_SETTINGS).canUndo)
+        val byHand = fresh.copy(confirmed = setOf(SetupStep.RESTRICTED_SETTINGS))
+        assertTrue(state(byHand, SetupStep.RESTRICTED_SETTINGS).canUndo)
+        assertFalse(state(fresh, SetupStep.AUTOSTART).canUndo)
     }
 
     @Test
@@ -170,7 +154,6 @@ class SetupChecklistTest {
         assertTrue(SetupChecklist.isBlocking(SetupChecklist.evaluate(fresh)))
         assertFalse(SetupChecklist.isComplete(SetupChecklist.evaluate(fresh)))
 
-        // Optional steps left over do not hold the checklist open.
         assertFalse(SetupChecklist.isBlocking(SetupChecklist.evaluate(ready)))
         assertTrue(SetupChecklist.isComplete(SetupChecklist.evaluate(ready)))
 

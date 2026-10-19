@@ -34,6 +34,7 @@ import androidx.annotation.RequiresApi
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,10 +44,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -82,6 +85,7 @@ import com.h3nc4.hypergesture.diagnostics.Diagnostics
 import com.h3nc4.hypergesture.diagnostics.DiagnosticsCollector
 import com.h3nc4.hypergesture.gesture.GestureConfiguration
 import com.h3nc4.hypergesture.navigation.NavigationIntegrationFactory
+import com.h3nc4.hypergesture.navigation.NavigationMode
 import com.h3nc4.hypergesture.settings.GestureSettingsRepository
 import com.h3nc4.hypergesture.setup.GestureTileService
 import com.h3nc4.hypergesture.setup.SetupChecklist
@@ -89,6 +93,8 @@ import com.h3nc4.hypergesture.setup.SetupFactsReader
 import com.h3nc4.hypergesture.setup.SetupStep
 import com.h3nc4.hypergesture.setup.SetupStore
 import com.h3nc4.hypergesture.ui.theme.HyperGestureTheme
+import com.h3nc4.hypergesture.ui.theme.onSuccessContainer
+import com.h3nc4.hypergesture.ui.theme.successContainer
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -125,9 +131,12 @@ private fun HyperGestureScreen(
         setupRevision++
         onPauseOrDispose {}
     }
-    val setupStates = remember(configuration, setupRevision) {
-        SetupChecklist.evaluate(SetupFactsReader.read(context, configuration))
+    val setupFacts = remember(configuration, setupRevision) {
+        SetupFactsReader.read(context, configuration)
     }
+    val setupStates = remember(setupFacts) { SetupChecklist.evaluate(setupFacts) }
+    val navigationStatus = remember(setupRevision) { integration.status() }
+    val tileAdded = remember(setupRevision) { SetupStore(context).tileAdded }
     var settingsExpanded by remember { mutableStateOf(false) }
     var diagnosticsExpanded by remember { mutableStateOf(false) }
     var creditsExpanded by remember { mutableStateOf(false) }
@@ -152,8 +161,6 @@ private fun HyperGestureScreen(
                         Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
                     )
                     SetupStep.AUTOSTART -> openAutostart(context)
-                    SetupStep.HIDE_NAVIGATION_BAR -> integration.requestEnable()
-                    SetupStep.QUICK_SETTINGS_TILE -> requestTile(context) { setupRevision++ }
                     SetupStep.USAGE_ACCESS ->
                         context.startFirst(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
                     SetupStep.DIGITAL_ASSISTANT -> openAssistantSettings(context)
@@ -163,7 +170,30 @@ private fun HyperGestureScreen(
                 SetupStore(context).confirm(step)
                 setupRevision++
             },
+            onUndo = { step ->
+                SetupStore(context).unconfirm(step)
+                setupRevision++
+            },
         )
+
+        // Outside the checklist on purpose: both are choices the user comes back to, and a
+        // folded checklist would hide them.
+        TileCard(
+            added = tileAdded,
+            canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
+            onRequest = { requestTile(context) { setupRevision++ } },
+        )
+
+        if (navigationStatus.available) {
+            NavigationBarCard(
+                hidden = navigationStatus.currentMode == NavigationMode.GESTURAL,
+                canChange = SetupChecklist.canChangeNavigationBar(
+                    accessibilityEnabled = setupFacts.accessibilityEnabled,
+                    navigationGestural = navigationStatus.currentMode == NavigationMode.GESTURAL,
+                ),
+                onOpen = { integration.requestEnable() },
+            )
+        }
 
         // Never collapsed: this is the one gesture that needs a permission before it works,
         // and hiding the toggle behind a tap is how it goes unnoticed.
@@ -306,6 +336,89 @@ private fun Context.findActivity(): Activity? {
 }
 
 private const val MIUI_AUTOSTART_ACTION = "miui.intent.action.OP_AUTO_START"
+
+@Composable
+private fun TileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit) {
+    InfoCard(
+        title = stringResource(R.string.tile_card_title),
+        badge = stringResource(if (added) R.string.tile_card_added else R.string.tile_card_missing),
+        healthy = added,
+        body = stringResource(R.string.tile_card_body),
+        hint = stringResource(R.string.tile_card_manual).takeUnless { added },
+        actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
+        onAction = onRequest,
+    )
+}
+
+@Composable
+private fun NavigationBarCard(hidden: Boolean, canChange: Boolean, onOpen: () -> Unit) {
+    InfoCard(
+        title = stringResource(R.string.navigation_card_title),
+        badge = stringResource(
+            if (hidden) R.string.navigation_card_hidden else R.string.navigation_card_visible,
+        ),
+        healthy = hidden,
+        body = stringResource(
+            if (canChange) R.string.navigation_card_body else R.string.navigation_card_locked,
+        ),
+        hint = null,
+        actionLabel = stringResource(R.string.action_open_navigation_settings).takeIf { canChange },
+        onAction = onOpen,
+    )
+}
+
+/** Title, a status chip, an explanation and at most one button. */
+@Composable
+private fun InfoCard(
+    title: String,
+    badge: String,
+    healthy: Boolean,
+    body: String,
+    hint: String?,
+    actionLabel: String?,
+    onAction: () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp),
+                )
+                val chipBackground =
+                    if (healthy) successContainer else MaterialTheme.colorScheme.surfaceVariant
+                val chipText =
+                    if (healthy) onSuccessContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                Text(
+                    text = badge,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = chipText,
+                    modifier = Modifier
+                        .background(chipBackground, RoundedCornerShape(50))
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                )
+            }
+            Text(text = body, style = MaterialTheme.typography.bodyMedium)
+            hint?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            actionLabel?.let { FilledTonalButton(onClick = onAction) { Text(it) } }
+        }
+    }
+}
 
 @Composable
 private fun GestureCheatSheet() {

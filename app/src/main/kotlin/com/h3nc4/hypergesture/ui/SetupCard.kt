@@ -23,6 +23,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +73,7 @@ internal fun SetupCard(
     states: List<StepState>,
     onAction: (SetupStep) -> Unit,
     onConfirm: (SetupStep) -> Unit,
+    onUndo: (SetupStep) -> Unit,
 ) {
     val complete = SetupChecklist.isComplete(states)
     val blocking = SetupChecklist.isBlocking(states)
@@ -135,6 +139,7 @@ internal fun SetupCard(
                                 state = state,
                                 onAction = { onAction(state.step) },
                                 onConfirm = { onConfirm(state.step) },
+                                onUndo = { onUndo(state.step) },
                             )
                         }
                     }
@@ -144,12 +149,14 @@ internal fun SetupCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StepRow(
     number: Int,
     state: StepState,
     onAction: () -> Unit,
     onConfirm: () -> Unit,
+    onUndo: () -> Unit,
 ) {
     val text = stepText(state.step)
     val colors = statusColors(state.status)
@@ -225,6 +232,18 @@ private fun StepRow(
                     }
                 }
             }
+            // A finished step stays reachable: the setting can change behind the app's back,
+            // and a step marked done by hand may turn out not to be.
+            if (done) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(onClick = onAction) { Text(stringResource(text.action)) }
+                    if (state.canUndo) {
+                        TextButton(onClick = onUndo) {
+                            Text(stringResource(R.string.setup_action_undo))
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -251,7 +270,7 @@ private fun statusColors(status: StepStatus): StatusColors = when (status) {
         MaterialTheme.colorScheme.onErrorContainer,
     )
     StepStatus.UNVERIFIED -> StatusColors(warningContainer, onWarningContainer)
-    StepStatus.OPTIONAL, StepStatus.LOCKED -> StatusColors(
+    StepStatus.LOCKED -> StatusColors(
         MaterialTheme.colorScheme.surfaceVariant,
         MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -261,7 +280,6 @@ private fun statusLabel(status: StepStatus): Int = when (status) {
     StepStatus.DONE -> R.string.setup_status_done
     StepStatus.REQUIRED -> R.string.setup_status_required
     StepStatus.UNVERIFIED -> R.string.setup_status_unverified
-    StepStatus.OPTIONAL -> R.string.setup_status_optional
     StepStatus.LOCKED -> R.string.setup_status_locked
 }
 
@@ -291,18 +309,6 @@ private fun stepText(step: SetupStep): StepText = when (step) {
         R.string.setup_autostart_body,
         R.string.setup_locked_body,
         R.string.action_open_autostart,
-    )
-    SetupStep.HIDE_NAVIGATION_BAR -> StepText(
-        R.string.setup_navigation_title,
-        R.string.setup_navigation_body,
-        R.string.setup_navigation_locked_body,
-        R.string.action_open_navigation_settings,
-    )
-    SetupStep.QUICK_SETTINGS_TILE -> StepText(
-        R.string.setup_tile_title,
-        R.string.setup_tile_body,
-        R.string.setup_locked_body,
-        R.string.setup_tile_action,
     )
     SetupStep.USAGE_ACCESS -> StepText(
         R.string.setup_usage_title,

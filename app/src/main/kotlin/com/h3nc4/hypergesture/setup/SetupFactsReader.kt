@@ -19,15 +19,12 @@ package com.h3nc4.hypergesture.setup
 
 import android.app.AppOpsManager
 import android.content.Context
-import android.os.Build
 import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
 import androidx.core.content.edit
 import com.h3nc4.hypergesture.diagnostics.DiagnosticsCollector
 import com.h3nc4.hypergesture.gesture.GestureConfiguration
-import com.h3nc4.hypergesture.navigation.NavigationIntegrationFactory
-import com.h3nc4.hypergesture.navigation.NavigationMode
 import com.h3nc4.hypergesture.navigation.NavigationModeReader
 
 /**
@@ -48,6 +45,8 @@ internal class SetupStore(context: Context) {
         putBoolean(KEY_CONFIRMED + step.name, true)
     }
 
+    fun unconfirm(step: SetupStep) = preferences.edit { remove(KEY_CONFIRMED + step.name) }
+
     var tileAdded: Boolean
         get() = preferences.getBoolean(KEY_TILE_ADDED, false)
         set(value) = preferences.edit { putBoolean(KEY_TILE_ADDED, value) }
@@ -67,15 +66,10 @@ internal object SetupFactsReader {
         // A service that switched on proves restricted settings were allowed, and keeps that
         // step green after HyperOS later stops the service.
         if (accessibilityEnabled) store.confirm(SetupStep.RESTRICTED_SETTINGS)
-        val navigation = NavigationIntegrationFactory.create(context).status()
         return SetupFacts(
             accessibilityEnabled = accessibilityEnabled,
             batteryUnrestricted = isBatteryUnrestricted(context),
             isHyperOs = NavigationModeReader.isHyperOsDevice(),
-            navigationBarCanBeHidden = navigation.available,
-            navigationGestural = navigation.currentMode == NavigationMode.GESTURAL,
-            tileAdded = store.tileAdded,
-            tileCanBeRequested = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
             appSwitchEnabled = configuration.appSwitchEnabled,
             usageAccessGranted = hasUsageAccess(context),
             circleToSearchEnabled = configuration.circleToSearchEnabled,

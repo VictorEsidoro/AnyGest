@@ -136,7 +136,6 @@
     <string name="setup_status_done">Done</string>
     <string name="setup_status_required">To do</string>
     <string name="setup_status_unverified">Check</string>
-    <string name="setup_status_optional">Optional</string>
     <string name="setup_status_locked">Locked</string>
     <string name="setup_action_confirm">I did it</string>
     <string name="setup_locked_body">Finish the step above first.</string>
@@ -148,16 +147,27 @@
     <string name="setup_battery_body">In App info, open the battery page and choose no restrictions, so HyperOS does not stop your gestures. If this step stays amber after you chose it, tap I did it.</string>
     <string name="setup_autostart_title">Autostart</string>
     <string name="setup_autostart_body">Turn on autostart for HyperGesture so your gestures come back on their own after a restart. HyperOS does not let apps check this, so tap I did it once it is on.</string>
-    <string name="setup_navigation_title">Hide the button bar</string>
-    <string name="setup_navigation_body">In Navigation mode, choose gesture navigation to hide the three-button bar and gain screen space. Your gestures work either way.</string>
-    <string name="setup_navigation_locked_body">Only after HyperGesture is on: with the service stopped, a hidden bar leaves you with no way to navigate.</string>
-    <string name="setup_tile_title">Control Center shortcut</string>
-    <string name="setup_tile_body">A button in the Control Center that shows whether your gestures are running. If HyperOS stops them while the button bar is hidden, it takes you straight back to Accessibility. If the button below does nothing, edit the Control Center and add the HyperGesture tile by hand.</string>
     <string name="setup_tile_action">Add to Control Center</string>
     <string name="setup_usage_title">Usage access (app switching)</string>
     <string name="setup_usage_body">Switching apps from the bottom edge needs usage access to know which app came before.</string>
     <string name="setup_assistant_title">Google as the digital assistant (Circle to Search)</string>
     <string name="setup_assistant_body">Circle to Search needs the Google app as the default digital assistant app. If it already is, tap I did it.</string>
+
+    <string name="setup_action_undo">Unmark</string>
+
+    <!-- Control Center tile card -->
+    <string name="tile_card_title">Control Center shortcut</string>
+    <string name="tile_card_added">Added</string>
+    <string name="tile_card_missing">Recommended</string>
+    <string name="tile_card_body">If HyperOS stops the gesture service while the button bar is hidden, you are left with no Back and no Home, and the only way out would be restarting the phone. The Control Center still opens with a swipe from the top of the screen, and this shortcut shows whether your gestures are running: when they are stopped, one tap on it opens HyperGesture\'s Accessibility page so you can turn it back on.</string>
+    <string name="tile_card_manual">If the button below is missing or does nothing, edit the Control Center and add the HyperGesture shortcut by hand.</string>
+
+    <!-- Button bar card -->
+    <string name="navigation_card_title">Button bar</string>
+    <string name="navigation_card_hidden">Hidden</string>
+    <string name="navigation_card_visible">Visible</string>
+    <string name="navigation_card_body">In Navigation mode, choose gesture navigation to hide the three-button bar and gain screen space. Your gestures work either way. To bring the bar back, choose the buttons on the same screen.</string>
+    <string name="navigation_card_locked">Turn HyperGesture on first (First steps): with the service stopped, a hidden bar leaves you with no way to navigate.</string>
 
     <!-- Control Center tile -->
     <string name="tile_active">Active</string>

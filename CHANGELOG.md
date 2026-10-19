@@ -8,33 +8,35 @@ Versões em português logo abaixo de cada versão.
 
 ### Added
 
-- **First steps checklist** at the top of the app, replacing the Gesture service, Keep me running and Navigation mode cards. Each step has a button to the right system screen and a colour: red to do, green done, amber for what the app cannot check on its own (with an "I did it" button), grey optional.
+- **First steps checklist** at the top of the app, replacing the Gesture service and Keep me running cards. Each step has a button to the right system screen and a colour: red to do, green done, amber for what the app cannot check on its own (with an "I did it" button), grey locked.
   - The essential steps unlock in order: allow restricted settings, turn HyperGesture on, battery with no restrictions, then autostart (HyperOS only). Nobody tries to switch the service on before Android allows it.
-  - Restricted settings turn green on their own once the service has switched on, and stay green afterwards.
-  - Hiding the button bar stays locked until the gesture service runs, since a hidden bar with no gestures leaves no way to navigate.
+  - Restricted settings turn green on their own once the service has switched on, and stay green afterwards. The battery step reads HyperOS's "No restrictions" directly.
+  - Finished steps keep their button, and a step marked done by hand can be unmarked, in case it turns out not to be.
   - Usage access and the Google assistant appear only when app switching or Circle to Search is on.
   - Folds to one line once everything is done, and opens again by itself if HyperOS stops the service.
-- **Control Center tile.** Shows whether gestures are running; when they are not, tapping it opens HyperGesture's Accessibility page, so a stopped service with the bar hidden no longer means restarting the phone. The checklist offers to add it in one tap (Android 13+).
+- **Control Center tile.** Shows whether gestures are running; when they are not, tapping it opens HyperGesture's Accessibility page, so a stopped service with the button bar hidden no longer means restarting the phone. Its own card explains why it matters and offers to add it in one tap (Android 13+).
+- **Button bar card**, replacing Navigation mode: shows whether the bar is hidden and opens the system screen. Hiding it stays locked until the gesture service runs, since a hidden bar with no gestures leaves no way to navigate.
 
 ### Changed
 
-- The fork's CI also builds `dev/**` branches into a downloadable APK, without publishing a release.
+- The fork's CI also builds `dev/**` branches into a downloadable APK, without publishing a release, and repeats compiler, test and lint errors on the run's summary page.
 
 ### Português
 
 #### Novidades
 
-- **Lista de primeiros passos** no topo do app, no lugar dos cards Serviço de gestos, Mantenha o app ativo e Modo de navegação. Cada passo tem um botão para a tela certa do sistema e uma cor: vermelho pendente, verde feito, amarelo para o que o app não consegue conferir sozinho (com o botão "Já fiz"), cinza opcional.
+- **Lista de primeiros passos** no topo do app, no lugar dos cards Serviço de gestos e Mantenha o app ativo. Cada passo tem um botão para a tela certa do sistema e uma cor: vermelho pendente, verde feito, amarelo para o que o app não consegue conferir sozinho (com o botão "Já fiz"), cinza bloqueado.
   - Os passos essenciais liberam em ordem: permitir configurações restritas, ligar o HyperGesture, Economia de bateria em Nenhuma restrição e Início automático em segundo plano (só no HyperOS). Ninguém tenta ligar o serviço antes de o Android permitir.
-  - As configurações restritas ficam verdes sozinhas quando o serviço liga, e continuam verdes depois.
-  - Esconder a barra de botões fica bloqueado até o serviço de gestos estar rodando, porque barra escondida sem gestos deixa você sem como navegar.
+  - As configurações restritas ficam verdes sozinhas quando o serviço liga, e continuam verdes depois. O passo da bateria lê o "Nenhuma restrição" do HyperOS diretamente.
+  - Passos concluídos continuam com o botão, e um passo marcado à mão pode ser desmarcado, caso não esteja de fato feito.
   - Dados de uso do app e o assistente Google só aparecem quando a troca de apps ou o Circule para pesquisar estão ligados.
   - Encolhe para uma linha quando tudo está pronto, e abre de novo sozinha se o HyperOS parar o serviço.
-- **Atalho no Centro de controle.** Mostra se os gestos estão funcionando; quando não estão, um toque abre a página do HyperGesture em Acessibilidade. Serviço parado com a barra escondida não obriga mais a reiniciar o celular. A lista oferece adicionar o atalho com um toque (Android 13 ou mais novo).
+- **Atalho no Centro de controle.** Mostra se os gestos estão funcionando; quando não estão, um toque abre a página do HyperGesture em Acessibilidade. Serviço parado com a barra de botões escondida não obriga mais a reiniciar o celular. Tem card próprio, que explica por que ele importa e oferece adicioná-lo com um toque (Android 13 ou mais novo).
+- **Card Barra de botões**, no lugar de Modo de navegação: mostra se a barra está escondida e abre a tela do sistema. Esconder fica bloqueado até o serviço de gestos estar rodando, porque barra escondida sem gestos deixa você sem como navegar.
 
 #### Alterações
 
-- O CI do fork também gera APK para download das branches `dev/**`, sem publicar release.
+- O CI do fork também gera APK para download das branches `dev/**`, sem publicar release, e repete os erros de compilação, testes e lint na página de resumo da execução.
 
 ## 1.1.1
 

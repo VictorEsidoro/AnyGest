@@ -21,9 +21,13 @@ package com.h3nc4.hypergesture.setup
  * The first-run checklist, kept free of Android types so the rules can be tested on the JVM.
  *
  * Colours follow one rule: red is required and not done, green is done, amber is something
- * the app cannot check on its own (or only recommends), grey is optional, and a locked step
- * waits for the one before it. Red is never shown for a state the app cannot read, since a
- * step that stays red after the user did it teaches them to ignore the colour.
+ * the app cannot check on its own, and a grey, locked step waits for the one before it. Red
+ * is never shown for a state the app cannot read, since a step that stays red after the user
+ * did it teaches them to ignore the colour.
+ *
+ * Only what gestures need lives here. Hiding the button bar and the Control Center tile are
+ * choices the user comes back to, so they have their own cards instead of disappearing into
+ * a folded list.
  */
 enum class SetupStep {
     /** Android blocks Accessibility for sideloaded apps until this is allowed. */
@@ -32,14 +36,11 @@ enum class SetupStep {
     BATTERY,
     /** HyperOS only: no public API reports it, so the user confirms it. */
     AUTOSTART,
-    /** Only meaningful while the gesture service runs: hiding the bar first strands the user. */
-    HIDE_NAVIGATION_BAR,
-    QUICK_SETTINGS_TILE,
     USAGE_ACCESS,
     DIGITAL_ASSISTANT,
 }
 
-enum class StepStatus { DONE, REQUIRED, UNVERIFIED, OPTIONAL, LOCKED }
+enum class StepStatus { DONE, REQUIRED, UNVERIFIED, LOCKED }
 
 /** What the app could read from the system, plus what the user confirmed by hand. */
 data class SetupFacts(
@@ -47,10 +48,6 @@ data class SetupFacts(
     /** Null when the platform cannot answer. */
     val batteryUnrestricted: Boolean?,
     val isHyperOs: Boolean,
-    val navigationBarCanBeHidden: Boolean,
-    val navigationGestural: Boolean,
-    val tileAdded: Boolean,
-    val tileCanBeRequested: Boolean,
     val appSwitchEnabled: Boolean,
     val usageAccessGranted: Boolean,
     val circleToSearchEnabled: Boolean,
@@ -59,7 +56,16 @@ data class SetupFacts(
     val confirmed: Set<SetupStep> = emptySet(),
 )
 
-data class StepState(val step: SetupStep, val status: StepStatus, val canConfirm: Boolean)
+/**
+ * [canConfirm] offers "I did it"; [canUndo] offers to take a hand-made confirmation back, for
+ * when the user marked a step done that later turns out not to be.
+ */
+data class StepState(
+    val step: SetupStep,
+    val status: StepStatus,
+    val canConfirm: Boolean,
+    val canUndo: Boolean = false,
+)
 
 object SetupChecklist {
 
@@ -91,6 +97,8 @@ object SetupChecklist {
                 SetupStep.RESTRICTED_SETTINGS,
                 if (restrictedDone) StepStatus.DONE else StepStatus.REQUIRED,
                 canConfirm = !restrictedDone,
+                // Proven by the running service, there is nothing to take back.
+                canUndo = restrictedDone && !facts.accessibilityEnabled,
             ),
         )
         chain(
@@ -102,29 +110,6 @@ object SetupChecklist {
         )
         chain(battery(facts))
         if (facts.isHyperOs) chain(confirmable(facts, SetupStep.AUTOSTART))
-
-        if (facts.navigationBarCanBeHidden) {
-            val own = StepState(
-                SetupStep.HIDE_NAVIGATION_BAR,
-                if (facts.navigationGestural) StepStatus.DONE else StepStatus.OPTIONAL,
-                canConfirm = false,
-            )
-            // Locked behind the running service, not the whole chain: a hidden bar with no
-            // gesture service is the one state the user cannot navigate out of.
-            steps += if (facts.accessibilityEnabled || facts.navigationGestural) {
-                own
-            } else {
-                own.copy(status = StepStatus.LOCKED)
-            }
-        }
-
-        if (facts.tileCanBeRequested || facts.tileAdded) {
-            steps += StepState(
-                SetupStep.QUICK_SETTINGS_TILE,
-                if (facts.tileAdded) StepStatus.DONE else StepStatus.OPTIONAL,
-                canConfirm = false,
-            )
-        }
 
         if (facts.appSwitchEnabled) {
             steps += StepState(
@@ -144,15 +129,20 @@ object SetupChecklist {
         return steps
     }
 
-    /** Nothing red, amber or locked: what is left is optional. */
-    fun isComplete(states: List<StepState>): Boolean = states.all {
-        it.status == StepStatus.DONE || it.status == StepStatus.OPTIONAL
-    }
+    fun isComplete(states: List<StepState>): Boolean = states.all { it.status == StepStatus.DONE }
 
     /** True when gestures cannot work yet, which keeps the checklist open. */
     fun isBlocking(states: List<StepState>): Boolean = states.any {
         it.step in essential && it.status != StepStatus.DONE
     }
+
+    /**
+     * Hiding the bar is offered only while the gesture service runs: a hidden bar with no
+     * gesture service is the one state the user cannot navigate out of. A bar already
+     * hidden can always be shown again.
+     */
+    fun canChangeNavigationBar(accessibilityEnabled: Boolean, navigationGestural: Boolean) =
+        accessibilityEnabled || navigationGestural
 
     private fun battery(facts: SetupFacts): StepState = when {
         facts.batteryUnrestricted == true ->
@@ -164,7 +154,7 @@ object SetupChecklist {
 
     private fun confirmable(facts: SetupFacts, step: SetupStep): StepState =
         if (step in facts.confirmed) {
-            StepState(step, StepStatus.DONE, canConfirm = false)
+            StepState(step, StepStatus.DONE, canConfirm = false, canUndo = true)
         } else {
             StepState(step, StepStatus.UNVERIFIED, canConfirm = true)
         }
