@@ -4,6 +4,18 @@ Changes in this fork ([VictorEsidoro/HyperGesture](https://github.com/VictorEsid
 
 Versões em português logo abaixo de cada versão.
 
+## 1.1.1
+
+### Fixed
+
+- Each gesture vibrates once. Back (and the sideways app switch) used to buzz when the swipe armed and again when it fired on release, two quick buzzes in a row; it now buzzes only when the swipe arms, like the system Back gesture. Home and Recents, which buzz only when they fire, are unchanged.
+
+### Português
+
+#### Correções
+
+- Cada gesto vibra uma vez só. O Voltar (e a troca de apps pela borda inferior) vibrava quando o gesto começava e de novo ao soltar o dedo, duas vibrações rápidas seguidas; agora vibra só no começo, como o gesto Voltar do sistema. Tela inicial e Apps recentes, que já vibravam uma vez só ao disparar, continuam iguais.
+
 ## 1.1.0
 
 From this release on, versions follow [Semantic Versioning](https://semver.org/): patch for fixes, minor for new features, major for a full revamp. 1.1.0 is the first under that rule; it counts from the original HyperGesture 1.0.0 and replaces the `1.0.0-victor.1` name, whose hyphen marks a pre-release and would rank it below 1.0.0. The app installs over 1.0.0-victor.1.

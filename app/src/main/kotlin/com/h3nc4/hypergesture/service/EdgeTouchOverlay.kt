@@ -233,6 +233,10 @@ internal class EdgeTouchOverlay(
         private var abandoned = false
         private var bellyShown = false
 
+        // One gesture, one buzz: an edge that ticked when its swipe armed stays quiet when
+        // the gesture fires on release, like the system Back gesture.
+        private var tickedThisTouch = false
+
         private val holdRunnable = Runnable { handle(tracker.onHoldElapsed(), replayable = false) }
 
         private val longPressRunnable =
@@ -252,6 +256,7 @@ internal class EdgeTouchOverlay(
                     samples.clear()
                     abandoned = false
                     bellyShown = false
+                    tickedThisTouch = false
                     samples += sample
                     Log.d(TAG, "$edge DOWN at ${sample.xPx.toInt()},${sample.yPx.toInt()}")
                     onStreamStart()
@@ -375,7 +380,8 @@ internal class EdgeTouchOverlay(
 
         /** View haptics rather than the Vibrator API: no VIBRATE permission needed. */
         private fun tick() {
-            if (!hapticsEnabled) return
+            if (!hapticsEnabled || tickedThisTouch) return
+            tickedThisTouch = true
             performHapticFeedback(HapticFeedbackConstants.GESTURE_START)
         }
 
