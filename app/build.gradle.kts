@@ -34,8 +34,8 @@ android {
         // edge overlays need to be positioned correctly.
         minSdk = 30
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.0.0-victor.1"
+        versionCode = 6
+        versionName = "1.1.0"
     }
 
     // android.keystore and .env are both gitignored. Missing either degrades to an

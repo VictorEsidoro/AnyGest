@@ -4,13 +4,17 @@ Changes in this fork ([VictorEsidoro/HyperGesture](https://github.com/VictorEsid
 
 Versões em português logo abaixo de cada versão.
 
-## Unreleased
+## 1.1.0
+
+From this release on, versions follow [Semantic Versioning](https://semver.org/): patch for fixes, minor for new features, major for a full revamp. 1.1.0 is the first under that rule; it counts from the original HyperGesture 1.0.0 and replaces the `1.0.0-victor.1` name, whose hyphen marks a pre-release and would rank it below 1.0.0. The app installs over 1.0.0-victor.1.
 
 ### Fixed
 
 - Credits name the fork's author as **Victor Eduardo (@victoresidoro)**, in the app (both languages), the READMEs and the copyright headers.
 
 ### Português
+
+A partir desta versão, a numeração segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/): patch para correções, minor para funções novas, major para uma reformulação total. A 1.1.0 é a primeira nessa regra; ela conta a partir do HyperGesture 1.0.0 original e substitui o nome `1.0.0-victor.1`, cujo hífen marca pré-lançamento e o colocaria abaixo da 1.0.0. O app instala por cima da 1.0.0-victor.1.
 
 #### Correções
 
