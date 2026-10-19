@@ -75,11 +75,21 @@ passos e você só faz uma vez.
 1. No celular, toque em **[Baixar o APK mais recente](https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk)**.
 2. Abra o arquivo `anygest.apk` baixado e toque em instalar.
 
+> ⚠️ **Apareceu só "O app não foi instalado", sem dizer o porquê? Quase certo que é o Play
+> Protect.** Na **primeira vez** que um app novo é instalado fora da loja, o Play Protect pode
+> barrá-lo e o Android mostra só essa mensagem. Não é erro do arquivo nem da assinatura, e
+> acontece mesmo com o APK baixado direto do GitHub. O jeito de resolver:
+>
+> 1. Abra a **Play Store**, toque na sua **foto de perfil** → **Play Protect** → engrenagem ⚙️.
+> 2. Desligue **Analisar apps com o Play Protect** *(os nomes podem variar um pouco conforme a
+>    versão)*.
+> 3. Instale o AnyGest.
+> 4. **Volte a ligar** o Play Protect.
+>
+> Depois de instalado, as atualizações do AnyGest não dão esse problema.
+>
 > **Estava com o HyperGesture instalado?** Desinstale-o antes (Configurações → Apps →
 > HyperGesture → Desinstalar). Os dois ligados ao mesmo tempo podem fazer cada gesto disparar duas vezes.
->
-> **O Play Protect reclamou?** É normal para apps instalados fora da loja. Use a opção de
-> instalar mesmo assim ou pause o Play Protect só durante a instalação.
 >
 > **Mandou o arquivo pelo WhatsApp?** Às vezes o arquivo chega alterado e a instalação falha
 > com "O app não foi instalado". Baixe direto pelo link acima ou passe pelo Google Drive.
@@ -198,7 +208,7 @@ AnyGest — é só uma questão de espaço na tela.
 
 | Sintoma | O que fazer |
 |---|---|
-| "O app não foi instalado" | Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
+| "O app não foi instalado" | Primeiro, **desligue o Play Protect só para instalar** (veja o aviso no Passo 1): na primeira instalação ele costuma barrar e a mensagem não diz o motivo. Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
 | Cada gesto parece disparar duas vezes | Provavelmente o HyperGesture antigo ainda está instalado e ligado. Desinstale-o: o AnyGest é outro app e não o substitui sozinho. |
 | A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
 | Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria e Início automático nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |

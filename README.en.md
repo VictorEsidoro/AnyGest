@@ -74,11 +74,20 @@ steps, once.
 1. On your phone, tap **[Download the latest APK](https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk)**.
 2. Open the downloaded `anygest.apk` and install it.
 
+> ⚠️ **Just "App not installed", with no reason given? Almost certainly Play Protect.** The
+> **first time** a new app is installed from outside the store, Play Protect can block it and
+> Android shows only that message. It is not a problem with the file or its signature, and it
+> happens even with the APK downloaded straight from GitHub. To fix it:
+>
+> 1. Open the **Play Store**, tap your **profile picture** → **Play Protect** → gear ⚙️.
+> 2. Turn off **Scan apps with Play Protect** *(names may vary a little by version)*.
+> 3. Install AnyGest.
+> 4. **Turn Play Protect back on.**
+>
+> Once installed, AnyGest updates do not hit this problem.
+>
 > **Had HyperGesture installed?** Uninstall it first (Settings → Apps → HyperGesture →
 > Uninstall). With both turned on, each gesture can fire twice.
->
-> **Play Protect complained?** That's normal for apps installed outside the store. Choose to
-> install anyway, or pause Play Protect just for the install.
 >
 > **Sent the file through WhatsApp?** It sometimes arrives altered and the install fails with
 > "App not installed". Download it from the link above or move it through Google Drive.
@@ -196,7 +205,7 @@ space.
 
 | Symptom | What to do |
 |---|---|
-| "App not installed" | If it came through WhatsApp, download it again from the link or through Drive. If a **test (debug)** build is installed, uninstall it first — the signature is different. |
+| "App not installed" | First, **turn Play Protect off just for the install** (see the warning in Step 1): on the first install it often blocks and the message gives no reason. If it came through WhatsApp, download it again from the link or through Drive. If a **test (debug)** build is installed, uninstall it first — the signature is different. |
 | The Accessibility switch won't turn on | You missed **Allow restricted settings** (the first item in First steps). |
 | Gestures stop on their own / Accessibility turns off | Check the battery and autostart items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
 | Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. |

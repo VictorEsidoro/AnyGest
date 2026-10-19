@@ -16,6 +16,7 @@ A major version: the app gets its own identity. It is now **AnyGest**, with its 
 - **Credits and README.** Victor Eduardo (@victoresidoro) now comes first, as the author of AnyGest, followed by Henrique Almeida (h3nc4) as the creator of HyperGesture, the project AnyGest is based on, and the Circle to Search technique. The original copyright and the GPL-3.0 stay as they were; the README states both copyrights and warns people coming from HyperGesture to uninstall it first.
 - **New icon.** Clean, thin-line Material style: the A of AnyGest, whose crossbar is an arrow coming from the right edge towards the left, Android's classic Back gesture. It has a themed version that follows the wallpaper colours on Android 13+, and the Control Center tile uses the same mark.
 - **Card icons.** Each card in the app now has a thin-line [Material Symbols](https://fonts.google.com/icons) icon (Outlined, weight 200) in front of its title.
+- **Play Protect warning.** The README now says up front, in Step 1 and in Common problems, that the first install of a new app can be blocked by Play Protect with only "App not installed" and no reason, and how to turn it off just for the install. Found while testing this version: the APK and its signature were fine.
 - **Release file.** The APK is now `anygest.apk`, and the permanent download link is `https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk`. The repository was renamed to AnyGest; GitHub keeps redirecting the old HyperGesture links.
 
 ### Português
@@ -30,6 +31,7 @@ Versão major: o app ganha identidade própria. Agora ele é o **AnyGest**, com 
 - **Créditos e README.** Victor Eduardo (@victoresidoro) agora vem primeiro, como autor do AnyGest, seguido de Henrique Almeida (h3nc4), criador do HyperGesture, projeto em que o AnyGest se baseia, e da técnica do Circule para pesquisar. O copyright original e a GPL-3.0 continuam como estavam; o README traz os dois copyrights e avisa quem vem do HyperGesture para desinstalá-lo antes.
 - **Ícone novo.** Visual limpo e de traço fino, no estilo Material: o A do AnyGest, cuja travessa é uma seta vindo da borda direita em direção à esquerda, o gesto clássico de Voltar do Android. Tem versão temática, que acompanha as cores do papel de parede no Android 13+, e o atalho do Centro de controle usa a mesma marca.
 - **Ícones nos cards.** Cada card do app ganhou um ícone [Material Symbols](https://fonts.google.com/icons) de traço fino (Outlined, peso 200) antes do título.
+- **Aviso sobre o Play Protect.** O README agora diz logo de cara, no Passo 1 e em Problemas comuns, que a primeira instalação de um app novo pode ser barrada pelo Play Protect mostrando só "O app não foi instalado", sem o motivo, e como desligá-lo só durante a instalação. Descoberto testando esta versão: o APK e a assinatura estavam certos.
 - **Arquivo da versão.** O APK agora é `anygest.apk`, e o link permanente de download é `https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk`. O repositório foi renomeado para AnyGest; o GitHub continua redirecionando os links antigos do HyperGesture.
 
 ## 2.0.0
