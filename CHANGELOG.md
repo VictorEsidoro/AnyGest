@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## Unreleased
+
+### Removed
+
+- The SonarQube scan and everything that fed it: the CI job, `sonar-project.properties`, the Renovate rules, the SonarLint setup in the Dev Container and the `sonar` call in the pre-push hook. It pointed at the original author's private SonarQube server, which this project has no token for, so it failed every day. Lint, unit tests, coverage report and the debug build still run. Nothing in the app changes.
+
+### Português
+
+#### Removido
+
+- A análise SonarQube e tudo que dependia dela: o job de CI, o `sonar-project.properties`, as regras do Renovate, a configuração do SonarLint no Dev Container e a chamada `sonar` no hook de pre-push. Ela apontava para o servidor SonarQube privado do autor original, para o qual este projeto não tem token, e por isso falhava todo dia. Lint, testes unitários, relatório de cobertura e a build de debug continuam rodando. O app não muda.
+
 ## 3.0.1
 
 ### Changed

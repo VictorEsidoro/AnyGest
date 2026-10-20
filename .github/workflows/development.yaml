@@ -76,35 +76,3 @@ jobs:
             app/build/reports/jacoco/
             app/build/reports/tests/
           retention-days: 1
-
-  sonarqube:
-    name: SonarQube Scan
-    needs: [checks]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run actions/checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0 # Fetch history for SonarQube
-      - name: Run actions/download-artifact
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
-        with:
-          name: coverage
-          path: app/build/reports
-      - name: Fail if the coverage report did not land
-        run: test -s app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
-      - name: Name the image the scan comes from
-        run: |
-          image="$(sed -n 's|^FROM \(h3nc4/dev-base:[^ ]*\) AS main|\1|p' docker/dev.Dockerfile)"
-          case "${image}" in
-            h3nc4/dev-base:*@sha256:*) ;;
-            *) echo "::error::docker/dev.Dockerfile names no pinned dev-base to take the scan from"; exit 1 ;;
-          esac
-          echo "SCAN_IMAGE=${image}" >>"${GITHUB_ENV}"
-      - name: Run h3nc4/sonar-action
-        uses: h3nc4/sonar-action@e799384ff5832f1bc2205946e6f342029c3b388c # v1
-        with:
-          host-url: ${{ vars.SONAR_HOST_URL }}
-          token: ${{ secrets.SONAR_TOKEN }}
-          image: ${{ env.SCAN_IMAGE }}
-          script: /usr/local/bin/sonar

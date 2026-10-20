@@ -9,7 +9,7 @@ Everything a contributor needs. For what the app is and how to use it, see the [
 - **Gestures.** `AccessibilityService` plus `TYPE_ACCESSIBILITY_OVERLAY` edge strips, which need no "draw over other apps" permission
 - **UI.** Jetpack Compose, Material 3
 - **Persistence.** DataStore Preferences, no database
-- **Quality.** JUnit over a device-free recognizer, Android lint, shellcheck, SonarQube, and an emulator-driven gesture suite
+- **Quality.** JUnit over a device-free recognizer, Android lint, shellcheck, and an emulator-driven gesture suite
 
 Versions are pinned in `gradle/libs.versions.toml`, and Renovate raises the bumps in grouped pull requests. `minSdk` is 30 because the edge overlays need `WindowMetrics` insets and `setSystemGestureExclusionRects`. The emulator runs API 36 rather than matching `compileSdk`, because no API 37 `google_apis` x86_64 system image is published yet.
 
@@ -27,7 +27,7 @@ app/
     ui/           MainActivity, the single Compose screen, theme
   src/test/kotlin/            Recognizer tests (plain JVM, no device)
 docker/           Dev container and APK build images
-scripts/          Entrypoint, hooks, sonar, version, emulator and E2E helpers
+scripts/          Entrypoint, hooks, version, emulator and E2E helpers
 docs/             This file and the platform investigations
 .github/          CI workflows
 ```
