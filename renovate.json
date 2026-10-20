@@ -43,22 +43,6 @@
       ]
     },
     {
-      "description": "Group SonarQube server and scanner updates",
-      "groupName": "sonarqube",
-      "matchPackageNames": [
-        "sonarqube",
-        "sonarsource/sonar-scanner-cli"
-      ]
-    },
-    {
-      "description": "Disable unwanted pinning for SonarQube images",
-      "matchPackageNames": [
-        "sonarqube",
-        "sonarsource/sonar-scanner-cli"
-      ],
-      "pinDigests": false
-    },
-    {
       "description": "Auto-merge all minor, patch, pin, and digest updates",
       "matchUpdateTypes": [
         "minor",

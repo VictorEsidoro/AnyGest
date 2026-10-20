@@ -29,4 +29,3 @@ if [ -z "${version}" ]; then
 fi
 
 sed -i 's/versionName = ".*"/versionName = "'"${version}"'"/' app/build.gradle.kts
-sed -i 's/sonar.projectVersion=.*/sonar.projectVersion='"${version}"'/' sonar-project.properties

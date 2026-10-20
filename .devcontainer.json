@@ -55,8 +55,7 @@
         "donjayamanne.githistory",
         "eamodio.gitlens",
         "foxundermoon.shell-format",
-        "github.vscode-github-actions",
-        "SonarSource.sonarlint-vscode"
+        "github.vscode-github-actions"
       ],
       "settings": {
         "editor.tabSize": 2,
@@ -69,11 +68,7 @@
         "[kotlin]": {
           "editor.tabSize": 4
         },
-        "shellcheck.customArgs": ["-o", "all"],
-        "sonarlint.connectedMode.project": {
-          "connectionId": "http-localhost-9000-",
-          "projectKey": "hypergesture"
-        }
+        "shellcheck.customArgs": ["-o", "all"]
       }
     }
   }

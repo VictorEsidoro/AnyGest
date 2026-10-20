@@ -100,7 +100,7 @@ kotlin {
     jvmToolchain(21)
 }
 
-// Both paths are AGP-internal and moved in AGP 9; sonar-project.properties tracks them.
+// Both paths are AGP-internal and moved in AGP 9.
 // Naming exact locations rather than scanning build/ keeps Gradle's task validation happy.
 val kotlinClassesDir = "intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"
 val coverageExec = "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
