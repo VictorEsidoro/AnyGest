@@ -231,7 +231,6 @@ internal class EdgeTouchOverlay(
 
         private val samples = ArrayList<TouchSample>(MAX_SAMPLES)
         private var abandoned = false
-        private var bellyShown = false
 
         // One gesture, one buzz: an edge that ticked when its swipe armed stays quiet when
         // the gesture fires on release, like the system Back gesture.
@@ -255,18 +254,16 @@ internal class EdgeTouchOverlay(
                 MotionEvent.ACTION_DOWN -> {
                     samples.clear()
                     abandoned = false
-                    bellyShown = false
                     tickedThisTouch = false
                     samples += sample
                     Log.d(TAG, "$edge DOWN at ${sample.xPx.toInt()},${sample.yPx.toInt()}")
                     onStreamStart()
-                    handle(tracker.onDown(sample), replayable = false)
+                    track(tracker.onDown(sample), sample, replayable = false)
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (samples.size < MAX_SAMPLES) samples += sample
-                    handle(tracker.onMove(sample), replayable = false)
-                    if (bellyShown) belly?.drag(inwardPx(sample))
+                    track(tracker.onMove(sample), sample, replayable = false)
                     true
                 }
                 MotionEvent.ACTION_POINTER_DOWN -> {
@@ -287,7 +284,7 @@ internal class EdgeTouchOverlay(
                         false
                     } else {
                         if (samples.size < MAX_SAMPLES) samples += sample
-                        handle(tracker.onUp(sample), replayable = true)
+                        track(tracker.onUp(sample), sample, replayable = true)
                     }
                     samples.clear()
                     if (!releaseDeferred) onStreamEnd()
@@ -326,7 +323,6 @@ internal class EdgeTouchOverlay(
                     // The bottom edge ticks on fire instead of on arming, so a plain
                     // upward swipe does not buzz on the way up.
                     action.scheduleHoldMs?.let { postDelayed(holdRunnable, it) } ?: tick()
-                    showBelly()
                 }
                 is TrackerAction.RearmHold -> {
                     removeCallbacks(holdRunnable)
@@ -334,16 +330,16 @@ internal class EdgeTouchOverlay(
                 }
                 is TrackerAction.Fire -> {
                     cancelHold()
-                    collapseBelly()
                     if (action.action == GestureAction.CircleToSearch) longPressTick() else tick()
                     // action.id, not ::class.simpleName - R8 obfuscates class names.
                     Log.i(TAG, "GESTURE_FIRED $edge ${action.action.id}")
                     onFire(action.action)
                 }
+                is TrackerAction.Disarmed -> Log.d(TAG, "$edge disarmed, pulled back inside the trigger")
+                // Consumed rather than replayed: the app never asked for this swipe.
+                is TrackerAction.Reverted -> Log.i(TAG, "GESTURE_REVERTED $edge")
                 is TrackerAction.Unused -> {
                     cancelHold()
-                    if (bellyShown) belly?.hide()
-                    bellyShown = false
                     Log.d(TAG, "$edge unused (${action.reason})")
                     if (replayable && samples.isNotEmpty()) {
                         onUnused(samples.toList())
@@ -361,16 +357,14 @@ internal class EdgeTouchOverlay(
             removeCallbacks(longPressRunnable)
         }
 
-        private fun showBelly() {
-            val down = samples.firstOrNull() ?: return
-            val belly = belly ?: return
-            belly.show(down.yPx, inwardPx(samples.last()))
-            bellyShown = true
+        // The belly moves first. A replay must never land under a visible window.
+        private fun track(action: TrackerAction, sample: TouchSample, replayable: Boolean): Boolean {
+            belly?.follow(action, samples.firstOrNull()?.yPx ?: sample.yPx, inwardPx(sample))
+            return handle(action, replayable)
         }
 
         private fun collapseBelly() {
-            if (bellyShown) belly?.collapse()
-            bellyShown = false
+            belly?.collapse()
         }
 
         private fun inwardPx(sample: TouchSample): Float {
