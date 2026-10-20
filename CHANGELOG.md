@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.0.1
+
+### Changed
+
+- The Control Center tile icon is larger and sharper: the A is about 20% bigger and the arrow has a thinner stroke with a shorter head, so it matches the weight of the system tiles and no longer looks lost inside the circle. Nothing else changes.
+
+### Português
+
+#### Alterado
+
+- O ícone do tile da Central de Controle ficou maior e mais nítido: o A está cerca de 20% maior e a seta tem traço mais fino e ponta mais curta, para combinar com o peso dos tiles do sistema e não parecer perdido dentro do círculo. Mais nada muda.
+
 ## 3.0.0
 
 A major version: the app gets its own identity. It is now **AnyGest**, with its own package name, credits and (see Changed) its own look. The gesture engine and its settings are unchanged.
