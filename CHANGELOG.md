@@ -8,7 +8,7 @@ Versões em português logo abaixo de cada versão.
 
 ### Added
 
-- Vibration strength: light, normal or strong, chosen under "Gesture settings" next to the on/off switch. Normal is the system vibration AnyGest always used, so nothing changes unless you pick another. It uses the system's own haptics, so the app still asks for no new permission; how different the three feel depends on the phone's motor.
+- Vibration strength: light, normal or strong, chosen under "Gesture settings" next to the on/off switch. Normal is the system vibration AnyGest always used, so nothing changes unless you pick another. Light and strong drive the vibrator directly with their own length and power (the system's haptic presets feel the same on HyperOS), which adds the VIBRATE permission; Android grants it at install and never asks.
 - Back up and restore the settings: "Export" saves them to a small text file you choose, "Import" reads one back, on this phone or another. Values out of range or unknown in the file are skipped, never applied.
 
 ### Changed
@@ -23,7 +23,7 @@ Versões em português logo abaixo de cada versão.
 
 #### Adicionado
 
-- Força da vibração: leve, normal ou forte, escolhida em "Configurações dos gestos", ao lado do liga/desliga. Normal é a vibração do sistema que o AnyGest sempre usou, então nada muda se você não escolher outra. Usa as vibrações do próprio sistema, por isso o app continua sem pedir nenhuma permissão nova; o quanto as três diferem depende do motor de vibração do celular.
+- Força da vibração: leve, normal ou forte, escolhida em "Configurações dos gestos", ao lado do liga/desliga. Normal é a vibração do sistema que o AnyGest sempre usou, então nada muda se você não escolher outra. Leve e forte acionam o vibrador direto, com duração e potência próprias (as vibrações prontas do sistema ficam iguais no HyperOS), o que acrescenta a permissão VIBRATE; o Android concede na instalação e não pergunta nada.
 - Backup e restauração das configurações: "Exportar" salva num arquivo de texto pequeno que você escolhe, "Importar" lê de volta, neste ou em outro celular. Valores fora do limite ou desconhecidos no arquivo são ignorados, nunca aplicados.
 
 #### Alterado

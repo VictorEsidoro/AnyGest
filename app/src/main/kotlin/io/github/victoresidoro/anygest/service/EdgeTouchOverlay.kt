@@ -374,17 +374,16 @@ internal class EdgeTouchOverlay(
             return if (edge == ScreenEdge.RIGHT) down.xPx - sample.xPx else sample.xPx - down.xPx
         }
 
-        /** View haptics rather than the Vibrator API: no VIBRATE permission needed. */
-        private fun tick() {
+                private fun tick() {
             if (!hapticsEnabled || tickedThisTouch) return
             tickedThisTouch = true
-            performHapticFeedback(Haptics.tick(hapticStrength))
+            Haptics.play(this, Haptics.tick(hapticStrength))
         }
 
         /** Mirrors the system long-press buzz, so the hold reads as having landed. */
         private fun longPressTick() {
             if (!hapticsEnabled) return
-            performHapticFeedback(Haptics.longPress(hapticStrength))
+            Haptics.play(this, Haptics.longPress(hapticStrength))
         }
 
         private companion object {

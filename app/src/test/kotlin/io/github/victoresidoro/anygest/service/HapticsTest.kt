@@ -22,14 +22,21 @@ import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HapticsTest {
 
     @Test
     fun `normal keeps the original system haptics`() {
-        assertEquals(HapticFeedbackConstants.GESTURE_START, Haptics.tick(HapticStrength.Normal))
-        assertEquals(HapticFeedbackConstants.LONG_PRESS, Haptics.longPress(HapticStrength.Normal))
+        assertEquals(
+            Haptic.System(HapticFeedbackConstants.GESTURE_START),
+            Haptics.tick(HapticStrength.Normal),
+        )
+        assertEquals(
+            Haptic.System(HapticFeedbackConstants.LONG_PRESS),
+            Haptics.longPress(HapticStrength.Normal),
+        )
     }
 
     @Test
@@ -38,6 +45,17 @@ class HapticsTest {
         val longPresses = HapticStrength.entries.map(Haptics::longPress)
         assertEquals(ticks.size, ticks.toSet().size)
         assertEquals(longPresses.size, longPresses.toSet().size)
+    }
+
+    @Test
+    fun `light and strong buzz with the weakest and strongest amplitude`() {
+        listOf(Haptics::tick, Haptics::longPress).forEach { pick ->
+            val light = pick(HapticStrength.Light) as Haptic.Buzz
+            val strong = pick(HapticStrength.Strong) as Haptic.Buzz
+            assertTrue(light.amplitude < strong.amplitude)
+            assertTrue(light.durationMs < strong.durationMs)
+            assertTrue(strong.amplitude in 1..255 && light.amplitude in 1..255)
+        }
     }
 
     @Test
