@@ -24,13 +24,13 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.util.Log
 import android.view.Gravity
-import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.GestureTracker
+import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.ScreenEdge
 import io.github.victoresidoro.anygest.gesture.TouchSample
 import io.github.victoresidoro.anygest.gesture.TrackerAction
@@ -113,6 +113,7 @@ internal class EdgeTouchOverlay(
                 handleCenterXPx = if (edge == ScreenEdge.BOTTOM) geometry.widthPx / 2f else null,
             ),
             hapticsEnabled = configuration.hapticFeedbackEnabled,
+            hapticStrength = configuration.hapticStrength,
             belly = bellies[edge],
             onStreamStart = ::onStreamStart,
             onFire = { action -> onFire(action, edge) },
@@ -222,6 +223,7 @@ internal class EdgeTouchOverlay(
         private val edge: ScreenEdge,
         private val tracker: GestureTracker,
         private val hapticsEnabled: Boolean,
+        private val hapticStrength: HapticStrength,
         private val belly: BackBellyOverlay?,
         private val onStreamStart: () -> Unit,
         private val onFire: (GestureAction) -> Unit,
@@ -376,13 +378,13 @@ internal class EdgeTouchOverlay(
         private fun tick() {
             if (!hapticsEnabled || tickedThisTouch) return
             tickedThisTouch = true
-            performHapticFeedback(HapticFeedbackConstants.GESTURE_START)
+            performHapticFeedback(Haptics.tick(hapticStrength))
         }
 
         /** Mirrors the system long-press buzz, so the hold reads as having landed. */
         private fun longPressTick() {
             if (!hapticsEnabled) return
-            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            performHapticFeedback(Haptics.longPress(hapticStrength))
         }
 
         private companion object {

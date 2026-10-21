@@ -26,8 +26,10 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
+import io.github.victoresidoro.anygest.gesture.HapticStrength
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -57,6 +59,7 @@ class GestureSettingsRepository(private val context: Context) {
             preferences[LEFT_EDGE_BACK] = updated.leftEdgeBackEnabled
             preferences[RIGHT_EDGE_BACK] = updated.rightEdgeBackEnabled
             preferences[HAPTIC_FEEDBACK] = updated.hapticFeedbackEnabled
+            preferences[HAPTIC_STRENGTH] = updated.hapticStrength.name
             preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
             preferences[CIRCLE_TO_SEARCH_HOLD_MS] = updated.circleToSearchHoldMs
             preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = updated.circleToSearchFollowsSystemTiming
@@ -82,6 +85,7 @@ class GestureSettingsRepository(private val context: Context) {
             leftEdgeBackEnabled = preferences[LEFT_EDGE_BACK] ?: defaults.leftEdgeBackEnabled,
             rightEdgeBackEnabled = preferences[RIGHT_EDGE_BACK] ?: defaults.rightEdgeBackEnabled,
             hapticFeedbackEnabled = preferences[HAPTIC_FEEDBACK] ?: defaults.hapticFeedbackEnabled,
+            hapticStrength = hapticStrengthOf(preferences[HAPTIC_STRENGTH]) ?: defaults.hapticStrength,
             circleToSearchEnabled =
                 preferences[CIRCLE_TO_SEARCH] ?: defaults.circleToSearchEnabled,
             circleToSearchHoldMs =
@@ -90,6 +94,10 @@ class GestureSettingsRepository(private val context: Context) {
                 ?: defaults.circleToSearchFollowsSystemTiming,
         )
     }
+
+    /** An unknown or missing name falls back to the default rather than failing the flow. */
+    private fun hapticStrengthOf(name: String?): HapticStrength? =
+        HapticStrength.entries.firstOrNull { it.name == name }
 
     /** Test seam for the emulator suite, which cannot tap a Compose switch. Debug only. */
     private fun debugAppSwitchEnabled(): Boolean? {
@@ -128,6 +136,7 @@ class GestureSettingsRepository(private val context: Context) {
         val LEFT_EDGE_BACK = booleanPreferencesKey("left_edge_back_enabled")
         val RIGHT_EDGE_BACK = booleanPreferencesKey("right_edge_back_enabled")
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback_enabled")
+        val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
         val CIRCLE_TO_SEARCH = booleanPreferencesKey("circle_to_search_enabled")
         val CIRCLE_TO_SEARCH_HOLD_MS = longPreferencesKey("circle_to_search_hold_ms")
         val CIRCLE_TO_SEARCH_SYSTEM_TIMING =

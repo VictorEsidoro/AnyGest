@@ -78,6 +78,8 @@ data class GestureConfiguration(
     val leftEdgeBackEnabled: Boolean = true,
     val rightEdgeBackEnabled: Boolean = true,
     val hapticFeedbackEnabled: Boolean = true,
+    /** Only read while [hapticFeedbackEnabled] is on. */
+    val hapticStrength: HapticStrength = HapticStrength.Normal,
     /**
      * Off by default: a still finger on the bottom strip otherwise reaches the app
      * underneath as a long press, and this takes that touch away from it.
@@ -157,3 +159,6 @@ sealed interface TrackerAction {
 
     data class Unused(val reason: RejectionReason) : TrackerAction
 }
+
+/** How firm the gesture buzz feels; [Normal] is the system default and the original behaviour. */
+enum class HapticStrength { Light, Normal, Strong }
