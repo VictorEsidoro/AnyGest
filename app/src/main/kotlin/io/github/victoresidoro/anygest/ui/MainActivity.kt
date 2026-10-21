@@ -78,6 +78,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -617,6 +618,7 @@ private fun SettingsBackupActions(
     onRestore: (GestureConfiguration) -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val exporter = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument(SettingsBackup.MIME_TYPE),
@@ -640,9 +642,9 @@ private fun SettingsBackupActions(
             }
             onRestore(decoded.configuration)
             val message = if (decoded.ignored == 0) {
-                context.getString(R.string.backup_imported)
+                resources.getString(R.string.backup_imported)
             } else {
-                context.getString(R.string.backup_imported_partial, decoded.ignored)
+                resources.getString(R.string.backup_imported_partial, decoded.ignored)
             }
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
