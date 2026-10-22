@@ -27,6 +27,9 @@
     -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- Light and strong vibration; granted at install, never prompts. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!--
       App switching reads which app was in front before this one. The user grants it under
       Special app access, Usage access, and the gesture reports a failure without it.

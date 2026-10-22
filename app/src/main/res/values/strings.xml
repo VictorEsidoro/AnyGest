@@ -72,6 +72,10 @@
     <string name="action_grant_usage_access">Grant</string>
     <string name="label_last_app_switch_failure">Last app switch problem</string>
     <string name="label_haptics">Vibrate when a gesture fires</string>
+    <string name="label_haptic_strength">Vibration strength</string>
+    <string name="haptic_light">Light</string>
+    <string name="haptic_normal">Normal</string>
+    <string name="haptic_strong">Strong</string>
     <string name="section_circle_to_search">Circle to Search</string>
     <string name="section_circle_to_search_body">Touch and hold the middle of the bottom edge to start Circle to Search, exactly like a long press on the system gesture handle. No root and no extra permission: it asks the Google app directly.</string>
     <string name="label_circle_to_search">Bottom edge long press = Circle to Search</string>
@@ -81,6 +85,14 @@
     <string name="action_open_default_apps">Assistant settings</string>
     <string name="toast_circle_to_search_failed">Circle to Search did not start. Check that Google is the default digital assistant app.</string>
     <string name="action_reset_defaults">Reset to defaults</string>
+    <string name="label_backup">Back up settings</string>
+    <string name="action_backup_export">Export</string>
+    <string name="action_backup_import">Import</string>
+    <string name="backup_exported">Settings saved to the file you chose.</string>
+    <string name="backup_export_failed">Could not save the settings file.</string>
+    <string name="backup_imported">Settings restored.</string>
+    <string name="backup_imported_partial">Settings restored. %d value(s) in the file were ignored because they were not valid.</string>
+    <string name="backup_import_invalid">That is not an AnyGest settings file.</string>
 
     <string name="action_open_autostart">Autostart</string>
     <string name="action_open_app_info">App info</string>

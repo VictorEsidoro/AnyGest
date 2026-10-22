@@ -29,11 +29,14 @@ import android.os.Bundle
 import android.os.LocaleList
 import android.provider.Settings
 import android.view.ViewConfiguration
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -75,6 +78,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -87,9 +91,13 @@ import io.github.victoresidoro.anygest.R
 import io.github.victoresidoro.anygest.diagnostics.Diagnostics
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
+import io.github.victoresidoro.anygest.gesture.HapticStrength
+import io.github.victoresidoro.anygest.gesture.SettingsLimits
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
+import io.github.victoresidoro.anygest.settings.SettingsBackup
+import io.github.victoresidoro.anygest.settings.SettingsBackupIo
 import io.github.victoresidoro.anygest.setup.GestureTileService
 import io.github.victoresidoro.anygest.setup.SetupChecklist
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
@@ -540,35 +548,35 @@ private fun GestureSettings(
     ThresholdSlider(
         label = stringResource(R.string.label_edge_width),
         value = configuration.edgeWidthDp,
-        range = 8f..64f,
+        range = SettingsLimits.EDGE_WIDTH_DP,
         formatter = { stringResource(R.string.value_dp, it) },
     ) { updated -> onUpdate { it.copy(edgeWidthDp = updated) } }
 
     ThresholdSlider(
         label = stringResource(R.string.label_side_distance),
         value = configuration.sideMinimumSwipeDistanceDp,
-        range = 8f..80f,
+        range = SettingsLimits.SIDE_DISTANCE_DP,
         formatter = { stringResource(R.string.value_dp, it) },
     ) { updated -> onUpdate { it.copy(sideMinimumSwipeDistanceDp = updated) } }
 
     ThresholdSlider(
         label = stringResource(R.string.label_bottom_distance),
         value = configuration.bottomMinimumSwipeDistanceDp,
-        range = 4f..60f,
+        range = SettingsLimits.BOTTOM_DISTANCE_DP,
         formatter = { stringResource(R.string.value_dp, it) },
     ) { updated -> onUpdate { it.copy(bottomMinimumSwipeDistanceDp = updated) } }
 
     ThresholdSlider(
         label = stringResource(R.string.label_recents_hold),
         value = configuration.recentsHoldMs.toFloat(),
-        range = 50f..500f,
+        range = SettingsLimits.RECENTS_HOLD_MS.toFloatRange(),
         formatter = { stringResource(R.string.value_ms, it) },
     ) { updated -> onUpdate { it.copy(recentsHoldMs = updated.toLong()) } }
 
     ThresholdSlider(
         label = stringResource(R.string.label_maximum_duration),
         value = configuration.maximumArmDurationMs.toFloat(),
-        range = 300f..3000f,
+        range = SettingsLimits.MAX_ARM_DURATION_MS.toFloatRange(),
         formatter = { stringResource(R.string.value_ms, it) },
     ) { updated -> onUpdate { it.copy(maximumArmDurationMs = updated.toLong()) } }
 
@@ -587,8 +595,72 @@ private fun GestureSettings(
         checked = configuration.hapticFeedbackEnabled,
     ) { updated -> onUpdate { it.copy(hapticFeedbackEnabled = updated) } }
 
+    if (configuration.hapticFeedbackEnabled) {
+        HapticStrengthChoice(selected = configuration.hapticStrength) { chosen ->
+            onUpdate { it.copy(hapticStrength = chosen) }
+        }
+    }
+
+    SettingsBackupActions(configuration) { restored -> onUpdate { restored } }
+
     TextButton(onClick = { onUpdate { GestureConfiguration() } }) {
         Text(stringResource(R.string.action_reset_defaults))
+    }
+}
+
+private fun LongRange.toFloatRange(): ClosedFloatingPointRange<Float> =
+    first.toFloat()..last.toFloat()
+
+/** Save the settings to a file of the user's choosing, or restore them from one. */
+@Composable
+private fun SettingsBackupActions(
+    configuration: GestureConfiguration,
+    onRestore: (GestureConfiguration) -> Unit,
+) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
+    val exporter = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(SettingsBackup.MIME_TYPE),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val saved = SettingsBackupIo.export(context, uri, configuration)
+            val message = if (saved) R.string.backup_exported else R.string.backup_export_failed
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+    val importer = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val decoded = SettingsBackupIo.import(context, uri)
+            if (decoded == null) {
+                Toast.makeText(context, R.string.backup_import_invalid, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            onRestore(decoded.configuration)
+            val message = if (decoded.ignored == 0) {
+                resources.getString(R.string.backup_imported)
+            } else {
+                resources.getString(R.string.backup_imported_partial, decoded.ignored)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    Text(
+        text = stringResource(R.string.label_backup),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TextButton(onClick = { exporter.launch(SettingsBackup.FILE_NAME) }) {
+            Text(stringResource(R.string.action_backup_export))
+        }
+        TextButton(onClick = { importer.launch(arrayOf(SettingsBackup.MIME_TYPE, "application/octet-stream")) }) {
+            Text(stringResource(R.string.action_backup_import))
+        }
     }
 }
 
@@ -717,7 +789,7 @@ private fun CircleToSearchCard(
                         value = configuration.circleToSearchHoldMs.toFloat(),
                         // Capped below the default arm window, after which a resting finger
                         // is no longer tracked and the long press could never fire.
-                        range = 250f..900f,
+                        range = SettingsLimits.CIRCLE_TO_SEARCH_HOLD_MS.toFloatRange(),
                         formatter = { stringResource(R.string.value_ms, it) },
                     ) { updated -> onUpdate { it.copy(circleToSearchHoldMs = updated.toLong()) } }
                 }
@@ -929,6 +1001,42 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
                 .padding(end = 12.dp),
         )
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun HapticStrengthChoice(selected: HapticStrength, onChoose: (HapticStrength) -> Unit) {
+    Column {
+        Text(
+            text = stringResource(R.string.label_haptic_strength),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        HapticStrength.entries.forEach { option ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = selected == option,
+                        role = Role.RadioButton,
+                        onClick = { onChoose(option) },
+                    )
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(selected = selected == option, onClick = null)
+                Text(
+                    text = stringResource(
+                        when (option) {
+                            HapticStrength.Light -> R.string.haptic_light
+                            HapticStrength.Normal -> R.string.haptic_normal
+                            HapticStrength.Strong -> R.string.haptic_strong
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 12.dp),
+                )
+            }
+        }
     }
 }
 

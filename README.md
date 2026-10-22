@@ -38,7 +38,7 @@ para a **barra de três botões**, sem jeito de religar. O AnyGest devolve os ge
 
 E também:
 
-- **Tudo ajustável**: largura da borda, distância do gesto, tempo de espera e vibração.
+- **Tudo ajustável**: largura da borda, distância do gesto, tempo de espera e vibração (leve, normal ou forte), com backup das configurações.
 - **Em português e inglês**, com seletor de idioma dentro do app.
 - **Leve**: cerca de 2,5 MB, sem internet, sem anúncios, sem coletar nada.
 
@@ -172,7 +172,7 @@ AnyGest — é só uma questão de espaço na tela.
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
 | **Idioma do app** | Automático, Português (Brasil) ou English (Android 13 ou mais novo). |
-| **Configurações dos gestos** | Larguras, distâncias, tempos e vibração. Fica recolhido para um toque sem querer não mexer em nada. |
+| **Configurações dos gestos** | Larguras, distâncias, tempos e vibração (leve, normal ou forte). Também exporta e importa as configurações num arquivo, para guardar ou levar a outro celular. Fica recolhido para um toque sem querer não mexer em nada. |
 | **Diagnóstico** | Detalhes do aparelho e o último erro. Útil para relatar problemas — nada sai do celular. |
 | **Créditos** | Quem fez o app e de onde vem cada parte. |
 | **O atalho em si** (no Centro de controle) | Fora do app: mostra se os gestos estão ativos e leva à Acessibilidade se não estiverem. |

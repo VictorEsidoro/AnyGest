@@ -24,13 +24,13 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.util.Log
 import android.view.Gravity
-import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.GestureTracker
+import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.ScreenEdge
 import io.github.victoresidoro.anygest.gesture.TouchSample
 import io.github.victoresidoro.anygest.gesture.TrackerAction
@@ -113,6 +113,7 @@ internal class EdgeTouchOverlay(
                 handleCenterXPx = if (edge == ScreenEdge.BOTTOM) geometry.widthPx / 2f else null,
             ),
             hapticsEnabled = configuration.hapticFeedbackEnabled,
+            hapticStrength = configuration.hapticStrength,
             belly = bellies[edge],
             onStreamStart = ::onStreamStart,
             onFire = { action -> onFire(action, edge) },
@@ -222,6 +223,7 @@ internal class EdgeTouchOverlay(
         private val edge: ScreenEdge,
         private val tracker: GestureTracker,
         private val hapticsEnabled: Boolean,
+        private val hapticStrength: HapticStrength,
         private val belly: BackBellyOverlay?,
         private val onStreamStart: () -> Unit,
         private val onFire: (GestureAction) -> Unit,
@@ -231,7 +233,6 @@ internal class EdgeTouchOverlay(
 
         private val samples = ArrayList<TouchSample>(MAX_SAMPLES)
         private var abandoned = false
-        private var bellyShown = false
 
         // One gesture, one buzz: an edge that ticked when its swipe armed stays quiet when
         // the gesture fires on release, like the system Back gesture.
@@ -255,18 +256,16 @@ internal class EdgeTouchOverlay(
                 MotionEvent.ACTION_DOWN -> {
                     samples.clear()
                     abandoned = false
-                    bellyShown = false
                     tickedThisTouch = false
                     samples += sample
                     Log.d(TAG, "$edge DOWN at ${sample.xPx.toInt()},${sample.yPx.toInt()}")
                     onStreamStart()
-                    handle(tracker.onDown(sample), replayable = false)
+                    track(tracker.onDown(sample), sample, replayable = false)
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (samples.size < MAX_SAMPLES) samples += sample
-                    handle(tracker.onMove(sample), replayable = false)
-                    if (bellyShown) belly?.drag(inwardPx(sample))
+                    track(tracker.onMove(sample), sample, replayable = false)
                     true
                 }
                 MotionEvent.ACTION_POINTER_DOWN -> {
@@ -287,7 +286,7 @@ internal class EdgeTouchOverlay(
                         false
                     } else {
                         if (samples.size < MAX_SAMPLES) samples += sample
-                        handle(tracker.onUp(sample), replayable = true)
+                        track(tracker.onUp(sample), sample, replayable = true)
                     }
                     samples.clear()
                     if (!releaseDeferred) onStreamEnd()
@@ -326,7 +325,6 @@ internal class EdgeTouchOverlay(
                     // The bottom edge ticks on fire instead of on arming, so a plain
                     // upward swipe does not buzz on the way up.
                     action.scheduleHoldMs?.let { postDelayed(holdRunnable, it) } ?: tick()
-                    showBelly()
                 }
                 is TrackerAction.RearmHold -> {
                     removeCallbacks(holdRunnable)
@@ -334,16 +332,16 @@ internal class EdgeTouchOverlay(
                 }
                 is TrackerAction.Fire -> {
                     cancelHold()
-                    collapseBelly()
                     if (action.action == GestureAction.CircleToSearch) longPressTick() else tick()
                     // action.id, not ::class.simpleName - R8 obfuscates class names.
                     Log.i(TAG, "GESTURE_FIRED $edge ${action.action.id}")
                     onFire(action.action)
                 }
+                is TrackerAction.Disarmed -> Log.d(TAG, "$edge disarmed, pulled back inside the trigger")
+                // Consumed rather than replayed: the app never asked for this swipe.
+                is TrackerAction.Reverted -> Log.i(TAG, "GESTURE_REVERTED $edge")
                 is TrackerAction.Unused -> {
                     cancelHold()
-                    if (bellyShown) belly?.hide()
-                    bellyShown = false
                     Log.d(TAG, "$edge unused (${action.reason})")
                     if (replayable && samples.isNotEmpty()) {
                         onUnused(samples.toList())
@@ -361,16 +359,14 @@ internal class EdgeTouchOverlay(
             removeCallbacks(longPressRunnable)
         }
 
-        private fun showBelly() {
-            val down = samples.firstOrNull() ?: return
-            val belly = belly ?: return
-            belly.show(down.yPx, inwardPx(samples.last()))
-            bellyShown = true
+        // The belly moves first. A replay must never land under a visible window.
+        private fun track(action: TrackerAction, sample: TouchSample, replayable: Boolean): Boolean {
+            belly?.follow(action, samples.firstOrNull()?.yPx ?: sample.yPx, inwardPx(sample))
+            return handle(action, replayable)
         }
 
         private fun collapseBelly() {
-            if (bellyShown) belly?.collapse()
-            bellyShown = false
+            belly?.collapse()
         }
 
         private fun inwardPx(sample: TouchSample): Float {
@@ -378,17 +374,16 @@ internal class EdgeTouchOverlay(
             return if (edge == ScreenEdge.RIGHT) down.xPx - sample.xPx else sample.xPx - down.xPx
         }
 
-        /** View haptics rather than the Vibrator API: no VIBRATE permission needed. */
-        private fun tick() {
+                private fun tick() {
             if (!hapticsEnabled || tickedThisTouch) return
             tickedThisTouch = true
-            performHapticFeedback(HapticFeedbackConstants.GESTURE_START)
+            Haptics.play(this, Haptics.tick(hapticStrength))
         }
 
         /** Mirrors the system long-press buzz, so the hold reads as having landed. */
         private fun longPressTick() {
             if (!hapticsEnabled) return
-            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            Haptics.play(this, Haptics.longPress(hapticStrength))
         }
 
         private companion object {

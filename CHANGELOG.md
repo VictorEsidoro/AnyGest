@@ -4,13 +4,31 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
-## Unreleased
+## 3.1.0
+
+### Added
+
+- Vibration strength: light, normal or strong, chosen under "Gesture settings" next to the on/off switch. Normal is the system vibration AnyGest always used, so nothing changes unless you pick another. Light and strong drive the vibrator directly with their own length and power (the system's haptic presets feel the same on HyperOS), which adds the VIBRATE permission; Android grants it at install and never asks.
+- Back up and restore the settings: "Export" saves them to a small text file you choose, "Import" reads one back, on this phone or another. Values out of range or unknown in the file are skipped, never applied.
+
+### Changed
+
+- A back swipe brought back to the edge before lifting the finger is now cancelled instead of going back, and pushing out again re-arms it, like the system's own Back. The belly follows the finger and recedes when it is cancelled. Taken from HyperGesture ([h3nc4/HyperGesture](https://github.com/h3nc4/HyperGesture), commit `c8b2e6f`, "cancel reverted back swipe"), adapted to AnyGest.
 
 ### Removed
 
 - The SonarQube scan and everything that fed it: the CI job, `sonar-project.properties`, the Renovate rules, the SonarLint setup in the Dev Container and the `sonar` call in the pre-push hook. It pointed at the original author's private SonarQube server, which this project has no token for, so it failed every day. Lint, unit tests, coverage report and the debug build still run. Nothing in the app changes.
 
 ### Português
+
+#### Adicionado
+
+- Força da vibração: leve, normal ou forte, escolhida em "Configurações dos gestos", ao lado do liga/desliga. Normal é a vibração do sistema que o AnyGest sempre usou, então nada muda se você não escolher outra. Leve e forte acionam o vibrador direto, com duração e potência próprias (as vibrações prontas do sistema ficam iguais no HyperOS), o que acrescenta a permissão VIBRATE; o Android concede na instalação e não pergunta nada.
+- Backup e restauração das configurações: "Exportar" salva num arquivo de texto pequeno que você escolhe, "Importar" lê de volta, neste ou em outro celular. Valores fora do limite ou desconhecidos no arquivo são ignorados, nunca aplicados.
+
+#### Alterado
+
+- O Voltar pela borda que é trazido de volta para a borda antes de soltar o dedo agora é cancelado, em vez de voltar, e empurrar de novo o rearma, como o Voltar do próprio sistema. A "barriga" acompanha o dedo e recolhe quando cancelado. Trazido do HyperGesture ([h3nc4/HyperGesture](https://github.com/h3nc4/HyperGesture), commit `c8b2e6f`, "cancel reverted back swipe"), adaptado ao AnyGest.
 
 #### Removido
 

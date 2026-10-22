@@ -37,7 +37,7 @@ way to turn them on again. AnyGest gives you the gestures back.
 
 Also:
 
-- **Everything is adjustable**: edge width, swipe distance, hold times and vibration.
+- **Everything is adjustable**: edge width, swipe distance, hold times and vibration (light, normal or strong), with a settings backup.
 - **In English and Portuguese**, with an in-app language picker.
 - **Lightweight**: about 2.5 MB, no internet, no ads, no data collection.
 
@@ -170,7 +170,7 @@ space.
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |
 | **App language** | Automatic, Português (Brasil) or English (Android 13 or newer). |
-| **Gesture settings** | Widths, distances, times and vibration. Collapsed by default so a stray tap changes nothing. |
+| **Gesture settings** | Widths, distances, times and vibration (light, normal or strong). Also exports and imports the settings to a file, to keep or move to another phone. Collapsed by default so a stray tap changes nothing. |
 | **Diagnostics** | Device details and the last error. Useful for reporting problems — nothing leaves the phone. |
 | **Credits** | Who made the app and where each part comes from. |
 | **The shortcut itself** (in the Control Center) | Outside the app: shows whether gestures are running and opens Accessibility if not. |

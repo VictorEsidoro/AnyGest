@@ -74,6 +74,10 @@
     <string name="action_grant_usage_access">Permitir</string>
     <string name="label_last_app_switch_failure">Último problema na troca de apps</string>
     <string name="label_haptics">Vibrar quando um gesto for executado</string>
+    <string name="label_haptic_strength">Força da vibração</string>
+    <string name="haptic_light">Leve</string>
+    <string name="haptic_normal">Normal</string>
+    <string name="haptic_strong">Forte</string>
     <string name="section_circle_to_search">Circule para pesquisar</string>
     <string name="section_circle_to_search_body">Toque e segure no meio da borda inferior para abrir o Circule para pesquisar, igual a tocar e pressionar a alça de navegação do sistema. Sem root e sem permissão extra: o pedido vai direto para o app Google.</string>
     <string name="label_circle_to_search">Toque longo na borda inferior = Circule para pesquisar</string>
@@ -83,6 +87,14 @@
     <string name="action_open_default_apps">Assistivo e voz</string>
     <string name="toast_circle_to_search_failed">O Circule para pesquisar não abriu. Confira se o Google é o App assistente digital, em Assistivo e voz.</string>
     <string name="action_reset_defaults">Restaurar padrões</string>
+    <string name="label_backup">Backup das configurações</string>
+    <string name="action_backup_export">Exportar</string>
+    <string name="action_backup_import">Importar</string>
+    <string name="backup_exported">Configurações salvas no arquivo que você escolheu.</string>
+    <string name="backup_export_failed">Não foi possível salvar o arquivo de configurações.</string>
+    <string name="backup_imported">Configurações restauradas.</string>
+    <string name="backup_imported_partial">Configurações restauradas. %d valor(es) do arquivo foram ignorados por não serem válidos.</string>
+    <string name="backup_import_invalid">Esse não é um arquivo de configurações do AnyGest.</string>
 
     <string name="action_open_autostart">Início automático em segundo plano</string>
     <string name="action_open_app_info">Informações do app</string>
