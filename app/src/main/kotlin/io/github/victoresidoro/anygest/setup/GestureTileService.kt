@@ -22,6 +22,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.Tile
@@ -112,9 +113,21 @@ class GestureTileService : TileService() {
                 ComponentName(context, AnyGestAccessibilityService::class.java)
                     .flattenToString(),
             )
-            val resolves = details.resolveActivity(context.packageManager) != null
-            return if (resolves) details else Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            val target = context.packageManager.resolveActivity(details, 0)?.activityInfo
+            val reachable = detailsReachable(target != null, target?.permission) {
+                context.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
+            }
+            return if (reachable) details else Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
         }
+
+        // AOSP guards the details page with a signature permission, and a denied start fails
+        // silently from a tile - resolveActivity alone says something could handle the
+        // intent, not that launching it is actually allowed.
+        internal fun detailsReachable(
+            resolves: Boolean,
+            requiredPermission: String?,
+            isGranted: (String) -> Boolean,
+        ): Boolean = resolves && (requiredPermission == null || isGranted(requiredPermission))
 
         private const val ACCESSIBILITY_DETAILS_SETTINGS =
             "android.settings.ACCESSIBILITY_DETAILS_SETTINGS"

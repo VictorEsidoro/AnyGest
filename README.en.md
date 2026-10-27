@@ -74,10 +74,17 @@ steps, once.
 1. On your phone, tap **[Download the latest APK](https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk)**.
 2. Open the downloaded `anygest.apk` and install it.
 
+> ✅ **Got a Play Protect screen saying "This app looks safe", with an Install button?** Then
+> everything is fine, just tap **Install**: Play Protect already scanned the APK and cleared it.
+> This is the most common case.
+>
+> <img src="docs/images/play-protect-verify.jpg" alt="Google Play Protect: 'This app looks safe', showing AnyGest and an Install button" width="280">
+>
 > ⚠️ **Just "App not installed", with no reason given? Almost certainly Play Protect.** The
 > **first time** a new app is installed from outside the store, Play Protect can block it and
-> Android shows only that message. It is not a problem with the file or its signature, and it
-> happens even with the APK downloaded straight from GitHub. To fix it:
+> Android shows only that message, without the "looks safe" screen above. It is not a problem
+> with the file or its signature, and it happens even with the APK downloaded straight from
+> GitHub. To fix it:
 >
 > 1. Open the **Play Store**, tap your **profile picture** → **Play Protect** → gear ⚙️.
 > 2. Turn off **Scan apps with Play Protect** *(names may vary a little by version)*.
@@ -235,7 +242,12 @@ space.
   - releases with the APK attached directly, the changelog and the documentation.
 - **[HyperGesture](https://github.com/h3nc4/HyperGesture)** by **Henrique Almeida
   ([h3nc4](https://github.com/h3nc4))** — created the app AnyGest is based on: the gestures, the
-  edge touch capture, app switching, the screens and the whole foundation it is built on.
+  edge touch capture, app switching, the screens and the whole foundation it is built on. After
+  the fork, contributed directly to AnyGest:
+  - cancelling a reverted Back swipe — bringing the finger back to the edge before lifting
+    cancels the gesture instead of going back, and pushing out again re-arms it;
+  - the fix for the Control Center tile that, with gestures off, could silently do nothing
+    when tapped instead of opening Accessibility.
 - **[MiCTS](https://github.com/parallelcc/MiCTS)** by **parallelcc** and
   **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)** by **chenxiaolong** — showed how
   to open Circle to Search **without root** by talking directly to Android's assistant service.

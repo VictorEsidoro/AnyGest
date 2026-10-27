@@ -912,6 +912,13 @@ private fun CreditsContent() {
         title = stringResource(R.string.credits_original_title),
         body = stringResource(R.string.credits_original_body),
     )
+    stringArrayResource(R.array.credits_original_items).forEach { item ->
+        Text(
+            text = "•  $item",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 8.dp, top = 2.dp),
+        )
+    }
     CreditsBlock(
         title = stringResource(R.string.credits_cts_title),
         body = stringResource(R.string.credits_cts_body),

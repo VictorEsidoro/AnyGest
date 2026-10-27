@@ -138,7 +138,11 @@
         <item>Versões publicadas com o APK direto, changelog e documentação completa</item>
     </string-array>
     <string name="credits_original_title">Henrique Almeida (h3nc4) — criador do HyperGesture, projeto em que o AnyGest se baseia</string>
-    <string name="credits_original_body">Criou o app: os gestos, a captura de toques nas bordas, a troca de apps e toda a base sobre a qual o AnyGest foi construído.</string>
+    <string name="credits_original_body">Criou o app: os gestos, a captura de toques nas bordas, a troca de apps e toda a base sobre a qual o AnyGest foi construído. Também contribuiu direto para o AnyGest depois do fork:</string>
+    <string-array name="credits_original_items">
+        <item>Cancelar o Voltar revertido: trazer o dedo de volta para a borda antes de soltar cancela o gesto, em vez de voltar; empurrar de novo o rearma</item>
+        <item>A correção de permissão que resolveu o atalho do Centro de controle, que com os gestos desligados podia não fazer nada ao ser tocado, em vez de abrir a Acessibilidade</item>
+    </string-array>
     <string name="credits_cts_title">parallelcc (MiCTS) e chenxiaolong (CTSLauncher)</string>
     <string name="credits_cts_body">Mostraram como abrir o Circule para pesquisar sem root, falando direto com o serviço de assistente do Android. A técnica usada aqui é a deles.</string>
     <string name="credits_license">Os três projetos são software livre sob a licença GPL-3.0, e o AnyGest também.</string>
