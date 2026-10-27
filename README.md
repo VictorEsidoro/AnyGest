@@ -75,10 +75,17 @@ passos e você só faz uma vez.
 1. No celular, toque em **[Baixar o APK mais recente](https://github.com/VictorEsidoro/AnyGest/releases/latest/download/anygest.apk)**.
 2. Abra o arquivo `anygest.apk` baixado e toque em instalar.
 
+> ✅ **Apareceu uma tela do Play Protect dizendo "Este app parece seguro", com um botão
+> Instalar?** Então está tudo certo, é só tocar em **Instalar**: o Play Protect já escaneou o
+> APK e liberou. Esse é o caso mais comum.
+>
+> <img src="docs/images/play-protect-verify.jpg" alt="Google Play Protect: 'Este app parece seguro', com o AnyGest e um botão Instalar" width="280">
+>
 > ⚠️ **Apareceu só "O app não foi instalado", sem dizer o porquê? Quase certo que é o Play
 > Protect.** Na **primeira vez** que um app novo é instalado fora da loja, o Play Protect pode
-> barrá-lo e o Android mostra só essa mensagem. Não é erro do arquivo nem da assinatura, e
-> acontece mesmo com o APK baixado direto do GitHub. O jeito de resolver:
+> barrá-lo e o Android mostra só essa mensagem, sem o aviso de "parece seguro" acima. Não é erro
+> do arquivo nem da assinatura, e acontece mesmo com o APK baixado direto do GitHub. O jeito de
+> resolver:
 >
 > 1. Abra a **Play Store**, toque na sua **foto de perfil** → **Play Protect** → engrenagem ⚙️.
 > 2. Desligue **Analisar apps com o Play Protect** *(os nomes podem variar um pouco conforme a
@@ -239,7 +246,11 @@ AnyGest — é só uma questão de espaço na tela.
 - **[HyperGesture](https://github.com/h3nc4/HyperGesture)**, de **Henrique Almeida
   ([h3nc4](https://github.com/h3nc4))** — criou o app em que o AnyGest se baseia: os gestos, a
   captura de toques nas bordas, a troca de apps, as telas e toda a base sobre a qual ele foi
-  construído.
+  construído. Depois do fork, contribuiu direto para o AnyGest:
+  - o cancelamento do Voltar revertido — trazer o dedo de volta para a borda antes de soltar
+    cancela o gesto, em vez de voltar, e empurrar de novo o rearma;
+  - a correção do atalho do Centro de controle que, com os gestos desligados, podia não fazer
+    nada ao ser tocado em vez de abrir a Acessibilidade.
 - **[MiCTS](https://github.com/parallelcc/MiCTS)**, de **parallelcc**, e
   **[CTSLauncher](https://github.com/chenxiaolong/CTSLauncher)**, de **chenxiaolong** — mostraram
   como abrir o Circule para pesquisar **sem root**, conversando direto com o serviço de

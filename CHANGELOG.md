@@ -10,11 +10,21 @@ Versões em português logo abaixo de cada versão.
 
 - The Control Center tile could silently do nothing when tapped with the gesture service off, instead of opening Accessibility. AOSP guards the details page it tries first with a signature permission this app does not hold, and a denied start from a tile fails without even an exception, so the previous check (whether something could resolve the intent) was not enough to know the tap would actually work. The tile now checks the target's required permission before using it, falling back to the general Accessibility list otherwise, the same way the in-app "Open Accessibility" button already did. Taken from HyperGesture ([h3nc4/HyperGesture](https://github.com/h3nc4/HyperGesture)), which ported this file from AnyGest and added the permission check independently.
 
+### Changed
+
+- The Credits screen and the README now name what Henrique Almeida (h3nc4) contributed directly to AnyGest after the fork (the cancelled back swipe and this release's tile fix), the same way HyperGesture's own Credits name what was ported from AnyGest.
+- The README's Play Protect note now covers the common case too: a "This app looks safe" screen with an Install button, which just needs a tap, not the Play Protect toggle. Screenshot included.
+
 ### Português
 
 #### Corrigido
 
 - O atalho do Centro de Controle podia não fazer nada ao ser tocado com o serviço de gestos desligado, em vez de abrir a Acessibilidade. A tela de detalhes que ele tentava primeiro é protegida pelo Android por uma permissão de assinatura que este app não tem, e uma abertura negada a partir de um atalho falha sem nem lançar uma exceção, então a verificação anterior (se algo resolvia a intenção) não garantia que o toque funcionaria de fato. O atalho agora confere a permissão exigida pelo alvo antes de usá-lo, caindo para a lista geral de Acessibilidade quando falta, do mesmo jeito que o botão "Abrir Acessibilidade" de dentro do app já fazia. Trazido do HyperGesture ([h3nc4/HyperGesture](https://github.com/h3nc4/HyperGesture)), que portou este arquivo do AnyGest e adicionou essa verificação de permissão por conta própria.
+
+#### Alterado
+
+- A tela de Créditos e o README agora nomeiam o que o Henrique Almeida (h3nc4) contribuiu direto para o AnyGest depois do fork (o Voltar revertido cancelável e a correção do atalho desta versão), do mesmo jeito que os Créditos do HyperGesture nomeiam o que foi portado do AnyGest.
+- O aviso do Play Protect no README agora cobre também o caso comum: uma tela "Este app parece seguro" com botão Instalar, que só precisa de um toque, sem mexer na chave do Play Protect. Com print.
 
 ## 3.1.0
 
