@@ -231,7 +231,7 @@ private fun AnyGestScreen(
                         context = context,
                         component = NavigationModeTileService.component(context),
                         label = R.string.tile_navigation_label,
-                        icon = R.drawable.ic_sym_bottom_navigation,
+                        icon = R.drawable.ic_navigation_tile,
                         onAdded = { SetupStore(context).navigationTileAdded = true },
                         onResult = { setupRevision++ },
                     )
@@ -410,7 +410,7 @@ private fun TileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit)
 private fun NavigationTileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit) {
     InfoCard(
         title = stringResource(R.string.navigation_tile_card_title),
-        icon = R.drawable.ic_sym_bottom_navigation,
+        icon = R.drawable.ic_navigation_tile,
         badge = stringResource(if (added) R.string.tile_card_added else R.string.tile_card_missing),
         healthy = added,
         body = stringResource(R.string.navigation_tile_card_body),
