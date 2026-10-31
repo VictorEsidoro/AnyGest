@@ -136,6 +136,7 @@
         <item>A lighter service that only wakes up when you touch an edge</item>
         <item>The First steps checklist, ordered and colour-coded, that guides the whole setup</item>
         <item>The Control Center shortcut, to bring gestures back without restarting the phone</item>
+        <item>A second Control Center shortcut, straight to HyperOS\'s navigation-mode screen if the button bar ever comes back on its own</item>
         <item>A safeguard that only lets the button bar be hidden while gestures are on</item>
         <item>The Brazilian Portuguese translation with HyperOS\'s real screen names, and the language picker</item>
         <item>Releases with the APK attached directly, a changelog and full documentation</item>
@@ -202,7 +203,18 @@
     <string name="navigation_card_body">In Navigation mode, choose gesture navigation to hide the three-button bar and gain screen space. Your gestures work either way. To bring the bar back, choose the buttons on the same screen.</string>
     <string name="navigation_card_locked">Turn AnyGest on first (First steps): with the service stopped, a hidden bar leaves you with no way to navigate.</string>
 
+    <!-- Navigation mode tile card -->
+    <string name="navigation_tile_card_title">Control Center shortcut (navigation)</string>
+    <string name="navigation_tile_card_body">A second, separate shortcut: if HyperOS ever switches back to the button bar on its own, this opens its navigation-mode screen in one tap, without hunting through Settings. It cannot flip the switch itself — only you can — it just gets you to the right screen.</string>
+    <string name="navigation_tile_card_manual">If the button below is missing or does nothing, edit the Control Center and add the AnyGest navigation shortcut by hand.</string>
+
     <!-- Control Center tile -->
     <string name="tile_active">Active</string>
     <string name="tile_inactive">Stopped · tap to turn on</string>
+
+    <!-- Navigation mode tile -->
+    <string name="tile_navigation_label">AnyGest · Navigation</string>
+    <string name="tile_navigation_gestural">Gestures · tap to change</string>
+    <string name="tile_navigation_buttons">Buttons · tap to change</string>
+    <string name="tile_navigation_unknown">Tap to open navigation settings</string>
 </resources>

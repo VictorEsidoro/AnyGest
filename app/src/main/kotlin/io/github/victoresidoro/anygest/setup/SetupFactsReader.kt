@@ -51,10 +51,15 @@ internal class SetupStore(context: Context) {
         get() = preferences.getBoolean(KEY_TILE_ADDED, false)
         set(value) = preferences.edit { putBoolean(KEY_TILE_ADDED, value) }
 
+    var navigationTileAdded: Boolean
+        get() = preferences.getBoolean(KEY_NAVIGATION_TILE_ADDED, false)
+        set(value) = preferences.edit { putBoolean(KEY_NAVIGATION_TILE_ADDED, value) }
+
     private companion object {
         const val FILE = "setup"
         const val KEY_CONFIRMED = "confirmed_"
         const val KEY_TILE_ADDED = "tile_added"
+        const val KEY_NAVIGATION_TILE_ADDED = "navigation_tile_added"
     }
 }
 

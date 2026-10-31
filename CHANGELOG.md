@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.2.0
+
+### Added
+
+- A second, independent Control Center tile: when HyperOS reverts to the button bar on its own, it opens the HyperOS navigation-mode screen in one tap instead of hunting through Settings. It shows the current mode (gestures or buttons) and cannot switch it itself — `WRITE_SECURE_SETTINGS` is signature-level, so only the user can — it just gets you to the right screen. HyperOS-only, same as the existing "Button bar" card. Add it from the app the same way as the first shortcut, or edit Control Center by hand.
+
+### Português
+
+#### Adicionado
+
+- Um segundo atalho no Centro de Controle, independente do primeiro: se o HyperOS voltar sozinho para a barra de botões, ele abre a tela de modo de navegação do HyperOS num toque, sem precisar procurar nas Configurações. Mostra o modo atual (gestos ou botões) e não troca sozinho — `WRITE_SECURE_SETTINGS` é de assinatura, só o usuário pode — só poupa a ida até a tela certa. Só aparece em aparelhos HyperOS, igual o card "Barra de botões" já existente. Adicione pelo app, do mesmo jeito que o primeiro atalho, ou edite o Centro de Controle manualmente.
+
 ## 3.1.1
 
 ### Fixed
