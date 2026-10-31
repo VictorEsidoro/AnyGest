@@ -57,6 +57,9 @@ Also:
   done.
 - **Control Center shortcut**: shows whether gestures are running and, if HyperOS stops the
   service while the button bar is hidden, takes you straight back to Accessibility — no restart.
+- **Second Control Center shortcut, for navigation**: if the button bar ever comes back on its
+  own, opens HyperOS's navigation-mode screen in one tap. It can't switch the mode itself —
+  that is restricted to the system — it just saves the hunt.
 - **Credits** inside the app, and releases published here with the `.apk` attached directly, no
   zip.
 
@@ -148,6 +151,10 @@ page so you can turn it back on.
 If the button is missing or does nothing, edit the Control Center and add the AnyGest
 shortcut by hand.
 
+There is a second, optional shortcut on the **Control Center shortcut (navigation)** card: if
+the button bar ever comes back on its own (see [Common problems](#common-problems)), it opens
+HyperOS's navigation-mode screen in one tap. HyperOS devices only.
+
 ### Step 4 — Turn on Circle to Search *(optional)*
 
 1. In the app's **Circle to Search** card, turn on **Bottom edge long press = Circle to
@@ -216,6 +223,7 @@ space.
 | The Accessibility switch won't turn on | You missed **Allow restricted settings** (the first item in First steps). |
 | Gestures stop on their own / Accessibility turns off | Check the battery and autostart items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
 | Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. |
+| The button bar came back on its own, but gestures are still on | HyperOS switched the navigation mode by itself (common with third-party launchers). Tap the second Control Center shortcut (navigation) to jump straight to that screen and pick gesture navigation again. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
 | Each gesture seems to fire twice | The old HyperGesture is probably still installed and turned on. Uninstall it: AnyGest is a separate app and does not replace it by itself. |
 | A long press on the edge opens Circle to Search by accident | It only counts in the middle, over the handle. If it still gets in the way, turn off **Use the system touch and hold delay** and raise the manual time. |

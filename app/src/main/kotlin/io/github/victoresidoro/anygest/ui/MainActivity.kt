@@ -20,6 +20,7 @@ package io.github.victoresidoro.anygest.ui
 import android.app.Activity
 import android.app.LocaleManager
 import android.app.StatusBarManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -33,6 +34,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
@@ -99,6 +101,7 @@ import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
 import io.github.victoresidoro.anygest.settings.SettingsBackup
 import io.github.victoresidoro.anygest.settings.SettingsBackupIo
 import io.github.victoresidoro.anygest.setup.GestureTileService
+import io.github.victoresidoro.anygest.setup.NavigationModeTileService
 import io.github.victoresidoro.anygest.setup.SetupChecklist
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
 import io.github.victoresidoro.anygest.setup.SetupStep
@@ -151,6 +154,7 @@ private fun AnyGestScreen(
     val setupStates = remember(setupFacts) { SetupChecklist.evaluate(setupFacts) }
     val navigationStatus = remember(setupRevision) { integration.status() }
     val tileAdded = remember(setupRevision) { SetupStore(context).tileAdded }
+    val navigationTileAdded = remember(setupRevision) { SetupStore(context).navigationTileAdded }
     var settingsExpanded by remember { mutableStateOf(false) }
     var diagnosticsExpanded by remember { mutableStateOf(false) }
     var creditsExpanded by remember { mutableStateOf(false) }
@@ -195,7 +199,16 @@ private fun AnyGestScreen(
         TileCard(
             added = tileAdded,
             canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
-            onRequest = { requestTile(context) { setupRevision++ } },
+            onRequest = {
+                requestTile(
+                    context = context,
+                    component = GestureTileService.component(context),
+                    label = R.string.app_name,
+                    icon = R.drawable.ic_tile,
+                    onAdded = { SetupStore(context).tileAdded = true },
+                    onResult = { setupRevision++ },
+                )
+            },
         )
 
         if (navigationStatus.available) {
@@ -206,6 +219,23 @@ private fun AnyGestScreen(
                     navigationGestural = navigationStatus.currentMode == NavigationMode.GESTURAL,
                 ),
                 onOpen = { integration.requestEnable() },
+            )
+
+            // A separate shortcut, not folded into TileCard above: it targets a different
+            // vendor screen and only makes sense once HyperOS is confirmed.
+            NavigationTileCard(
+                added = navigationTileAdded,
+                canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
+                onRequest = {
+                    requestTile(
+                        context = context,
+                        component = NavigationModeTileService.component(context),
+                        label = R.string.tile_navigation_label,
+                        icon = R.drawable.ic_sym_bottom_navigation,
+                        onAdded = { SetupStore(context).navigationTileAdded = true },
+                        onResult = { setupRevision++ },
+                    )
+                },
             )
         }
 
@@ -293,23 +323,30 @@ private fun openAssistantSettings(context: Context) = context.startFirst(
 )
 
 /**
- * Android 13's one-tap prompt to place the tile. Builds that refuse it still let the user add
- * the tile by editing the Control Center, which the step's text explains.
+ * Android 13's one-tap prompt to place a tile. Builds that refuse it still let the user add
+ * the tile by editing the Control Center, which each card's text explains.
  */
-private fun requestTile(context: Context, onResult: () -> Unit) {
+private fun requestTile(
+    context: Context,
+    component: ComponentName,
+    @StringRes label: Int,
+    @DrawableRes icon: Int,
+    onAdded: () -> Unit,
+    onResult: () -> Unit,
+) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
     val statusBar = context.getSystemService(StatusBarManager::class.java) ?: return
     runCatching {
         statusBar.requestAddTileService(
-            GestureTileService.component(context),
-            context.getString(R.string.app_name),
-            Icon.createWithResource(context, R.drawable.ic_tile),
+            component,
+            context.getString(label),
+            Icon.createWithResource(context, icon),
             context.mainExecutor,
         ) { result ->
             if (result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ||
                 result == StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED
             ) {
-                SetupStore(context).tileAdded = true
+                onAdded()
             }
             onResult()
         }
@@ -363,6 +400,21 @@ private fun TileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit)
         healthy = added,
         body = stringResource(R.string.tile_card_body),
         hint = stringResource(R.string.tile_card_manual).takeUnless { added },
+        actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
+        onAction = onRequest,
+    )
+}
+
+/** Same shape as [TileCard], for the second, HyperOS-only shortcut. */
+@Composable
+private fun NavigationTileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit) {
+    InfoCard(
+        title = stringResource(R.string.navigation_tile_card_title),
+        icon = R.drawable.ic_sym_bottom_navigation,
+        badge = stringResource(if (added) R.string.tile_card_added else R.string.tile_card_missing),
+        healthy = added,
+        body = stringResource(R.string.navigation_tile_card_body),
+        hint = stringResource(R.string.navigation_tile_card_manual).takeUnless { added },
         actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
         onAction = onRequest,
     )

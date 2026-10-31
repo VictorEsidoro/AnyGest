@@ -59,6 +59,9 @@ E também:
   quando o anterior está feito.
 - **Atalho no Centro de controle**: mostra se os gestos estão funcionando e, se o HyperOS parar
   o serviço com a barra de botões escondida, leva direto à Acessibilidade — sem reiniciar.
+- **Segundo atalho no Centro de controle, pra navegação**: se a barra de botões voltar sozinha,
+  abre a tela de modo de navegação do HyperOS num toque. Não troca o modo sozinho — isso é
+  restrito ao sistema — só poupa a procura.
 - **Créditos** dentro do app e versões publicadas aqui com o `.apk` direto, sem zip.
 
 A lista completa, versão por versão, está no [CHANGELOG.md](CHANGELOG.md).
@@ -149,6 +152,10 @@ Acessibilidade para religar.
 Se o botão não aparecer ou não fizer nada, edite o Centro de controle e adicione o atalho do
 AnyGest manualmente.
 
+Há um segundo atalho opcional, no card **Atalho no Centro de controle (navegação)**: se a
+barra de botões voltar sozinha (ver [Problemas comuns](#problemas-comuns)), ele abre a tela de
+modo de navegação do HyperOS num toque. Só aparece em aparelhos HyperOS.
+
 ### Passo 4 — Ativar o Circule para pesquisar *(opcional)*
 
 1. No app, no card **Circule para pesquisar**, ative **Toque longo na borda inferior =
@@ -220,6 +227,7 @@ AnyGest — é só uma questão de espaço na tela.
 | A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
 | Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria e Início automático nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |
 | Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. |
+| A barra de botões voltou sozinha, mas os gestos continuam ligados | O HyperOS mudou o modo de navegação por conta própria (normal com launchers de terceiros). Toque no segundo atalho do Centro de controle (navegação) pra ir direto à tela e escolher Navegação por gestos de novo. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |
 | Toque longo na borda abre o Circule para pesquisar sem querer | Ele só vale no centro, sobre a alça. Se ainda atrapalhar, desligue **Usar o Atraso ao tocar e pressionar do sistema** e aumente o tempo manual. |
 | Toques perto da borda de baixo parecem um pouco lentos | É esperado: o app precisa "segurar" cada toque na borda para ver se vira gesto. Diminuir a **Largura da área de ativação** reduz a área afetada. |

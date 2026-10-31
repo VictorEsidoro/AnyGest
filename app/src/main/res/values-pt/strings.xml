@@ -133,6 +133,7 @@
         <item>Serviço mais leve na bateria, que só acorda quando você toca na borda</item>
         <item>Lista de Primeiros passos, em ordem e com cores, que guia toda a configuração</item>
         <item>Atalho no Centro de controle, para religar os gestos sem reiniciar o celular</item>
+        <item>Um segundo atalho no Centro de controle, direto pra tela de modo de navegação do HyperOS, caso a barra de botões volte sozinha</item>
         <item>Proteção que só deixa esconder a barra de botões com os gestos ligados</item>
         <item>Tradução para português do Brasil com os nomes reais das telas do HyperOS, e seletor de idioma</item>
         <item>Versões publicadas com o APK direto, changelog e documentação completa</item>
@@ -195,7 +196,18 @@
     <string name="navigation_card_body">Em Modo de navegação, escolha Navegação por gestos para esconder a barra de três botões e ganhar espaço na tela. Seus gestos funcionam de qualquer jeito. Para trazer a barra de volta, escolha os botões na mesma tela.</string>
     <string name="navigation_card_locked">Ligue o AnyGest antes (Primeiros passos): com o serviço parado, a barra escondida deixa você sem como navegar.</string>
 
+    <!-- Atalho do Centro de controle (modo de navegação) -->
+    <string name="navigation_tile_card_title">Atalho no Centro de controle (navegação)</string>
+    <string name="navigation_tile_card_body">Um segundo atalho, separado do primeiro: se o HyperOS voltar sozinho para a barra de botões, este abre a tela de modo de navegação dele num toque, sem precisar procurar nas Configurações. Ele não troca o modo sozinho, só você pode; só poupa a ida até a tela certa.</string>
+    <string name="navigation_tile_card_manual">Se o botão abaixo não aparecer ou não fizer nada, edite o Centro de controle e adicione o atalho de navegação do AnyGest manualmente.</string>
+
     <!-- Atalho do Centro de controle -->
     <string name="tile_active">Ativo</string>
     <string name="tile_inactive">Parado · toque para ligar</string>
+
+    <!-- Atalho de modo de navegação -->
+    <string name="tile_navigation_label">AnyGest · Navegação</string>
+    <string name="tile_navigation_gestural">Gestos · toque para trocar</string>
+    <string name="tile_navigation_buttons">Botões · toque para trocar</string>
+    <string name="tile_navigation_unknown">Toque para abrir o modo de navegação</string>
 </resources>

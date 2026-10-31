@@ -98,6 +98,19 @@
             </intent-filter>
         </service>
 
+        <!-- Second, independent Control Center tile: opens HyperOS's navigation-mode screen
+             in one tap if the bar ever comes back on its own. -->
+        <service
+            android:name=".setup.NavigationModeTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_sym_bottom_navigation"
+            android:label="@string/tile_navigation_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".boot.BootCompletedReceiver"
             android:exported="false">
