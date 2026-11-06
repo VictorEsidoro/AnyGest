@@ -17,6 +17,7 @@
 
 package io.github.victoresidoro.anygest.ui
 
+import android.Manifest
 import android.app.Activity
 import android.app.LocaleManager
 import android.app.StatusBarManager
@@ -96,6 +97,8 @@ import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
+import io.github.victoresidoro.anygest.service.AlertNotifier
+import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
 import io.github.victoresidoro.anygest.settings.SettingsBackup
@@ -155,6 +158,15 @@ private fun AnyGestScreen(
     val navigationStatus = remember(setupRevision) { integration.status() }
     val tileAdded = remember(setupRevision) { SetupStore(context).tileAdded }
     val navigationTileAdded = remember(setupRevision) { SetupStore(context).navigationTileAdded }
+    val alertsOn = remember(setupRevision) {
+        SetupStore(context).alertsEnabled && AlertNotifier.canPost(context)
+    }
+    val notificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        SetupStore(context).alertsEnabled = granted
+        setupRevision++
+    }
     var settingsExpanded by remember { mutableStateOf(false) }
     var diagnosticsExpanded by remember { mutableStateOf(false) }
     var creditsExpanded by remember { mutableStateOf(false) }
@@ -179,6 +191,7 @@ private fun AnyGestScreen(
                         Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
                     )
                     SetupStep.AUTOSTART -> openAutostart(context)
+                    SetupStep.LOCK_RECENTS -> AnyGestAccessibilityService.openRecents()
                     SetupStep.USAGE_ACCESS ->
                         context.startFirst(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
                     SetupStep.DIGITAL_ASSISTANT -> openAssistantSettings(context)
@@ -238,6 +251,19 @@ private fun AnyGestScreen(
                 },
             )
         }
+
+        AlertsCard(
+            enabled = alertsOn,
+            onToggle = {
+                val store = SetupStore(context)
+                when {
+                    alertsOn -> store.alertsEnabled = false
+                    AlertNotifier.canPost(context) -> store.alertsEnabled = true
+                    else -> notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                setupRevision++
+            },
+        )
 
         // Never collapsed: this is the one gesture that needs a permission before it works,
         // and hiding the toggle behind a tap is how it goes unnoticed.
@@ -417,6 +443,22 @@ private fun NavigationTileCard(added: Boolean, canRequest: Boolean, onRequest: (
         hint = stringResource(R.string.navigation_tile_card_manual).takeUnless { added },
         actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
         onAction = onRequest,
+    )
+}
+
+@Composable
+private fun AlertsCard(enabled: Boolean, onToggle: () -> Unit) {
+    InfoCard(
+        title = stringResource(R.string.alerts_card_title),
+        icon = R.drawable.ic_sym_dashboard_customize,
+        badge = stringResource(if (enabled) R.string.alerts_card_on else R.string.alerts_card_off),
+        healthy = enabled,
+        body = stringResource(R.string.alerts_card_body),
+        hint = null,
+        actionLabel = stringResource(
+            if (enabled) R.string.alerts_action_off else R.string.alerts_action_on,
+        ),
+        onAction = onToggle,
     )
 }
 

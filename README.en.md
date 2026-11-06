@@ -221,7 +221,8 @@ space.
 |---|---|
 | "App not installed" | First, **turn Play Protect off just for the install** (see the warning in Step 1): on the first install it often blocks and the message gives no reason. If it came through WhatsApp, download it again from the link or through Drive. If a **test (debug)** build is installed, uninstall it first — the signature is different. |
 | The Accessibility switch won't turn on | You missed **Allow restricted settings** (the first item in First steps). |
-| Gestures stop on their own / Accessibility turns off | Check the battery and autostart items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
+| Gestures stop on their own / Accessibility turns off | Check the battery, autostart and Lock in Recents items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
+| I want to be told when the gestures stop or the bar comes back | Turn on the **Alerts** card in the app (it starts off). Android 13+ asks for the notification permission right then. The alert only takes you to the screen that fixes it; actually turning things back on is still a tap from you. |
 | Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. |
 | The button bar came back on its own, but gestures are still on | HyperOS switched the navigation mode by itself (common with third-party launchers). Tap the second Control Center shortcut (navigation) to jump straight to that screen and pick gesture navigation again. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
@@ -262,7 +263,6 @@ space.
   The technique used here is theirs.
 - **[Material Symbols](https://fonts.google.com/icons)** by Google (Apache 2.0 licence) — the
   thin-line icons on the app's cards.
-- Built with help from **Claude** (Anthropic).
 
 All three projects are free software under the **GPL-3.0**, and so is AnyGest.
 

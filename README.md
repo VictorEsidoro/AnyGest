@@ -225,7 +225,8 @@ AnyGest — é só uma questão de espaço na tela.
 | "O app não foi instalado" | Primeiro, **desligue o Play Protect só para instalar** (veja o aviso no Passo 1): na primeira instalação ele costuma barrar e a mensagem não diz o motivo. Se veio pelo WhatsApp, baixe de novo pelo link ou pelo Drive. Se já tinha uma versão de **teste (debug)** instalada, desinstale antes — a assinatura é diferente. |
 | Cada gesto parece disparar duas vezes | Provavelmente o HyperGesture antigo ainda está instalado e ligado. Desinstale-o: o AnyGest é outro app e não o substitui sozinho. |
 | A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
-| Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria e Início automático nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |
+| Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria, Início automático e Travar nos Recentes nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |
+| Quero ser avisado quando os gestos pararem ou a barra voltar | Ative o card **Alertas** no app (vem desligado). O Android 13+ pede a permissão de notificações na hora. O aviso só leva você à tela que resolve; religar de verdade continua sendo um toque seu. |
 | Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. |
 | A barra de botões voltou sozinha, mas os gestos continuam ligados | O HyperOS mudou o modo de navegação por conta própria (normal com launchers de terceiros). Toque no segundo atalho do Centro de controle (navegação) pra ir direto à tela e escolher Navegação por gestos de novo. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |
@@ -265,7 +266,6 @@ AnyGest — é só uma questão de espaço na tela.
   assistente do Android. A técnica usada aqui é a deles.
 - **[Material Symbols](https://fonts.google.com/icons)**, do Google (licença Apache 2.0) — os ícones
   de traço fino dos cards do app.
-- Desenvolvido com a ajuda do **Claude** (Anthropic).
 
 Os três projetos são software livre sob a licença **GPL-3.0**, e o AnyGest também.
 

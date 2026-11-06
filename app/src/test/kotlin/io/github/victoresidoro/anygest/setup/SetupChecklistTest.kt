@@ -40,7 +40,7 @@ class SetupChecklistTest {
     private val ready = fresh.copy(
         accessibilityEnabled = true,
         batteryUnrestricted = true,
-        confirmed = setOf(SetupStep.AUTOSTART),
+        confirmed = setOf(SetupStep.AUTOSTART, SetupStep.LOCK_RECENTS),
     )
 
     private fun status(facts: SetupFacts, step: SetupStep): StepStatus? =
@@ -180,5 +180,16 @@ class SetupChecklistTest {
             SetupStep.entries.toList(),
             SetupChecklist.evaluate(all).map { it.step },
         )
+    }
+
+    @Test
+    fun `locking recents is optional and only asked on hyperos`() {
+        assertEquals(StepStatus.UNVERIFIED, status(ready.copy(confirmed = setOf(SetupStep.AUTOSTART)), SetupStep.LOCK_RECENTS))
+        assertFalse(
+            SetupChecklist.isBlocking(
+                SetupChecklist.evaluate(ready.copy(confirmed = setOf(SetupStep.AUTOSTART))),
+            ),
+        )
+        assertNull(status(ready.copy(isHyperOs = false), SetupStep.LOCK_RECENTS))
     }
 }

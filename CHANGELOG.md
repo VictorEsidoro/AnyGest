@@ -4,6 +4,20 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.3.0
+
+### Added
+
+- Optional **Alerts** (off by default, turned on from the new Alerts card): a quiet notification when the gesture service stops, and another when the system brings the button bar back on its own, each with a tap that opens the screen that fixes it. Android does not let an app switch either one back on (`WRITE_SECURE_SETTINGS` is signature-level), so this only shortens the trip. Turning the service off yourself also shows the alert, and it clears by itself once the service is back. Turning it on asks for the Android 13+ notification permission, only then.
+- A new optional step in the setup checklist, HyperOS only: **Lock AnyGest in Recents**. The lock on the Recents card is what keeps "clear all" from ending the service. HyperOS does not let apps check it, so it is confirmed by hand like Autostart, and the step has an **Open Recents** button.
+
+### Português
+
+#### Adicionado
+
+- **Alertas** opcionais (desligados por padrão, ativados no novo card Alertas): uma notificação discreta quando o serviço de gestos para, e outra quando o sistema traz a barra de botões de volta sozinho, cada uma com um toque que abre a tela que resolve. O Android não deixa um app religar nenhum dos dois (`WRITE_SECURE_SETTINGS` é de assinatura), então isso só encurta o caminho. Desligar o serviço você mesmo também mostra o alerta, e ele some sozinho quando o serviço volta. Ao ativar, o app pede a permissão de notificações do Android 13+, só nesse momento.
+- Um novo passo opcional no checklist de primeiros passos, só no HyperOS: **Travar o AnyGest nos Recentes**. O cadeado no card dos Recentes é o que impede o "limpar tudo" de encerrar o serviço. O HyperOS não deixa o app conferir isso, então é confirmado na mão, igual ao Início automático, e o passo tem um botão **Abrir Recentes**.
+
 ## 3.2.0
 
 ### Added

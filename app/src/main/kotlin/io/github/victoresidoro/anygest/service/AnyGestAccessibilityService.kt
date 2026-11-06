@@ -25,10 +25,12 @@ import android.accessibilityservice.GestureDescription
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.database.ContentObserver
 import android.graphics.Path
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.Display
 import android.view.ViewConfiguration
@@ -40,6 +42,8 @@ import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.PlatformDefaults
 import io.github.victoresidoro.anygest.gesture.ScreenEdge
 import io.github.victoresidoro.anygest.gesture.TouchSample
+import io.github.victoresidoro.anygest.navigation.NavigationMode
+import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
 import io.github.victoresidoro.anygest.setup.GestureTileService
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -74,6 +78,12 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private var overlay: EdgeTouchOverlay? = null
     private var configuration: GestureConfiguration = GestureConfiguration()
     private var lastGeometry: ScreenGeometry? = null
+    private var lastNavigationMode: NavigationMode? = null
+
+    /** The system flipping back to the button bar is only visible by watching the setting. */
+    private val navigationObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) = onNavigationModeChanged()
+    }
 
     /**
      * Rotation reaches the display *after* the configuration change lands, so
@@ -100,7 +110,18 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         } catch (t: Throwable) {
             FailureLog.record(this, "onServiceConnected", t)
         }
+        AlertNotifier.gesturesRunning(this)
         GestureTileService.requestRefresh(this)
+    }
+
+    private fun onNavigationModeChanged() {
+        val current = NavigationModeReader.read(this)
+        if (AlertNotifier.navigationBarCameBack(lastNavigationMode, current)) {
+            AlertNotifier.navigationBarBack(this)
+        } else if (current == NavigationMode.GESTURAL) {
+            AlertNotifier.navigationBarGone(this)
+        }
+        lastNavigationMode = current
     }
 
     private fun setUp() {
@@ -117,6 +138,13 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
             .registerDisplayListener(displayListener, handler)
 
+        lastNavigationMode = NavigationModeReader.read(this)
+        contentResolver.registerContentObserver(
+            Settings.Secure.getUriFor("navigation_mode"),
+            false,
+            navigationObserver,
+        )
+
         scope.launch {
             settings.configuration.collect { updated ->
                 configuration = updated.copy(platform = platformDefaults())
@@ -127,6 +155,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
     override fun onUnbind(intent: Intent?): Boolean {
         teardown()
+        AlertNotifier.gesturesStopped(this)
         GestureTileService.requestRefresh(this)
         return super.onUnbind(intent)
     }
@@ -183,6 +212,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
                 .unregisterDisplayListener(displayListener)
         }
+        runCatching { contentResolver.unregisterContentObserver(navigationObserver) }
         overlay?.remove()
         overlay = null
         handler.removeCallbacksAndMessages(null)
@@ -314,5 +344,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         private var instance: AnyGestAccessibilityService? = null
 
         fun isRunning(): Boolean = instance != null
+
+        /** For the checklist's "open Recents" button; false when the service is not running. */
+        fun openRecents(): Boolean =
+            instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS) == true
     }
 }
