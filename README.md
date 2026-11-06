@@ -206,7 +206,7 @@ desligando, a barra de botões volta na hora; ligando, os gestos e a barra escon
 | **Atalho no Centro de controle** | Por que o atalho importa, se ele já foi adicionado e o botão para adicionar. |
 | **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o AnyGest ligado. |
 | **Modo ADB** | Mostra o comando de uma vez só que dá ao AnyGest a permissão de se cuidar sozinho, e as chaves para manter a barra escondida e religar os gestos sozinho. |
-| **Apps em exceção** | A lista de apps (o Nubank já vem nela) em que os gestos pausam enquanto estão abertos. Precisa do Modo ADB e do acesso de uso. |
+| **Apps em exceção** | A lista de apps, vazia por padrão, em que os gestos pausam enquanto estão abertos. Precisa do Modo ADB e do acesso de uso. Veja o aviso no card antes de adicionar algum app. |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
@@ -255,7 +255,7 @@ desligando, a barra de botões volta na hora; ligando, os gestos e a barra escon
 | A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
 | Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria, Início automático e Travar nos Recentes nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |
 | Quero ser avisado quando os gestos pararem ou a barra voltar | Ative o card **Alertas** no app (vem desligado). O Android 13+ pede a permissão de notificações na hora. O aviso só leva você à tela que resolve; religar de verdade continua sendo um toque seu. |
-| Um app (banco, por exemplo) fecha dizendo que há um serviço de acessibilidade | Configure o **Modo ADB** (Passo 6) e deixe o app na lista de **Apps em exceção**: o AnyGest se desliga enquanto ele está aberto e volta quando você sai. O Nubank já vem na lista. |
+| Um app fecha dizendo que há um serviço de acessibilidade | Configure o **Modo ADB** (Passo 6) e adicione o app na lista de **Apps em exceção**: o AnyGest se desliga enquanto ele está aberto e volta quando você sai. É experimental e contorna de propósito a checagem desse app; leia o aviso no card e os termos de uso do app antes de usar. |
 | Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. |
 | A barra de botões voltou sozinha, mas os gestos continuam ligados | O HyperOS mudou o modo de navegação por conta própria (normal com launchers de terceiros). Toque no segundo atalho do Centro de controle (navegação) pra ir direto à tela e escolher Navegação por gestos de novo. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |

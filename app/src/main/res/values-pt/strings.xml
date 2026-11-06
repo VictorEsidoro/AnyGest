@@ -200,8 +200,9 @@
     <string name="pause_card_title">Apps em exceção</string>
     <string name="pause_card_on">Ligado</string>
     <string name="pause_card_off">Desligado</string>
-    <string name="pause_card_body">Alguns apps, bancos principalmente, se recusam a funcionar com um serviço de acessibilidade ligado. Para os apps abaixo o AnyGest dá um tempo enquanto estão abertos: a barra de botões volta e os gestos desligam, e os dois voltam quando você sai.</string>
+    <string name="pause_card_body">Alguns apps se recusam a funcionar com um serviço de acessibilidade ligado. Para os apps que você adicionar abaixo, o AnyGest dá um tempo enquanto estão abertos: a barra de botões volta e os gestos desligam, e os dois voltam quando você sai.</string>
     <string name="pause_needs_adb">Precisa do Modo ADB, acima.</string>
+    <string name="pause_disclaimer">Experimental, e contorna de propósito uma verificação que alguns apps fazem. Alguns apps podem continuar recusando funcionar, e alguns podem tratar isso como um contorno de segurança e agir em cima disso (na sua conta, por exemplo). Use por sua conta e risco, e confira os termos de uso do app antes de adicioná-lo.</string>
     <string name="pause_needs_usage">Precisa do acesso de uso, para saber quando você sai do app.</string>
     <string name="pause_toggle">Pausar os gestos nesses apps</string>
     <string name="pause_empty">Nenhum app na lista.</string>

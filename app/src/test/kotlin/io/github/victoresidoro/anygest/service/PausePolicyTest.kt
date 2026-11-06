@@ -23,10 +23,10 @@ import org.junit.Test
 
 class PausePolicyTest {
 
-    private val apps = setOf("com.nu.production")
+    private val apps = setOf("com.example.bank")
 
     private fun pause(
-        packageName: String = "com.nu.production",
+        packageName: String = "com.example.bank",
         enabled: Boolean = true,
         available: Boolean = true,
         alreadyPaused: Boolean = false,
@@ -52,7 +52,7 @@ class PausePolicyTest {
     @Test
     fun `leaving means another app is in front`() {
         assertTrue(PausePolicy.frontIsOutside("com.teslacoilsw.launcher", apps))
-        assertFalse(PausePolicy.frontIsOutside("com.nu.production", apps))
+        assertFalse(PausePolicy.frontIsOutside("com.example.bank", apps))
     }
 
     @Test

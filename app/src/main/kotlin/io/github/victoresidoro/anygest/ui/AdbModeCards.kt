@@ -192,6 +192,11 @@ internal fun PauseAppsCard(
                 text = stringResource(R.string.pause_card_body),
                 style = MaterialTheme.typography.bodyMedium,
             )
+            Text(
+                text = stringResource(R.string.pause_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             if (!adbMode) {
                 Text(
                     text = stringResource(R.string.pause_needs_adb),

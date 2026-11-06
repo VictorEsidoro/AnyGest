@@ -207,8 +207,9 @@
     <string name="pause_card_title">Exception apps</string>
     <string name="pause_card_on">On</string>
     <string name="pause_card_off">Off</string>
-    <string name="pause_card_body">Some apps, banks especially, refuse to run while an accessibility service is on. For the apps below AnyGest steps aside while they are open: the button bar comes back and the gestures go off, then both return when you leave.</string>
+    <string name="pause_card_body">Some apps refuse to run while an accessibility service is on. For the apps you add below, AnyGest steps aside while they are open: the button bar comes back and the gestures go off, then both return when you leave.</string>
     <string name="pause_needs_adb">Needs ADB mode, above.</string>
+    <string name="pause_disclaimer">Experimental, and it works around a check some apps make on purpose. Some apps may still refuse to run, and some may treat this as a security bypass and act on it (on your account, say). Use at your own risk, and check that app\'s own terms before adding it.</string>
     <string name="pause_needs_usage">Needs usage access, to know when you leave the app.</string>
     <string name="pause_toggle">Pause the gestures in these apps</string>
     <string name="pause_empty">No apps on the list.</string>

@@ -23,26 +23,26 @@ import org.junit.Test
 class AppFilterTest {
 
     private val choices = listOf(
-        AppChoice("com.nu.production", "Nubank"),
-        AppChoice("br.com.intermedium", "Inter"),
+        AppChoice("com.example.bank", "Example Bank"),
+        AppChoice("br.com.other.bank", "Other Bank"),
         AppChoice("com.android.chrome", "Chrome"),
     )
 
     @Test
     fun `an empty search keeps everything not already listed`() {
-        val shown = filterChoices(choices, exclude = setOf("com.nu.production"), query = "  ")
+        val shown = filterChoices(choices, exclude = setOf("com.example.bank"), query = "  ")
 
-        assertEquals(listOf("br.com.intermedium", "com.android.chrome"), shown.map { it.packageName })
+        assertEquals(listOf("br.com.other.bank", "com.android.chrome"), shown.map { it.packageName })
     }
 
     @Test
     fun `the search matches the name or the package, ignoring case`() {
-        assertEquals(listOf("Inter"), filterChoices(choices, emptySet(), "inter").map { it.label })
-        assertEquals(listOf("Nubank"), filterChoices(choices, emptySet(), "NU.PROD").map { it.label })
+        assertEquals(listOf("Other Bank"), filterChoices(choices, emptySet(), "other").map { it.label })
+        assertEquals(listOf("Example Bank"), filterChoices(choices, emptySet(), "EXAMPLE.BANK").map { it.label })
     }
 
     @Test
     fun `an app already on the list never shows up`() {
-        assertEquals(emptyList<AppChoice>(), filterChoices(choices, setOf("com.nu.production"), "nubank"))
+        assertEquals(emptyList<AppChoice>(), filterChoices(choices, setOf("com.example.bank"), "nubank"))
     }
 }

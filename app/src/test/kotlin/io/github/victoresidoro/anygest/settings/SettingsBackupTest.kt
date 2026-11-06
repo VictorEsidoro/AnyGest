@@ -45,7 +45,7 @@ class SettingsBackupTest {
             circleToSearchHoldMs = 500L,
             circleToSearchFollowsSystemTiming = false,
             pauseInAppsEnabled = false,
-            pauseApps = setOf("com.nu.production", "br.com.bb.android"),
+            pauseApps = setOf("com.example.bank", "br.com.other.bank"),
         )
 
         val decoded = SettingsBackup.decode(SettingsBackup.encode(original))
@@ -106,7 +106,7 @@ class SettingsBackupTest {
     @Test
     fun `a pause list with something that is not a package name is skipped whole`() {
         val decoded = SettingsBackup.decode(
-            "format=1\npause_apps=com.nu.production,not a package\n",
+            "format=1\npause_apps=com.example.bank,not a package\n",
         )!!
 
         assertEquals(GestureConfiguration.DEFAULT_PAUSE_APPS, decoded.configuration.pauseApps)

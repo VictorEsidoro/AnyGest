@@ -204,7 +204,7 @@ the button bar back at once; on brings the gestures and the hidden bar back.
 | **Control Center shortcut** | Why the shortcut matters, whether it is added, and the button to add it. |
 | **Button bar** | Whether the bar is hidden, and a shortcut to Navigation mode. Unlocks only with AnyGest on. |
 | **ADB mode** | Shows the one-time command that lets AnyGest look after itself, and the switches to keep the bar hidden and to bring the gestures back by itself. |
-| **Exception apps** | The list of apps (Nubank is already on it) the gestures pause for while they are open. Needs ADB mode and usage access. |
+| **Exception apps** | The list of apps, empty by default, the gestures pause for while they are open. Needs ADB mode and usage access. See the warning in the card before adding an app. |
 | **App switching** | Turns on the sideways swipe along the bottom edge. Needs **usage access**. |
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |
@@ -250,7 +250,7 @@ the button bar back at once; on brings the gestures and the hidden bar back.
 | The Accessibility switch won't turn on | You missed **Allow restricted settings** (the first item in First steps). |
 | Gestures stop on their own / Accessibility turns off | Check the battery, autostart and Lock in Recents items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
 | I want to be told when the gestures stop or the bar comes back | Turn on the **Alerts** card in the app (it starts off). Android 13+ asks for the notification permission right then. The alert only takes you to the screen that fixes it; actually turning things back on is still a tap from you. |
-| An app (a bank, say) closes saying an accessibility service is on | Set up **ADB mode** (Step 6) and keep the app on the **Exception apps** list: AnyGest switches itself off while it is open and returns when you leave. Nubank is already on it. |
+| An app closes saying an accessibility service is on | Set up **ADB mode** (Step 6) and add the app to the **Exception apps** list: AnyGest switches itself off while it is open and returns when you leave. It is experimental and works around that app's check on purpose; read the warning in the card and that app's own terms before using it. |
 | Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. |
 | The button bar came back on its own, but gestures are still on | HyperOS switched the navigation mode by itself (common with third-party launchers). Tap the second Control Center shortcut (navigation) to jump straight to that screen and pick gesture navigation again. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
