@@ -4,6 +4,28 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.4.0
+
+### Added
+
+- **ADB mode**, optional and advanced. A one-time `pm grant io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS` (over adb, or from an app such as aShell with Shizuku) gives AnyGest the one permission that was out of reach. It is expected to stay after the debugging is turned off (to be confirmed per device: the card shows whether it did). The new **ADB mode** card shows and copies the command and reports whether it took. Without the grant nothing changes: every feature below is a no-op.
+- With ADB mode, AnyGest **keeps the HyperOS button bar hidden** by itself (`force_fsg_nav_bar`, found on a Poco F8 Ultra, where `navigation_mode` stays at buttons while this key hides the bar) and puts it back when the service stops on purpose or by itself, so the phone is never left with no navigation. It writes the key on HyperOS only, and only if the switch in the card is on.
+- With ADB mode, AnyGest **switches its own accessibility service back on** at boot, when the app opens and when the Control Center panel is pulled down (the moments a killed app still gets to run). Not after you turned it off with the tile, and a switch in the card turns it off.
+- **Exception apps**: a list, editable in the app and kept in the settings backup, of apps that refuse to run while an accessibility service is on. Nubank is on it by default. When one comes to the front AnyGest shows the button bar, takes itself out of the enabled services and starts a small foreground watcher (a quiet notification); when you leave the app the service is switched back on and the bar hidden again. It needs ADB mode and usage access, and it is experimental: an app that checks the instant it opens may still see the service.
+- With ADB mode the **Control Center tile is a switch for the gestures**: off shows the button bar and turns the service off, on brings both back. Without ADB mode the tile behaves as before.
+- The service asks for window events at runtime, and only for the listed apps and only with ADB mode set up, so no other app wakes it, and only the package name is ever read. ADB mode is also shown in Diagnostics.
+
+### Português
+
+#### Adicionado
+
+- **Modo ADB**, opcional e avançado. Um `pm grant io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS` rodado uma vez (por adb, ou num app como o aShell com Shizuku) dá ao AnyGest a única permissão que estava fora de alcance. Ela deve continuar depois de desligar a depuração (a confirmar em cada aparelho: o card mostra se continuou). O novo card **Modo ADB** mostra e copia o comando e informa se pegou. Sem a permissão nada muda: tudo abaixo não faz nada.
+- Com o Modo ADB, o AnyGest **mantém a barra de botões do HyperOS escondida** sozinho (`force_fsg_nav_bar`, descoberta num Poco F8 Ultra, onde o `navigation_mode` continua em botões e essa chave é que esconde a barra) e a devolve quando o serviço para, de propósito ou não, para o celular nunca ficar sem navegação. Só escreve a chave no HyperOS, e só se a chave no card estiver ligada.
+- Com o Modo ADB, o AnyGest **religa o próprio serviço de acessibilidade** ao ligar o celular, ao abrir o app e ao puxar o painel do Centro de controle (os momentos em que um app morto ainda consegue rodar). Não religa se você desligou pelo atalho, e uma chave no card desliga isso.
+- **Apps em exceção**: uma lista, editável no app e incluída no backup das configurações, de apps que se recusam a funcionar com um serviço de acessibilidade ligado. O Nubank já vem nela. Quando um deles vai para a frente, o AnyGest mostra a barra de botões, se tira da lista de serviços ativos e inicia um pequeno vigia em primeiro plano (notificação discreta); quando você sai do app o serviço é religado e a barra escondida de novo. Precisa do Modo ADB e do acesso de uso, e é experimental: um app que confere no instante em que abre ainda pode ver o serviço.
+- Com o Modo ADB o **atalho do Centro de controle vira um liga/desliga dos gestos**: desligar mostra a barra de botões e desliga o serviço, ligar traz os dois de volta. Sem o Modo ADB o atalho se comporta como antes.
+- O serviço pede eventos de janela em tempo de execução, só para os apps da lista e só com o Modo ADB configurado, então nenhum outro app o acorda, e só o nome do pacote é lido. O Modo ADB também aparece no Diagnóstico.
+
 ## 3.3.0
 
 ### Added

@@ -59,9 +59,19 @@ object SettingsBackup {
         properties["circle_to_search_hold_ms"] = configuration.circleToSearchHoldMs.toString()
         properties["circle_to_search_follows_system_timing"] =
             configuration.circleToSearchFollowsSystemTiming.toString()
+        properties["pause_in_apps_enabled"] = configuration.pauseInAppsEnabled.toString()
+        properties["pause_apps"] = configuration.pauseApps.sorted().joinToString(",")
         val writer = StringWriter()
         properties.store(writer, "AnyGest settings")
         return writer.toString()
+    }
+
+    private val PACKAGE_NAME = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")
+
+    /** Null if any entry is not a package name, so a damaged line is skipped whole. */
+    private fun packageList(raw: String): Set<String>? {
+        val entries = raw.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        return if (entries.all { PACKAGE_NAME.matches(it) }) entries.toSet() else null
     }
 
     /**
@@ -121,6 +131,8 @@ object SettingsBackup {
         read("circle_to_search_follows_system_timing", boolean) { c, v ->
             c.copy(circleToSearchFollowsSystemTiming = v)
         }
+        read("pause_in_apps_enabled", boolean) { c, v -> c.copy(pauseInAppsEnabled = v) }
+        read("pause_apps", ::packageList) { c, v -> c.copy(pauseApps = v) }
         return Decoded(result, ignored)
     }
 }

@@ -44,6 +44,8 @@ class SettingsBackupTest {
             circleToSearchEnabled = true,
             circleToSearchHoldMs = 500L,
             circleToSearchFollowsSystemTiming = false,
+            pauseInAppsEnabled = false,
+            pauseApps = setOf("com.nu.production", "br.com.bb.android"),
         )
 
         val decoded = SettingsBackup.decode(SettingsBackup.encode(original))
@@ -89,5 +91,25 @@ class SettingsBackupTest {
 
         assertEquals(GestureConfiguration(), decoded.configuration)
         assertEquals(0, decoded.ignored)
+    }
+
+    @Test
+    fun `an emptied pause list stays empty instead of returning to the default`() {
+        val original = GestureConfiguration(pauseApps = emptySet())
+
+        val decoded = SettingsBackup.decode(SettingsBackup.encode(original))!!
+
+        assertEquals(emptySet<String>(), decoded.configuration.pauseApps)
+        assertEquals(0, decoded.ignored)
+    }
+
+    @Test
+    fun `a pause list with something that is not a package name is skipped whole`() {
+        val decoded = SettingsBackup.decode(
+            "format=1\npause_apps=com.nu.production,not a package\n",
+        )!!
+
+        assertEquals(GestureConfiguration.DEFAULT_PAUSE_APPS, decoded.configuration.pauseApps)
+        assertEquals(1, decoded.ignored)
     }
 }

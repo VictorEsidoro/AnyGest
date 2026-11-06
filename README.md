@@ -173,6 +173,29 @@ espaço. Ele só libera depois que o AnyGest estiver ligado: barra escondida sem
 você sem como navegar. Com launcher de terceiros, os gestos que funcionam continuam sendo os do
 AnyGest — é só uma questão de espaço na tela.
 
+### Passo 6 — Modo ADB *(opcional, avançado)*
+
+Sem isso o AnyGest funciona como sempre. Com isso ele passa a se cuidar sozinho: mantém a barra
+de botões escondida, religa os próprios gestos depois de reiniciar, e **dá um tempo nos apps
+que reclamam de acessibilidade** (bancos, por exemplo) — ver o card **Apps em exceção**.
+
+1. Nas **Opções do desenvolvedor**, ligue a depuração (Wi-Fi ou USB). **Na Xiaomi**, ligue também
+   **Depuração USB (Configurações de segurança)**: sem ela o comando abaixo é recusado.
+2. Rode **uma vez**, no computador (`adb shell`) ou num app como o aShell com o Shizuku:
+
+   ```
+   pm grant io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS
+   ```
+
+   O card **Modo ADB**, no app, mostra e copia esse comando.
+3. Abra o AnyGest: o card passa a **Ativo**. Agora pode desligar a depuração e as Opções do
+   desenvolvedor (alguns apps exigem isso). A permissão deve ficar guardada; se o card voltar a
+   "Não configurado" depois de reiniciar, rode o comando de novo.
+4. Para os apps em exceção funcionarem, conceda também o **Acesso de uso** (o card avisa).
+
+Com o Modo ADB ativo o atalho do Centro de controle vira um **liga/desliga dos gestos**:
+desligando, a barra de botões volta na hora; ligando, os gestos e a barra escondida voltam.
+
 ---
 
 ## Conhecendo o app
@@ -182,6 +205,8 @@ AnyGest — é só uma questão de espaço na tela.
 | **Primeiros passos** | O que falta para os gestos funcionarem, em ordem e com cores, e um botão para cada tela do sistema. Encolhe para "Tudo pronto" quando acaba. |
 | **Atalho no Centro de controle** | Por que o atalho importa, se ele já foi adicionado e o botão para adicionar. |
 | **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o AnyGest ligado. |
+| **Modo ADB** | Mostra o comando de uma vez só que dá ao AnyGest a permissão de se cuidar sozinho, e as chaves para manter a barra escondida e religar os gestos sozinho. |
+| **Apps em exceção** | A lista de apps (o Nubank já vem nela) em que os gestos pausam enquanto estão abertos. Precisa do Modo ADB e do acesso de uso. |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
@@ -189,7 +214,7 @@ AnyGest — é só uma questão de espaço na tela.
 | **Configurações dos gestos** | Larguras, distâncias, tempos e vibração (leve, normal ou forte). Também exporta e importa as configurações num arquivo, para guardar ou levar a outro celular. Fica recolhido para um toque sem querer não mexer em nada. |
 | **Diagnóstico** | Detalhes do aparelho e o último erro. Útil para relatar problemas — nada sai do celular. |
 | **Créditos** | Quem fez o app e de onde vem cada parte. |
-| **O atalho em si** (no Centro de controle) | Fora do app: mostra se os gestos estão ativos e leva à Acessibilidade se não estiverem. |
+| **O atalho em si** (no Centro de controle) | Fora do app: mostra se os gestos estão ativos e leva à Acessibilidade se não estiverem. Com o Modo ADB, liga e desliga os gestos. |
 
 ---
 
@@ -198,8 +223,11 @@ AnyGest — é só uma questão de espaço na tela.
 - **Sem internet**: o app não tem permissão de acesso à rede. Nada sai do seu celular.
 - **Acessibilidade usada só para navegar**: o serviço observa toques em faixas finas nas bordas
   da tela. **Não lê** o conteúdo da tela, textos ou o que você digita.
-- **Dados de uso do app** só são pedidos se você ligar a troca de apps, para saber qual foi o
-  app anterior.
+- **Apps em exceção**: só se você configurar o Modo ADB, o serviço passa a receber o aviso de que
+  uma janela dos apps da lista abriu — apenas o **nome do app**, nunca o conteúdo. Nenhum outro
+  app acorda o serviço.
+- **Dados de uso do app** só são pedidos se você ligar a troca de apps ou usar a lista de exceções,
+  para saber qual app está na frente.
 - **Circule para pesquisar**: ao abrir, quem lê a tela é o **app Google** — exatamente como
   acontece quando você usa o gesto da alça no launcher da Xiaomi. O AnyGest só pede para
   ele abrir.
@@ -227,6 +255,7 @@ AnyGest — é só uma questão de espaço na tela.
 | A chave de Acessibilidade não liga | Faltou **Permitir configurações restritas** (primeiro item dos Primeiros passos). |
 | Os gestos param sozinhos / a Acessibilidade desliga | Confira os itens de Economia de bateria, Início automático e Travar nos Recentes nos Primeiros passos. Se aparecer "serviço com mau funcionamento", desligue e ligue de novo o AnyGest em Acessibilidade. |
 | Quero ser avisado quando os gestos pararem ou a barra voltar | Ative o card **Alertas** no app (vem desligado). O Android 13+ pede a permissão de notificações na hora. O aviso só leva você à tela que resolve; religar de verdade continua sendo um toque seu. |
+| Um app (banco, por exemplo) fecha dizendo que há um serviço de acessibilidade | Configure o **Modo ADB** (Passo 6) e deixe o app na lista de **Apps em exceção**: o AnyGest se desliga enquanto ele está aberto e volta quando você sai. O Nubank já vem na lista. |
 | Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. |
 | A barra de botões voltou sozinha, mas os gestos continuam ligados | O HyperOS mudou o modo de navegação por conta própria (normal com launchers de terceiros). Toque no segundo atalho do Centro de controle (navegação) pra ir direto à tela e escolher Navegação por gestos de novo. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |

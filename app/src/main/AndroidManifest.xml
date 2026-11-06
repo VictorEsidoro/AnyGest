@@ -31,6 +31,19 @@
          user turns them on, and never used for anything else. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+      ADB mode, optional: never prompts and is never granted at install. The user runs
+      `pm grant` once over adb, and only then can the app hide the button bar and switch its
+      own accessibility service back on or off.
+    -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- The pause watcher: alive only while the gestures are paused for an app. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <!-- Light and strong vibration; granted at install, never prompts. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -88,6 +101,16 @@
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!-- Foreground only while the gestures are paused for an app on the exception list. -->
+        <service
+            android:name=".service.ExceptionWatchService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Watches which app is in front so the accessibility service can be switched back on when the user leaves an app that does not allow it" />
         </service>
 
         <!-- Control Center tile: the way back to Accessibility when the bar is hidden. -->

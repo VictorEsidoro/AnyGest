@@ -96,6 +96,13 @@ data class GestureConfiguration(
      */
     val circleToSearchHoldMs: Long = PlatformDefaults.LONG_PRESS_TIMEOUT_MS,
     /**
+     * On by default but inert until "ADB mode" is set up: pausing means taking AnyGest out of
+     * the enabled accessibility services, which only the secure-settings permission allows.
+     */
+    val pauseInAppsEnabled: Boolean = true,
+    /** Apps that complain about an accessibility service; Nubank is the one that started it. */
+    val pauseApps: Set<String> = DEFAULT_PAUSE_APPS,
+    /**
      * Platform values, read from the device at runtime and never persisted. The defaults
      * are AOSP's, so a plain JVM test behaves like an untouched phone.
      */
@@ -108,6 +115,10 @@ data class GestureConfiguration(
         } else {
             circleToSearchHoldMs
         }
+
+    companion object {
+        val DEFAULT_PAUSE_APPS: Set<String> = setOf("com.nu.production")
+    }
 }
 
 /**

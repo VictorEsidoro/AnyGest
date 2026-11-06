@@ -27,6 +27,7 @@ import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.service.AppSwitcher
 import io.github.victoresidoro.anygest.service.GestureActionPerformer
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
+import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 
 /** Everything here stays on the device: rendered in the UI, never transmitted. */
 data class Diagnostics(
@@ -39,6 +40,8 @@ data class Diagnostics(
     val navigationMode: NavigationMode,
     val accessibilityServiceEnabled: Boolean,
     val accessibilityServiceRunning: Boolean,
+    /** Whether the one-time `pm grant` has been done. */
+    val adbMode: Boolean,
     val navigationIntegrationId: String,
     val navigationIntegrationAvailable: Boolean,
     val lastGlobalActionFailure: String?,
@@ -64,6 +67,7 @@ object DiagnosticsCollector {
             navigationMode = status.currentMode,
             accessibilityServiceEnabled = isAccessibilityServiceEnabled(context),
             accessibilityServiceRunning = AnyGestAccessibilityService.isRunning(),
+            adbMode = SecureSettingsAccess.canWrite(context),
             navigationIntegrationId = status.integrationId,
             navigationIntegrationAvailable = status.available,
             lastGlobalActionFailure = GestureActionPerformer.lastFailure,

@@ -171,6 +171,29 @@ AnyGest is on: a hidden bar with no gestures leaves you with no way to navigate.
 third-party launcher, the gestures that work are still AnyGest's — it's only about screen
 space.
 
+### Step 6 — ADB mode *(optional, advanced)*
+
+Without it AnyGest works as it always did. With it AnyGest looks after itself: it keeps the
+button bar hidden, switches its own gestures back on after a restart, and **steps aside for apps
+that object to accessibility** (banks, for instance) — see the **Exception apps** card.
+
+1. In **Developer options**, turn on debugging (Wi-Fi or USB). **On Xiaomi**, also turn on
+   **USB debugging (Security settings)**: without it the command below is refused.
+2. Run this **once**, from a computer (`adb shell`) or an app such as aShell with Shizuku:
+
+   ```
+   pm grant io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS
+   ```
+
+   The **ADB mode** card in the app shows and copies this command.
+3. Open AnyGest: the card turns **Active**. You can now turn debugging and Developer options
+   off again (some apps demand it). The permission should stay; if the card goes back to "Not
+   set up" after a restart, run the command again.
+4. For exception apps to work, also grant **usage access** (the card tells you).
+
+With ADB mode on, the Control Center shortcut becomes a **switch for the gestures**: off brings
+the button bar back at once; on brings the gestures and the hidden bar back.
+
 ---
 
 ## Getting to know the app
@@ -180,6 +203,8 @@ space.
 | **First steps** | What is left for gestures to work, in order and colour-coded, with a button for each system screen. Folds to "All set" when done. |
 | **Control Center shortcut** | Why the shortcut matters, whether it is added, and the button to add it. |
 | **Button bar** | Whether the bar is hidden, and a shortcut to Navigation mode. Unlocks only with AnyGest on. |
+| **ADB mode** | Shows the one-time command that lets AnyGest look after itself, and the switches to keep the bar hidden and to bring the gestures back by itself. |
+| **Exception apps** | The list of apps (Nubank is already on it) the gestures pause for while they are open. Needs ADB mode and usage access. |
 | **App switching** | Turns on the sideways swipe along the bottom edge. Needs **usage access**. |
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |
@@ -187,7 +212,7 @@ space.
 | **Gesture settings** | Widths, distances, times and vibration (light, normal or strong). Also exports and imports the settings to a file, to keep or move to another phone. Collapsed by default so a stray tap changes nothing. |
 | **Diagnostics** | Device details and the last error. Useful for reporting problems — nothing leaves the phone. |
 | **Credits** | Who made the app and where each part comes from. |
-| **The shortcut itself** (in the Control Center) | Outside the app: shows whether gestures are running and opens Accessibility if not. |
+| **The shortcut itself** (in the Control Center) | Outside the app: shows whether gestures are running and opens Accessibility if not. With ADB mode it switches the gestures on and off. |
 
 ---
 
@@ -196,8 +221,10 @@ space.
 - **No internet**: the app has no network permission. Nothing leaves your phone.
 - **Accessibility used only to navigate**: the service watches for touches in thin strips along
   the screen edges. It **does not read** what's on screen, your text or your keystrokes.
-- **Usage access** is only requested if you turn on app switching, to know which app came
-  before.
+- **Exception apps**: only once ADB mode is set up, the service is told when a window of a
+  listed app opens — just the **app name**, never its content. No other app wakes the service.
+- **Usage access** is only requested if you turn on app switching or use the exception list, to
+  know which app is in front.
 - **Circle to Search**: once it opens, the screen is read by the **Google app** — exactly as when
   you use the handle gesture on Xiaomi's launcher. AnyGest only asks it to open.
 
@@ -223,6 +250,7 @@ space.
 | The Accessibility switch won't turn on | You missed **Allow restricted settings** (the first item in First steps). |
 | Gestures stop on their own / Accessibility turns off | Check the battery, autostart and Lock in Recents items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
 | I want to be told when the gestures stop or the bar comes back | Turn on the **Alerts** card in the app (it starts off). Android 13+ asks for the notification permission right then. The alert only takes you to the screen that fixes it; actually turning things back on is still a tap from you. |
+| An app (a bank, say) closes saying an accessibility service is on | Set up **ADB mode** (Step 6) and keep the app on the **Exception apps** list: AnyGest switches itself off while it is open and returns when you leave. Nubank is already on it. |
 | Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. |
 | The button bar came back on its own, but gestures are still on | HyperOS switched the navigation mode by itself (common with third-party launchers). Tap the second Control Center shortcut (navigation) to jump straight to that screen and pick gesture navigation again. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
