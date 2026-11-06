@@ -22,20 +22,24 @@ package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.database.ContentObserver
 import android.graphics.Path
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.Display
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.content.ContextCompat
 import io.github.victoresidoro.anygest.diagnostics.FailureLog
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
@@ -46,6 +50,8 @@ import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
 import io.github.victoresidoro.anygest.setup.GestureTileService
+import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
+import io.github.victoresidoro.anygest.setup.SetupStore
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,9 +86,34 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private var lastGeometry: ScreenGeometry? = null
     private var lastNavigationMode: NavigationMode? = null
 
+    private var lastSubscription: String? = null
+
+    /**
+     * Second way to notice a listed app: some apps keep their windows out of what a service may
+     * see, so no event ever comes. While the screen is on and the list is usable, the foreground
+     * app is also read from the usage events, a little late but from nothing the app controls.
+     */
+    private var polling = false
+    private val poll = Runnable { pollForeground() }
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_SCREEN_OFF) stopPolling() else updatePolling()
+        }
+    }
+
+    /** False until the first settings emission has decided whether to pause straight away. */
+    private var initialChecked = false
+
     /** The system flipping back to the button bar is only visible by watching the setting. */
     private val navigationObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) = onNavigationModeChanged()
+    }
+
+    /** HyperOS may put the button bar back by itself; with ADB mode that is undone at once. */
+    private val barObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            if (initialChecked) ensureBarHidden()
+        }
     }
 
     /**
@@ -137,6 +168,15 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
         (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
             .registerDisplayListener(displayListener, handler)
+        ContextCompat.registerReceiver(
+            this,
+            screenReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
 
         lastNavigationMode = NavigationModeReader.read(this)
         contentResolver.registerContentObserver(
@@ -144,18 +184,141 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             false,
             navigationObserver,
         )
+        contentResolver.registerContentObserver(SecureSettingsAccess.barUri(), false, barObserver)
 
         scope.launch {
             settings.configuration.collect { updated ->
                 configuration = updated.copy(platform = platformDefaults())
                 installOverlay()
+                applyEventSubscription()
+                if (!initialChecked) {
+                    initialChecked = true
+                    // Starting while a paused-for app is already in front must not flash the
+                    // service at it, so that check comes before the bar is touched.
+                    if (!pauseIfForegroundIsException()) ensureBarHidden()
+                }
             }
+        }
+    }
+
+    /**
+     * Window events are asked for only while the pause list is usable, and then only from
+     * the listed apps: the process is not woken by any other app, which is why the XML
+     * declares no event types at all.
+     */
+    private fun applyEventSubscription() {
+        val info = serviceInfo ?: return
+        val packages =
+            if (pauseUsable()) configuration.pauseApps.toTypedArray() else emptyArray<String>()
+        val subscription = packages.sorted().joinToString(",").ifEmpty { "none" }
+        if (subscription != lastSubscription) {
+            lastSubscription = subscription
+            SetupStore(this).note("window events for: $subscription")
+        }
+        if (packages.isEmpty()) {
+            info.eventTypes = 0
+            info.packageNames = null
+        } else {
+            info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            info.packageNames = packages
+        }
+        serviceInfo = info
+        updatePolling()
+    }
+
+    private fun updatePolling() {
+        val interactive = getSystemService(PowerManager::class.java)?.isInteractive != false
+        if (pauseUsable() && interactive && SetupStore(this).pausedForApp == null) {
+            startPolling()
+        } else {
+            stopPolling()
+        }
+    }
+
+    private fun startPolling() {
+        if (polling) return
+        polling = true
+        handler.postDelayed(poll, POLL_MS)
+    }
+
+    private fun stopPolling() {
+        polling = false
+        handler.removeCallbacks(poll)
+    }
+
+    private fun pollForeground() {
+        if (!polling) return
+        val front = ForegroundApp.current(this, POLL_WINDOW_MS)
+        if (front != null && shouldPauseFor(front)) {
+            SetupStore(this).note("poll saw $front in front")
+            stopPolling()
+            pauseFor(front)
+            return
+        }
+        handler.postDelayed(poll, POLL_MS)
+    }
+
+    private fun pauseUsable(): Boolean =
+        configuration.pauseInAppsEnabled && GesturePower.pauseAvailable(this)
+
+    private fun shouldPauseFor(packageName: String): Boolean = PausePolicy.shouldPause(
+        packageName = packageName,
+        featureEnabled = configuration.pauseInAppsEnabled,
+        apps = configuration.pauseApps,
+        available = GesturePower.pauseAvailable(this),
+        alreadyPaused = SetupStore(this).pausedForApp != null,
+    )
+
+    private fun pauseIfForegroundIsException(): Boolean {
+        if (!pauseUsable()) return false
+        val front = ForegroundApp.current(this, FOREGROUND_LOOKBACK_MS) ?: return false
+        if (!shouldPauseFor(front)) return false
+        pauseFor(front)
+        return true
+    }
+
+    /**
+     * Steps aside for an app that refuses to run next to an accessibility service: the
+     * watcher goes first (a pause nobody ends is worse than none), then the button bar comes
+     * back so the phone stays navigable, then the service takes itself out of the enabled list.
+     */
+    private fun pauseFor(packageName: String) {
+        val store = SetupStore(this)
+        store.pausedForApp = packageName
+        store.note("pausing for $packageName")
+        if (!ExceptionWatchService.start(this)) {
+            store.pausedForApp = null
+            store.note("the system refused the watcher, so no pause")
+            FailureLog.record(
+                this,
+                "pause for $packageName",
+                IllegalStateException("the system refused the foreground start for the watcher"),
+            )
+            return
+        }
+        if (GesturePower.barManaged(this)) SecureSettingsAccess.setBarHidden(this, false)
+        disableSelf()
+    }
+
+    private fun ensureBarHidden() {
+        val store = SetupStore(this)
+        if (store.pausedForApp != null || store.userPaused) return
+        if (!GesturePower.barManaged(this)) return
+        if (SecureSettingsAccess.barHidden(this) != true) {
+            SecureSettingsAccess.setBarHidden(this, true)
         }
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
         teardown()
-        AlertNotifier.gesturesStopped(this)
+        val store = SetupStore(this)
+        // A pause or the tile's off switch is a choice; anything else is a stop to report.
+        if (store.pausedForApp == null && !store.userPaused) {
+            AlertNotifier.gesturesStopped(this)
+            // The bar was hidden for these gestures; without them nothing would be left to
+            // navigate with.
+            if (GesturePower.barManaged(this)) SecureSettingsAccess.setBarHidden(this, false)
+        }
         GestureTileService.requestRefresh(this)
         return super.onUnbind(intent)
     }
@@ -170,8 +333,16 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         reinstallIfGeometryChanged()
     }
 
-    /** No events are requested in `accessibility_service_config.xml`. */
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+    /**
+     * Only window changes of the paused-for apps are ever delivered, and only the package name
+     * is read: never the content of the window.
+     */
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        val changed = event ?: return
+        if (changed.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        val packageName = changed.packageName?.toString() ?: return
+        if (shouldPauseFor(packageName)) pauseFor(packageName)
+    }
 
     override fun onInterrupt() = Unit
 
@@ -213,6 +384,10 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 .unregisterDisplayListener(displayListener)
         }
         runCatching { contentResolver.unregisterContentObserver(navigationObserver) }
+        runCatching { contentResolver.unregisterContentObserver(barObserver) }
+        stopPolling()
+        runCatching { unregisterReceiver(screenReceiver) }
+        initialChecked = false
         overlay?.remove()
         overlay = null
         handler.removeCallbacksAndMessages(null)
@@ -340,10 +515,24 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
         private const val FINISH_GRACE_MS = 1_000L
 
+        /** How often the foreground app is read while the screen is on and the list is in use. */
+        private const val POLL_MS = 1_500L
+
+        /** Wide enough to catch an app that opened a few seconds ago, whose event came late. */
+        private const val POLL_WINDOW_MS = 30_000L
+
+        /** How far back the "which app is in front" check looks when the service starts. */
+        private const val FOREGROUND_LOOKBACK_MS = 2L * 60L * 60L * 1000L
+
         @Volatile
         private var instance: AnyGestAccessibilityService? = null
 
         fun isRunning(): Boolean = instance != null
+
+        /** After the one-time grant or a change to the pause list, without waiting for a restart. */
+        fun refreshSubscription() {
+            instance?.applyEventSubscription()
+        }
 
         /** For the checklist's "open Recents" button; false when the service is not running. */
         fun openRecents(): Boolean =

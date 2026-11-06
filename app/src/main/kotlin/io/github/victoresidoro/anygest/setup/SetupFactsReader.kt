@@ -23,6 +23,9 @@ import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
 import androidx.core.content.edit
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.navigation.NavigationModeReader
@@ -60,8 +63,55 @@ internal class SetupStore(context: Context) {
         get() = preferences.getBoolean(KEY_ALERTS_ENABLED, false)
         set(value) = preferences.edit { putBoolean(KEY_ALERTS_ENABLED, value) }
 
+    /**
+     * The app AnyGest stepped aside for, so nothing treats the missing service as a fault.
+     * Cleared the moment the gestures come back.
+     */
+    var pausedForApp: String?
+        get() = preferences.getString(KEY_PAUSED_FOR_APP, null)
+        set(value) = preferences.edit {
+            if (value == null) remove(KEY_PAUSED_FOR_APP) else putString(KEY_PAUSED_FOR_APP, value)
+        }
+
+    /** Set by the tile's off switch: the user wants the gestures off, so nothing restores them. */
+    var userPaused: Boolean
+        get() = preferences.getBoolean(KEY_USER_PAUSED, false)
+        set(value) = preferences.edit { putBoolean(KEY_USER_PAUSED, value) }
+
+    /**
+     * The last few pause decisions, newest first, shown in Diagnostics: what the service
+     * saw and did is otherwise invisible, since the service is off for most of it.
+     */
+    var pauseNotes: String?
+        get() = preferences.getString(KEY_PAUSE_NOTES, null)
+        set(value) = preferences.edit {
+            if (value == null) remove(KEY_PAUSE_NOTES) else putString(KEY_PAUSE_NOTES, value)
+        }
+
+    fun note(text: String) {
+        val stamp = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
+        val older = pauseNotes?.lines().orEmpty()
+        pauseNotes = (listOf("$stamp $text") + older).take(MAX_NOTES).joinToString("\n")
+    }
+
+    /** ADB mode: keep the button bar hidden while the gestures run. */
+    var autoHideBar: Boolean
+        get() = preferences.getBoolean(KEY_AUTO_HIDE_BAR, true)
+        set(value) = preferences.edit { putBoolean(KEY_AUTO_HIDE_BAR, value) }
+
+    /** ADB mode: switch the service back on at boot, in the app and from the tile. */
+    var autoRestore: Boolean
+        get() = preferences.getBoolean(KEY_AUTO_RESTORE, true)
+        set(value) = preferences.edit { putBoolean(KEY_AUTO_RESTORE, value) }
+
     private companion object {
         const val FILE = "setup"
+        const val KEY_PAUSE_NOTES = "pause_notes"
+        const val MAX_NOTES = 8
+        const val KEY_PAUSED_FOR_APP = "paused_for_app"
+        const val KEY_USER_PAUSED = "user_paused"
+        const val KEY_AUTO_HIDE_BAR = "auto_hide_bar"
+        const val KEY_AUTO_RESTORE = "auto_restore"
         const val KEY_CONFIRMED = "confirmed_"
         const val KEY_TILE_ADDED = "tile_added"
         const val KEY_NAVIGATION_TILE_ADDED = "navigation_tile_added"

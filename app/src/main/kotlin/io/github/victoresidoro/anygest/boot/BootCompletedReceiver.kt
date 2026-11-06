@@ -23,6 +23,7 @@ import android.content.Intent
 import android.util.Log
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.navigation.NavigationMode
+import io.github.victoresidoro.anygest.service.GesturePower
 
 /**
  * Android rebinds the accessibility service on boot by itself, so this exists only for the
@@ -33,6 +34,9 @@ class BootCompletedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+
+        // Only does anything once ADB mode is set up; otherwise Android's own rebind is it.
+        GesturePower.restoreIfNeeded(context)
 
         val status = NavigationIntegrationFactory.create(context).status()
         if (status.available && status.currentMode != NavigationMode.GESTURAL) {

@@ -30,6 +30,7 @@ import android.service.quicksettings.TileService
 import io.github.victoresidoro.anygest.R
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
+import io.github.victoresidoro.anygest.service.GesturePower
 import io.github.victoresidoro.anygest.ui.MainActivity
 
 /**
@@ -37,7 +38,8 @@ import io.github.victoresidoro.anygest.ui.MainActivity
  * Control Center still opens from the top of the screen, so this tile is always reachable.
  * It shows whether gestures are running; tapping it opens AnyGest's Accessibility page
  * when they are not, and the app when they are. It cannot switch the service on by itself:
- * only the user may enable an accessibility service.
+ * only the user may enable an accessibility service. Once ADB mode is set up (the one-time
+ * `pm grant`) it becomes a plain switch for the gestures instead.
  */
 class GestureTileService : TileService() {
 
@@ -54,10 +56,17 @@ class GestureTileService : TileService() {
         // Listening at all means the tile sits in the panel, including one added by hand
         // before this app learnt to remember it.
         SetupStore(this).tileAdded = true
+        // Pulling the panel down is one of the few moments a killed app gets to run.
+        GesturePower.restoreIfNeeded(this)
         refresh()
     }
 
     override fun onClick() {
+        // With ADB mode the tile is a switch; without it only the user may enable the service.
+        if (SecureSettingsAccess.canWrite(this)) {
+            render(GesturePower.toggleByUser(this))
+            return
+        }
         val target = if (DiagnosticsCollector.isAccessibilityServiceEnabled(this)) {
             Intent(this, MainActivity::class.java)
         } else {
@@ -66,9 +75,10 @@ class GestureTileService : TileService() {
         if (isLocked) unlockAndRun { open(target) } else open(target)
     }
 
-    private fun refresh() {
+    private fun refresh() = render(DiagnosticsCollector.isAccessibilityServiceEnabled(this))
+
+    private fun render(running: Boolean) {
         val tile = qsTile ?: return
-        val running = DiagnosticsCollector.isAccessibilityServiceEnabled(this)
         tile.state = if (running) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         tile.label = getString(R.string.app_name)
         tile.subtitle = getString(if (running) R.string.tile_active else R.string.tile_inactive)

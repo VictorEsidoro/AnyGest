@@ -22,8 +22,10 @@
   canRetrieveWindowContent stays false: nothing reads the view tree. Touch exploration is
   not requested - it would hijack the whole touch experience.
 
-  No accessibilityEventTypes: the service never used an event, and subscribing to window
-  changes woke the process on every app or dialog switch all day long, for nothing.
+  No accessibilityEventTypes here, on purpose: subscribing to window changes woke the process
+  on every app or dialog switch all day long. The service asks for them at runtime
+  (setServiceInfo), and only for the apps on the pause list, and only once ADB mode is set
+  up - so a phone without it never receives one.
 -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityFeedbackType="feedbackGeneric"

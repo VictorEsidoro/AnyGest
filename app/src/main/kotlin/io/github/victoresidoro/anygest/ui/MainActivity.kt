@@ -98,6 +98,7 @@ import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.service.AlertNotifier
+import io.github.victoresidoro.anygest.service.GesturePower
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
@@ -105,6 +106,7 @@ import io.github.victoresidoro.anygest.settings.SettingsBackup
 import io.github.victoresidoro.anygest.settings.SettingsBackupIo
 import io.github.victoresidoro.anygest.setup.GestureTileService
 import io.github.victoresidoro.anygest.setup.NavigationModeTileService
+import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupChecklist
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
 import io.github.victoresidoro.anygest.setup.SetupStep
@@ -148,6 +150,10 @@ private fun AnyGestScreen(
     // in other apps (Settings), which never recomposes this screen on its own.
     var setupRevision by remember { mutableIntStateOf(0) }
     LifecycleResumeEffect(Unit) {
+        // Opening the app is one of the moments a killed service can be brought back, and
+        // the first moment after the one-time grant that the pause list can start listening.
+        GesturePower.restoreIfNeeded(context)
+        AnyGestAccessibilityService.refreshSubscription()
         setupRevision++
         onPauseOrDispose {}
     }
@@ -262,6 +268,37 @@ private fun AnyGestScreen(
                     else -> notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
                 setupRevision++
+            },
+        )
+
+        // ADB mode and the exception list sit together: the list does nothing without the grant.
+        val adbMode = remember(setupRevision) { SecureSettingsAccess.canWrite(context) }
+        AdbModeCard(
+            granted = adbMode,
+            command = SecureSettingsAccess.grantCommand(context),
+            autoHideBar = remember(setupRevision) { SetupStore(context).autoHideBar },
+            autoRestore = remember(setupRevision) { SetupStore(context).autoRestore },
+            onAutoHideBar = {
+                SetupStore(context).autoHideBar = it
+                setupRevision++
+            },
+            onAutoRestore = {
+                SetupStore(context).autoRestore = it
+                setupRevision++
+            },
+        )
+        PauseAppsCard(
+            enabled = configuration.pauseInAppsEnabled,
+            apps = configuration.pauseApps,
+            adbMode = adbMode,
+            onEnabled = { on ->
+                scope.launch { settings.update { it.copy(pauseInAppsEnabled = on) } }
+            },
+            onAdd = { app ->
+                scope.launch { settings.update { it.copy(pauseApps = it.pauseApps + app) } }
+            },
+            onRemove = { app ->
+                scope.launch { settings.update { it.copy(pauseApps = it.pauseApps - app) } }
             },
         )
 
@@ -1048,7 +1085,7 @@ private fun CreditsBlock(title: String, body: String) {
 }
 
 @Composable
-private fun UsageAccessRow() {
+internal fun UsageAccessRow() {
     val context = LocalContext.current
     var granted by remember { mutableStateOf(SetupFactsReader.hasUsageAccess(context)) }
     // Settings grants the op in another activity, so the row reads it again on the way back.
@@ -1085,7 +1122,7 @@ private fun UsageAccessRow() {
 }
 
 @Composable
-private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1156,6 +1193,7 @@ private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) 
             diagnostics.accessibilityServiceEnabled.toString(),
         stringResource(R.string.diag_service_running) to
             diagnostics.accessibilityServiceRunning.toString(),
+        stringResource(R.string.diag_adb_mode) to diagnostics.adbMode.toString(),
         stringResource(R.string.diag_integration) to diagnostics.navigationIntegrationId,
         stringResource(R.string.diag_last_failure) to
             (diagnostics.lastGlobalActionFailure ?: none),
@@ -1189,6 +1227,19 @@ private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) 
         )
         Text(
             text = failure.take(MAX_FAILURE_CHARS),
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+        )
+    }
+    diagnostics.pauseNotes?.let { notes ->
+        Text(
+            text = stringResource(R.string.diag_pause_notes),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            text = notes,
             style = MaterialTheme.typography.bodySmall,
             fontFamily = FontFamily.Monospace,
         )

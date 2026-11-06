@@ -27,6 +27,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
@@ -63,6 +64,8 @@ class GestureSettingsRepository(private val context: Context) {
             preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
             preferences[CIRCLE_TO_SEARCH_HOLD_MS] = updated.circleToSearchHoldMs
             preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = updated.circleToSearchFollowsSystemTiming
+            preferences[PAUSE_IN_APPS] = updated.pauseInAppsEnabled
+            preferences[PAUSE_APPS] = updated.pauseApps
         }
     }
 
@@ -92,6 +95,9 @@ class GestureSettingsRepository(private val context: Context) {
                 preferences[CIRCLE_TO_SEARCH_HOLD_MS] ?: defaults.circleToSearchHoldMs,
             circleToSearchFollowsSystemTiming = preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING]
                 ?: defaults.circleToSearchFollowsSystemTiming,
+            pauseInAppsEnabled = preferences[PAUSE_IN_APPS] ?: defaults.pauseInAppsEnabled,
+            // A stored empty set is a list the user emptied, not a missing one.
+            pauseApps = preferences[PAUSE_APPS] ?: defaults.pauseApps,
         )
     }
 
@@ -141,5 +147,7 @@ class GestureSettingsRepository(private val context: Context) {
         val CIRCLE_TO_SEARCH_HOLD_MS = longPreferencesKey("circle_to_search_hold_ms")
         val CIRCLE_TO_SEARCH_SYSTEM_TIMING =
             booleanPreferencesKey("circle_to_search_follows_system_timing")
+        val PAUSE_IN_APPS = booleanPreferencesKey("pause_in_apps_enabled")
+        val PAUSE_APPS = stringSetPreferencesKey("pause_apps")
     }
 }
