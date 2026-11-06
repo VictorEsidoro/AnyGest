@@ -136,6 +136,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        SetupStore(this).let { store ->
+            if (store.serviceUp) store.note("service started after an unclean stop (process killed?)")
+            else store.note("service connected")
+            store.serviceUp = true
+        }
         try {
             setUp()
         } catch (t: Throwable) {
@@ -313,6 +318,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     override fun onUnbind(intent: Intent?): Boolean {
         teardown()
         val store = SetupStore(this)
+        store.serviceUp = false
+        store.note("service unbound (appPause=${store.pausedForApp}, userPause=${store.userPaused})")
         // A pause or the tile's off switch is a choice; anything else is a stop to report.
         if (store.pausedForApp == null && !store.userPaused) {
             AlertNotifier.gesturesStopped(this)
@@ -325,6 +332,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     override fun onDestroy() {
+        SetupStore(this).note("service destroyed")
         teardown()
         super.onDestroy()
     }

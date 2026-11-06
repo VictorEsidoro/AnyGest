@@ -94,6 +94,14 @@ internal class SetupStore(context: Context) {
         pauseNotes = (listOf("$stamp $text") + older).take(MAX_NOTES).joinToString("\n")
     }
 
+    /**
+     * True from the moment the service connects until it is unbound cleanly. Still true at the
+     * next connect means the process was killed without a callback.
+     */
+    var serviceUp: Boolean
+        get() = preferences.getBoolean(KEY_SERVICE_UP, false)
+        set(value) = preferences.edit { putBoolean(KEY_SERVICE_UP, value) }
+
     /** ADB mode: keep the button bar hidden while the gestures run. */
     var autoHideBar: Boolean
         get() = preferences.getBoolean(KEY_AUTO_HIDE_BAR, true)
@@ -107,9 +115,10 @@ internal class SetupStore(context: Context) {
     private companion object {
         const val FILE = "setup"
         const val KEY_PAUSE_NOTES = "pause_notes"
-        const val MAX_NOTES = 8
+        const val MAX_NOTES = 20
         const val KEY_PAUSED_FOR_APP = "paused_for_app"
         const val KEY_USER_PAUSED = "user_paused"
+        const val KEY_SERVICE_UP = "service_up"
         const val KEY_AUTO_HIDE_BAR = "auto_hide_bar"
         const val KEY_AUTO_RESTORE = "auto_restore"
         const val KEY_CONFIRMED = "confirmed_"

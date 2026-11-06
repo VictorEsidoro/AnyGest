@@ -49,9 +49,17 @@ internal object GesturePower {
         val store = SetupStore(context)
         if (!SecureSettingsAccess.canWrite(context) || !store.autoRestore || store.userPaused) return
         if (DiagnosticsCollector.isAccessibilityServiceEnabled(context)) return
+        // The service is down and nobody meant it to be: if the process died, no callback ran
+        // and the bar may still be hidden, so show it before anything else.
+        val intentional = store.pausedForApp != null
+        if (!intentional && barManaged(context) && SecureSettingsAccess.barHidden(context) == true) {
+            SecureSettingsAccess.setBarHidden(context, false)
+            store.note("service was off with the bar hidden, bar shown")
+        }
         // A live watcher is still waiting for the user to leave the app, so this is no fault.
         if (store.pausedForApp != null && ExceptionWatchService.running) return
         store.pausedForApp = null
+        store.note("restore: switching the service back on")
         SecureSettingsAccess.setServiceEnabled(context, true)
     }
 

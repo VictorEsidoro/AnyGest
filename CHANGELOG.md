@@ -4,6 +4,26 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.4.2
+
+### Added
+
+- The Diagnostics log now records when the service connects, is unbound or destroyed, and whether the previous stop was unclean (the process was killed without a callback). The log keeps the last 20 entries instead of 8.
+
+### Fixed
+
+- With ADB mode on, if the service went down without being paused on purpose and the button bar was left hidden, the bar is now shown again as soon as the app, the tile panel or a reboot gets a chance to run, so the phone is never left without navigation.
+
+### Português
+
+#### Adicionado
+
+- O registro do Diagnóstico agora anota quando o serviço conecta, é desvinculado ou destruído, e se a parada anterior foi abrupta (o processo foi morto sem aviso). O registro guarda as últimas 20 linhas, em vez de 8.
+
+#### Corrigido
+
+- Com o modo ADB ligado, se o serviço caísse sem ter sido pausado de propósito e a barra de botões ficasse escondida, ela agora volta assim que o app, o painel do tile ou uma reinicialização tiverem chance de rodar, para o celular nunca ficar sem navegação.
+
 ## 3.4.1
 
 ### Fixed
