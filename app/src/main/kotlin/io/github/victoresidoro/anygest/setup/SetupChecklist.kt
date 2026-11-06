@@ -36,6 +36,8 @@ enum class SetupStep {
     BATTERY,
     /** HyperOS only: no public API reports it, so the user confirms it. */
     AUTOSTART,
+    /** HyperOS only: the lock on the Recents card keeps "clear all" from killing the service. */
+    LOCK_RECENTS,
     USAGE_ACCESS,
     DIGITAL_ASSISTANT,
 }
@@ -110,6 +112,8 @@ object SetupChecklist {
         )
         chain(battery(facts))
         if (facts.isHyperOs) chain(confirmable(facts, SetupStep.AUTOSTART))
+        // Not essential: gestures work without it, it only keeps HyperOS from ending them.
+        if (facts.isHyperOs) steps += confirmable(facts, SetupStep.LOCK_RECENTS)
 
         if (facts.appSwitchEnabled) {
             steps += StepState(

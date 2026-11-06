@@ -27,6 +27,10 @@
     -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- Opt-in alerts when the gestures stop or the button bar returns; asked only when the
+         user turns them on, and never used for anything else. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Light and strong vibration; granted at install, never prompts. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 

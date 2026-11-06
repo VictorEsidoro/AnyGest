@@ -311,6 +311,12 @@ private fun stepText(step: SetupStep): StepText = when (step) {
         R.string.setup_locked_body,
         R.string.action_open_autostart,
     )
+    SetupStep.LOCK_RECENTS -> StepText(
+        R.string.setup_lock_recents_title,
+        R.string.setup_lock_recents_body,
+        R.string.setup_locked_body,
+        R.string.action_open_recents,
+    )
     SetupStep.USAGE_ACCESS -> StepText(
         R.string.setup_usage_title,
         R.string.setup_usage_body,
