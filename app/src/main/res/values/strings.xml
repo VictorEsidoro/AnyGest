@@ -215,10 +215,13 @@
     <string name="pause_add">Add an app</string>
     <string name="pause_remove">Remove %1$s</string>
     <string name="pause_dialog_title">Choose an app</string>
+    <string name="pause_search">Search apps</string>
+    <string name="pause_search_empty">No app found.</string>
     <string name="pause_dialog_close">Close</string>
     <string name="pause_channel_name">Paused gestures</string>
     <string name="pause_notification_title">AnyGest is paused</string>
     <string name="pause_notification_body">The gestures come back when you leave the app.</string>
+    <string name="diag_pause_notes">Pause log (newest first)</string>
     <string name="diag_adb_mode">ADB mode</string>
     <string name="setup_autostart_title">Autostart</string>
     <string name="setup_autostart_body">Turn on autostart for AnyGest so your gestures come back on their own after a restart. HyperOS does not let apps check this, so tap I did it once it is on.</string>

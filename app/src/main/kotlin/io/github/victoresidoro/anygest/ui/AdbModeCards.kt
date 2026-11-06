@@ -38,6 +38,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -260,20 +261,39 @@ private fun AppPickerDialog(
     val choices by produceState(initialValue = emptyList<AppChoice>()) {
         value = withContext(Dispatchers.Default) { launchableApps(context) }
     }
+    var query by remember { mutableStateOf("") }
+    val shown = remember(choices, exclude, query) { filterChoices(choices, exclude, query) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.pause_dialog_title)) },
         text = {
-            LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
-                items(choices.filter { it.packageName !in exclude }, key = { it.packageName }) {
+            Column {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text(stringResource(R.string.pause_search)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (shown.isEmpty() && choices.isNotEmpty()) {
                     Text(
-                        text = it.label,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onPick(it.packageName) }
-                            .padding(vertical = 12.dp),
+                        text = stringResource(R.string.pause_search_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp),
                     )
+                }
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
+                    items(shown, key = { it.packageName }) {
+                        Text(
+                            text = it.label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onPick(it.packageName) }
+                                .padding(vertical = 12.dp),
+                        )
+                    }
                 }
             }
         },
@@ -284,6 +304,24 @@ private fun AppPickerDialog(
 }
 
 internal data class AppChoice(val packageName: String, val label: String)
+
+/**
+ * The apps not already on the list that match what was typed, by name or by package name
+ * (a bank's package is often the only thing a user knows), ignoring case.
+ */
+internal fun filterChoices(
+    choices: List<AppChoice>,
+    exclude: Set<String>,
+    query: String,
+): List<AppChoice> {
+    val needle = query.trim()
+    return choices.filter { choice ->
+        choice.packageName !in exclude &&
+            (needle.isEmpty() ||
+                choice.label.contains(needle, ignoreCase = true) ||
+                choice.packageName.contains(needle, ignoreCase = true))
+    }
+}
 
 /** Apps with a launcher entry, the only ones that can be "opened" and so be paused for. */
 internal fun launchableApps(context: Context): List<AppChoice> {

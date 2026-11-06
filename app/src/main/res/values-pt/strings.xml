@@ -208,10 +208,13 @@
     <string name="pause_add">Adicionar app</string>
     <string name="pause_remove">Remover %1$s</string>
     <string name="pause_dialog_title">Escolha um app</string>
+    <string name="pause_search">Buscar apps</string>
+    <string name="pause_search_empty">Nenhum app encontrado.</string>
     <string name="pause_dialog_close">Fechar</string>
     <string name="pause_channel_name">Gestos pausados</string>
     <string name="pause_notification_title">AnyGest em pausa</string>
     <string name="pause_notification_body">Os gestos voltam quando você sair do app.</string>
+    <string name="diag_pause_notes">Registro das pausas (mais novo primeiro)</string>
     <string name="diag_adb_mode">Modo ADB</string>
     <string name="setup_autostart_title">Início automático em segundo plano</string>
     <string name="setup_autostart_body">Ative para o AnyGest, para os gestos voltarem sozinhos depois de reiniciar o celular. O HyperOS não deixa o app conferir isso, então toque em Já fiz depois de ativar.</string>

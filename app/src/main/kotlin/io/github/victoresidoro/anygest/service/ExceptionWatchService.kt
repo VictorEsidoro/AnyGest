@@ -101,18 +101,24 @@ class ExceptionWatchService : Service() {
         val store = SetupStore(this)
         // Somebody else (the tile, the app) already ended the pause.
         if (store.pausedForApp == null) {
+            store.note("watcher: pause ended elsewhere")
             finish(restore = false)
             return
         }
         // Without usage access this could never see the user leave, so it must not wait.
         if (!SetupFactsReader.hasUsageAccess(this)) {
+            store.note("watcher: no usage access, switching the service back on")
             finish(restore = true)
             return
         }
         // Events are searched from just before the pause: an app that stays in front for an
         // hour produces no event in between, which reads as "still there".
         val window = System.currentTimeMillis() - startedAt + LOOKBACK_MS
-        if (PausePolicy.frontIsOutside(ForegroundApp.current(this, window), apps)) {
+        // Only events from the pause onwards count: the newest older one names the app the
+        // user came from, and reading it as "left" would end the pause a second after it began.
+        val front = ForegroundApp.current(this, window, notBeforeMs = startedAt - EVENT_GRACE_MS)
+        if (PausePolicy.frontIsOutside(front, apps)) {
+            store.note("watcher: left for $front, switching the service back on")
             finish(restore = true)
         }
     }
@@ -160,6 +166,9 @@ class ExceptionWatchService : Service() {
         private const val FAST_MS = 1_000L
         private const val SLOW_MS = 5_000L
         private const val LOOKBACK_MS = 30_000L
+
+        /** The "resumed" event of the app itself lands just before its window event. */
+        private const val EVENT_GRACE_MS = 1_500L
 
         /** False in a fresh process, which is how a killed watcher is told from a live one. */
         @Volatile

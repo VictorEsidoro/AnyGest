@@ -1231,6 +1231,19 @@ private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) 
             fontFamily = FontFamily.Monospace,
         )
     }
+    diagnostics.pauseNotes?.let { notes ->
+        Text(
+            text = stringResource(R.string.diag_pause_notes),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            text = notes,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+        )
+    }
     Text(
         text = stringResource(R.string.diag_local_only),
         style = MaterialTheme.typography.bodySmall,

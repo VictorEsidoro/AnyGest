@@ -82,6 +82,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private var lastGeometry: ScreenGeometry? = null
     private var lastNavigationMode: NavigationMode? = null
 
+    private var lastSubscription: String? = null
+
     /** False until the first settings emission has decided whether to pause straight away. */
     private var initialChecked = false
 
@@ -182,6 +184,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val info = serviceInfo ?: return
         val packages =
             if (pauseUsable()) configuration.pauseApps.toTypedArray() else emptyArray<String>()
+        val subscription = packages.sorted().joinToString(",").ifEmpty { "none" }
+        if (subscription != lastSubscription) {
+            lastSubscription = subscription
+            SetupStore(this).note("window events for: $subscription")
+        }
         if (packages.isEmpty()) {
             info.eventTypes = 0
             info.packageNames = null
@@ -219,8 +226,10 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private fun pauseFor(packageName: String) {
         val store = SetupStore(this)
         store.pausedForApp = packageName
+        store.note("pausing for $packageName")
         if (!ExceptionWatchService.start(this)) {
             store.pausedForApp = null
+            store.note("the system refused the watcher, so no pause")
             FailureLog.record(
                 this,
                 "pause for $packageName",

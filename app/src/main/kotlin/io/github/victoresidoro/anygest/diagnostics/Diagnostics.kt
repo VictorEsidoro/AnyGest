@@ -28,6 +28,7 @@ import io.github.victoresidoro.anygest.service.AppSwitcher
 import io.github.victoresidoro.anygest.service.GestureActionPerformer
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
+import io.github.victoresidoro.anygest.setup.SetupStore
 
 /** Everything here stays on the device: rendered in the UI, never transmitted. */
 data class Diagnostics(
@@ -49,6 +50,8 @@ data class Diagnostics(
     val lastAppSwitchFailure: String?,
     /** Shown in-app because release builds cannot be read with `adb run-as`. */
     val lastRecordedFailure: String?,
+    /** The last pause decisions, newest first; null before any. */
+    val pauseNotes: String?,
     val appVersionName: String,
 )
 
@@ -73,6 +76,7 @@ object DiagnosticsCollector {
             lastGlobalActionFailure = GestureActionPerformer.lastFailure,
             lastAppSwitchFailure = AppSwitcher.lastFailure,
             lastRecordedFailure = FailureLog.read(context),
+            pauseNotes = SetupStore(context).pauseNotes,
             appVersionName = appVersionName(context),
         )
     }

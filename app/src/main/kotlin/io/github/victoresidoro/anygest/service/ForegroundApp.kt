@@ -27,8 +27,12 @@ internal object ForegroundApp {
     /**
      * The package of the newest "resumed" event in the last [windowMs], or null when there was
      * none, which is also what a missing usage access looks like: callers check that first.
+     *
+     * Usage events reach this app seconds late, so right after an app opens the newest one
+     * still names the app before it. [notBeforeMs] drops events older than that moment, so
+     * "nothing newer yet" is not mistaken for "the user already left".
      */
-    fun current(context: Context, windowMs: Long): String? {
+    fun current(context: Context, windowMs: Long, notBeforeMs: Long = 0L): String? {
         val usage = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
             ?: return null
         val now = System.currentTimeMillis()
@@ -38,6 +42,7 @@ internal object ForegroundApp {
         val event = UsageEvents.Event()
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
+            if (event.timeStamp < notBeforeMs) continue
             if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
                 latest = event.packageName ?: latest
             }
