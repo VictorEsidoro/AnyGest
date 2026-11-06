@@ -171,21 +171,35 @@ AnyGest is on: a hidden bar with no gestures leaves you with no way to navigate.
 third-party launcher, the gestures that work are still AnyGest's — it's only about screen
 space.
 
-### Step 6 — ADB mode *(optional, advanced)*
+### Step 6 — ADB mode *(fully optional — read before you touch it)*
 
-Without it AnyGest works as it always did. With it AnyGest looks after itself: it keeps the
-button bar hidden, switches its own gestures back on after a restart, and **steps aside for apps
-that object to accessibility** (banks, for instance) — see the **Exception apps** card.
+**This is not needed to use AnyGest.** Steps 1–5 already give you the whole app: working
+gestures, the Control Center shortcut, everything. ADB mode is an advanced extra for anyone
+who also wants the app to:
 
-1. In **Developer options**, turn on debugging (Wi-Fi or USB). **On Xiaomi**, also turn on
-   **USB debugging (Security settings)**: without it the command below is refused.
+- keep the button bar hidden by itself, if the system ever brings it back;
+- switch its own gestures back on by itself after a restart;
+- step aside for specific apps you pick, if one objects to an accessibility service being on —
+  see the **Exception apps** card, which starts **empty** and carries its own warning about
+  the risks.
+
+If you don't know what `adb`, `pm grant` or "USB debugging" mean, you can skip this step and
+lose nothing from normal use. Only go on if you understand what the command below does.
+
+**How it was tested:** on the maintainer's own phone, a Poco F8 Ultra on HyperOS, using
+[Shizuku](https://shizuku.rikka.app/) (Wi-Fi debugging) and aShell as the terminal. It should
+work the same way from a computer's `adb shell`. Not tested on another manufacturer.
+
+1. In **Developer options**, turn on debugging (Wi-Fi, via Shizuku, or USB). **On Xiaomi**, also
+   turn on **USB debugging (Security settings)**: without it the command below is refused.
 2. Run this **once**, from a computer (`adb shell`) or an app such as aShell with Shizuku:
 
    ```
    pm grant io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS
    ```
 
-   The **ADB mode** card in the app shows and copies this command.
+   The **ADB mode** card in the app shows and copies this command. It is the only permission
+   ADB mode grants; AnyGest asks for nothing more, and the command gives nothing more.
 3. Open AnyGest: the card turns **Active**. You can now turn debugging and Developer options
    off again (some apps demand it). The permission should stay; if the card goes back to "Not
    set up" after a restart, run the command again.
@@ -193,6 +207,8 @@ that object to accessibility** (banks, for instance) — see the **Exception app
 
 With ADB mode on, the Control Center shortcut becomes a **switch for the gestures**: off brings
 the button bar back at once; on brings the gestures and the hidden bar back.
+
+To undo all of this, just revoke the permission: `adb shell pm revoke io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS`. The app goes back to behaving as in steps 1–5.
 
 ---
 

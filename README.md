@@ -173,21 +173,37 @@ espaço. Ele só libera depois que o AnyGest estiver ligado: barra escondida sem
 você sem como navegar. Com launcher de terceiros, os gestos que funcionam continuam sendo os do
 AnyGest — é só uma questão de espaço na tela.
 
-### Passo 6 — Modo ADB *(opcional, avançado)*
+### Passo 6 — Modo ADB *(totalmente opcional — leia antes de mexer)*
 
-Sem isso o AnyGest funciona como sempre. Com isso ele passa a se cuidar sozinho: mantém a barra
-de botões escondida, religa os próprios gestos depois de reiniciar, e **dá um tempo nos apps
-que reclamam de acessibilidade** (bancos, por exemplo) — ver o card **Apps em exceção**.
+**Isto não é necessário para usar o AnyGest.** Os passos de 1 a 5 já dão o app completo: gestos
+funcionando, atalho no Centro de controle, tudo. O Modo ADB é um extra avançado para quem
+também quer que o app:
 
-1. Nas **Opções do desenvolvedor**, ligue a depuração (Wi-Fi ou USB). **Na Xiaomi**, ligue também
-   **Depuração USB (Configurações de segurança)**: sem ela o comando abaixo é recusado.
+- mantenha a barra de botões escondida sozinho, caso o sistema a traga de volta;
+- religue os próprios gestos sozinho depois de reiniciar o celular;
+- dê um tempo em apps específicos que você escolher, se algum reclamar de ter um serviço de
+  acessibilidade ligado — ver o card **Apps em exceção**, que vem **vazio por padrão** e traz
+  um aviso próprio sobre os riscos.
+
+Se você não sabe o que é `adb`, `pm grant` ou "depuração USB", pode pular este passo sem perder
+nada do uso normal. Só avance se entender o que o comando abaixo faz.
+
+**Como foi testado:** no celular do mantenedor, um Poco F8 Ultra com HyperOS, usando o
+[Shizuku](https://shizuku.rikka.app/) (depuração por Wi-Fi) e o aShell como terminal. Deve
+funcionar do mesmo jeito pelo `adb shell` de um computador. Não foi testado em outro
+fabricante.
+
+1. Nas **Opções do desenvolvedor**, ligue a depuração (Wi-Fi, via Shizuku, ou USB). **Na
+   Xiaomi**, ligue também **Depuração USB (Configurações de segurança)**: sem ela o comando
+   abaixo é recusado.
 2. Rode **uma vez**, no computador (`adb shell`) ou num app como o aShell com o Shizuku:
 
    ```
    pm grant io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS
    ```
 
-   O card **Modo ADB**, no app, mostra e copia esse comando.
+   O card **Modo ADB**, no app, mostra e copia esse comando. É a única permissão que o Modo ADB
+   concede; o AnyGest não pede, e o comando não dá, nada além disso.
 3. Abra o AnyGest: o card passa a **Ativo**. Agora pode desligar a depuração e as Opções do
    desenvolvedor (alguns apps exigem isso). A permissão deve ficar guardada; se o card voltar a
    "Não configurado" depois de reiniciar, rode o comando de novo.
@@ -195,6 +211,8 @@ que reclamam de acessibilidade** (bancos, por exemplo) — ver o card **Apps em 
 
 Com o Modo ADB ativo o atalho do Centro de controle vira um **liga/desliga dos gestos**:
 desligando, a barra de botões volta na hora; ligando, os gestos e a barra escondida voltam.
+
+Para desfazer tudo isso, basta revogar a permissão: `adb shell pm revoke io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS`. O app volta a se comportar como nos passos 1–5.
 
 ---
 
