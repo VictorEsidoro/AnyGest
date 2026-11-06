@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.4.1
+
+### Fixed
+
+- Lower battery and CPU use: with an empty exception list (the default), AnyGest no longer checks the foreground app every 1.5 s nor subscribes to window events. The check now runs only when at least one app is in the list.
+
+### Português
+
+#### Corrigido
+
+- Menos bateria e processamento: com a lista de exceções vazia (o padrão), o AnyGest não consulta mais o app em primeiro plano a cada 1,5 s nem assina eventos de janela. A verificação só roda quando há pelo menos um app na lista.
+
 ## 3.4.0
 
 ### Added

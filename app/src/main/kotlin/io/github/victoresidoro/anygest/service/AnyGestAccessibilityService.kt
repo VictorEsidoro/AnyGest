@@ -259,7 +259,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     private fun pauseUsable(): Boolean =
-        configuration.pauseInAppsEnabled && GesturePower.pauseAvailable(this)
+        configuration.pauseInAppsEnabled && configuration.pauseApps.isNotEmpty() &&
+            GesturePower.pauseAvailable(this)
 
     private fun shouldPauseFor(packageName: String): Boolean = PausePolicy.shouldPause(
         packageName = packageName,
