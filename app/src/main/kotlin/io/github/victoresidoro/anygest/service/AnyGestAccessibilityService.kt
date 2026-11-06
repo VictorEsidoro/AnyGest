@@ -22,20 +22,24 @@ package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.database.ContentObserver
 import android.graphics.Path
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.Display
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.content.ContextCompat
 import io.github.victoresidoro.anygest.diagnostics.FailureLog
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
@@ -83,6 +87,19 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private var lastNavigationMode: NavigationMode? = null
 
     private var lastSubscription: String? = null
+
+    /**
+     * Second way to notice a listed app: some apps keep their windows out of what a service may
+     * see, so no event ever comes. While the screen is on and the list is usable, the foreground
+     * app is also read from the usage events, a little late but from nothing the app controls.
+     */
+    private var polling = false
+    private val poll = Runnable { pollForeground() }
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_SCREEN_OFF) stopPolling() else updatePolling()
+        }
+    }
 
     /** False until the first settings emission has decided whether to pause straight away. */
     private var initialChecked = false
@@ -151,6 +168,15 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
         (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
             .registerDisplayListener(displayListener, handler)
+        ContextCompat.registerReceiver(
+            this,
+            screenReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
 
         lastNavigationMode = NavigationModeReader.read(this)
         contentResolver.registerContentObserver(
@@ -197,6 +223,39 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             info.packageNames = packages
         }
         serviceInfo = info
+        updatePolling()
+    }
+
+    private fun updatePolling() {
+        val interactive = getSystemService(PowerManager::class.java)?.isInteractive != false
+        if (pauseUsable() && interactive && SetupStore(this).pausedForApp == null) {
+            startPolling()
+        } else {
+            stopPolling()
+        }
+    }
+
+    private fun startPolling() {
+        if (polling) return
+        polling = true
+        handler.postDelayed(poll, POLL_MS)
+    }
+
+    private fun stopPolling() {
+        polling = false
+        handler.removeCallbacks(poll)
+    }
+
+    private fun pollForeground() {
+        if (!polling) return
+        val front = ForegroundApp.current(this, POLL_WINDOW_MS)
+        if (front != null && shouldPauseFor(front)) {
+            SetupStore(this).note("poll saw $front in front")
+            stopPolling()
+            pauseFor(front)
+            return
+        }
+        handler.postDelayed(poll, POLL_MS)
     }
 
     private fun pauseUsable(): Boolean =
@@ -326,6 +385,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         }
         runCatching { contentResolver.unregisterContentObserver(navigationObserver) }
         runCatching { contentResolver.unregisterContentObserver(barObserver) }
+        stopPolling()
+        runCatching { unregisterReceiver(screenReceiver) }
         initialChecked = false
         overlay?.remove()
         overlay = null
@@ -453,6 +514,12 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         private const val WINDOW_SETTLE_MS = 65L
 
         private const val FINISH_GRACE_MS = 1_000L
+
+        /** How often the foreground app is read while the screen is on and the list is in use. */
+        private const val POLL_MS = 1_500L
+
+        /** Wide enough to catch an app that opened a few seconds ago, whose event came late. */
+        private const val POLL_WINDOW_MS = 30_000L
 
         /** How far back the "which app is in front" check looks when the service starts. */
         private const val FOREGROUND_LOOKBACK_MS = 2L * 60L * 60L * 1000L
