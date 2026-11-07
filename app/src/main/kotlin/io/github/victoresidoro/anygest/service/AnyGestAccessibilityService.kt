@@ -97,7 +97,19 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private val poll = Runnable { pollForeground() }
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_SCREEN_OFF) stopPolling() else updatePolling()
+            if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                stopPolling()
+                return
+            }
+            updatePolling()
+            // The moment someone is about to use the gestures: strips that went missing or
+            // stuck while the screen was off are put right before the first swipe.
+            val current = overlay ?: return
+            if (!current.healthy()) {
+                SetupStore(this@AnyGestAccessibilityService)
+                    .note("strips missing when the screen came on, reinstalled")
+                installOverlay()
+            }
         }
     }
 
@@ -152,6 +164,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
     private fun onNavigationModeChanged() {
         val current = NavigationModeReader.read(this)
+        if (initialChecked && current != NavigationMode.GESTURAL && keepGestureMode()) {
+            // Put back at once, so there is nothing to alert about.
+            lastNavigationMode = NavigationMode.GESTURAL
+            return
+        }
         if (AlertNotifier.navigationBarCameBack(lastNavigationMode, current)) {
             AlertNotifier.navigationBarBack(this)
         } else if (current == NavigationMode.GESTURAL) {
@@ -313,6 +330,25 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         if (SecureSettingsAccess.barHidden(this) != true) {
             SecureSettingsAccess.setBarHidden(this, true)
         }
+        keepGestureMode()
+    }
+
+    /**
+     * HyperOS can switch itself back to the button bar with a third-party launcher. With ADB
+     * mode and "keep the bar hidden" on, and only while this service runs, gesture navigation
+     * is put back. Based on HyperGesture commit 81c1ad1 (#127) by Henrique Almeida (h3nc4).
+     */
+    private fun keepGestureMode(): Boolean {
+        val store = SetupStore(this)
+        if (store.pausedForApp != null || store.userPaused) return false
+        if (!GesturePower.barManaged(this)) return false
+        if (SecureSettingsAccess.gestureModeOn(this) != false) return false
+        val restored = SecureSettingsAccess.setGestureMode(this)
+        store.note(
+            if (restored) "navigation mode was reset by the system, gestures put back"
+            else "could not put gesture navigation back",
+        )
+        return restored
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -523,6 +559,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         private const val WINDOW_SETTLE_MS = 65L
 
         private const val FINISH_GRACE_MS = 1_000L
+
+        /** The longest a replay keeps the strips held after the finger is gone. */
+        internal const val LONGEST_REPLAY_HOLD_MS = MAX_REPLAY_MS + WINDOW_SETTLE_MS + FINISH_GRACE_MS
 
         /** How often the foreground app is read while the screen is on and the list is in use. */
         private const val POLL_MS = 1_500L

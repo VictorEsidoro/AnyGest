@@ -102,6 +102,11 @@ internal class SetupStore(context: Context) {
         get() = preferences.getBoolean(KEY_SERVICE_UP, false)
         set(value) = preferences.edit { putBoolean(KEY_SERVICE_UP, value) }
 
+    /** Whether AnyGest's own screen shows up in Recents, where a swipe would end the app. */
+    var showInRecents: Boolean
+        get() = preferences.getBoolean(KEY_SHOW_IN_RECENTS, true)
+        set(value) = preferences.edit { putBoolean(KEY_SHOW_IN_RECENTS, value) }
+
     /** ADB mode: keep the button bar hidden while the gestures run. */
     var autoHideBar: Boolean
         get() = preferences.getBoolean(KEY_AUTO_HIDE_BAR, true)
@@ -119,6 +124,7 @@ internal class SetupStore(context: Context) {
         const val KEY_PAUSED_FOR_APP = "paused_for_app"
         const val KEY_USER_PAUSED = "user_paused"
         const val KEY_SERVICE_UP = "service_up"
+        const val KEY_SHOW_IN_RECENTS = "show_in_recents"
         const val KEY_AUTO_HIDE_BAR = "auto_hide_bar"
         const val KEY_AUTO_RESTORE = "auto_restore"
         const val KEY_CONFIRMED = "confirmed_"

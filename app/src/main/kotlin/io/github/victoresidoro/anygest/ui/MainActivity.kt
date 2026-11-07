@@ -19,6 +19,7 @@ package io.github.victoresidoro.anygest.ui
 
 import android.Manifest
 import android.app.Activity
+import android.app.ActivityManager
 import android.app.LocaleManager
 import android.app.StatusBarManager
 import android.content.ComponentName
@@ -154,6 +155,7 @@ private fun AnyGestScreen(
         // the first moment after the one-time grant that the pause list can start listening.
         GesturePower.restoreIfNeeded(context)
         AnyGestAccessibilityService.refreshSubscription()
+        applyRecentsVisibility(context)
         setupRevision++
         onPauseOrDispose {}
     }
@@ -319,6 +321,8 @@ private fun AnyGestScreen(
 
         LanguageCard()
 
+        RecentsCard()
+
         // Both sections stay collapsed by default: an accidental tap while scrolling
         // must not silently change navigation behaviour.
         ExpandableCard(
@@ -481,6 +485,42 @@ private fun NavigationTileCard(added: Boolean, canRequest: Boolean, onRequest: (
         hint = stringResource(R.string.navigation_tile_card_manual).takeUnless { added },
         actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
         onAction = onRequest,
+    )
+}
+
+/**
+ * Swiping the AnyGest card away in Recents ends the app, and the gestures with it, so the
+ * card can be left out of Recents. Applied on every resume as well as on the switch, because
+ * the setting belongs to the task, which a fresh launch creates anew.
+ */
+internal fun applyRecentsVisibility(context: Context) {
+    val hide = !SetupStore(context).showInRecents
+    runCatching {
+        context.getSystemService(ActivityManager::class.java)?.appTasks?.forEach {
+            it.setExcludeFromRecents(hide)
+        }
+    }
+}
+
+@Composable
+private fun RecentsCard() {
+    val context = LocalContext.current
+    var shown by remember { mutableStateOf(SetupStore(context).showInRecents) }
+    InfoCard(
+        title = stringResource(R.string.recents_card_title),
+        icon = R.drawable.ic_sym_tune,
+        badge = stringResource(if (shown) R.string.recents_card_shown else R.string.recents_card_hidden),
+        healthy = !shown,
+        body = stringResource(R.string.recents_card_body),
+        hint = null,
+        actionLabel = stringResource(
+            if (shown) R.string.recents_action_hide else R.string.recents_action_show,
+        ),
+        onAction = {
+            shown = !shown
+            SetupStore(context).showInRecents = shown
+            applyRecentsVisibility(context)
+        },
     )
 }
 

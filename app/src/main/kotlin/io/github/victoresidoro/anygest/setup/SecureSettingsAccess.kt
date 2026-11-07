@@ -39,6 +39,8 @@ internal object SecureSettingsAccess {
      * stayed at 0 (buttons) while this one at 1 removed the bar.
      */
     private const val FORCE_FSG_NAV_BAR = "force_fsg_nav_bar"
+    private const val NAVIGATION_MODE = "navigation_mode"
+    private const val GESTURE_MODE = 2
 
     fun canWrite(context: Context): Boolean =
         context.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED
@@ -53,6 +55,17 @@ internal object SecureSettingsAccess {
     }.getOrNull()
 
     /** HyperOS only: the key means nothing to another vendor, so it is never written there. */
+    /** Null when the key cannot be read. */
+    fun gestureModeOn(context: Context): Boolean? = runCatching {
+        Settings.Secure.getInt(context.contentResolver, NAVIGATION_MODE) == GESTURE_MODE
+    }.getOrNull()
+
+    /** Puts gesture navigation back; true when the system kept the value. */
+    fun setGestureMode(context: Context): Boolean = runCatching {
+        Settings.Secure.putInt(context.contentResolver, NAVIGATION_MODE, GESTURE_MODE) &&
+            gestureModeOn(context) == true
+    }.getOrDefault(false)
+
     fun setBarHidden(context: Context, hidden: Boolean): Boolean {
         if (!canWrite(context) || !NavigationModeReader.isHyperOsDevice()) return false
         return runCatching {

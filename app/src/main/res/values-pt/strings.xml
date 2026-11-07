@@ -270,4 +270,10 @@
     <string name="tile_navigation_gestural">Gestos · toque para trocar</string>
     <string name="tile_navigation_buttons">Botões · toque para trocar</string>
     <string name="tile_navigation_unknown">Toque para abrir o modo de navegação</string>
+    <string name="recents_card_title">AnyGest nos Recentes</string>
+    <string name="recents_card_shown">Aparece</string>
+    <string name="recents_card_hidden">Escondido</string>
+    <string name="recents_card_body">Deslizar o card do AnyGest para fora dos Recentes encerra o app, e os gestos param até o Android religá-lo. Se você costuma limpar os Recentes, esconda o AnyGest de lá: ele continua abrindo normalmente pelo ícone.</string>
+    <string name="recents_action_hide">Esconder dos Recentes</string>
+    <string name="recents_action_show">Mostrar nos Recentes</string>
 </resources>

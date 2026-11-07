@@ -24,6 +24,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -66,28 +67,17 @@ internal class EdgeTouchOverlay(
 
     private val bellies = mutableMapOf<ScreenEdge, BackBellyOverlay>()
 
-    private var streamHeld = false
+    /**
+     * While a stream is held the strips are inert (not touchable, alpha 0). If the UP or CANCEL
+     * that ends it never reaches a strip, they would stay inert and the gestures would be dead
+     * while the service still looks healthy, so a stream that goes quiet for too long is
+     * released. Tokens keep a late release of an old stream from touching a new one.
+     */
+    private val hold = StreamHold(STUCK_STREAM_MS)
 
     private val handler = Handler(Looper.getMainLooper())
 
-    /**
-     * Safety net: while a stream is held the strips are inert (not touchable, alpha 0). If the
-     * UP or CANCEL that ends the stream never reaches the strip, they would stay inert and the
-     * gestures would be dead while the service still looks healthy. Only the tile's off/on,
-     * which reinstalls the strips, used to bring them back.
-     */
-    private val stuckRelease = Runnable {
-        if (streamHeld) {
-            Log.w(TAG, "stream never ended; releasing the strips")
-            SetupStore(context).note("strips were stuck inert, released by the watchdog")
-            releaseStream()
-        }
-    }
-
-    private fun armWatchdog() {
-        handler.removeCallbacks(stuckRelease)
-        handler.postDelayed(stuckRelease, STUCK_STREAM_MS)
-    }
+    private val stuckCheck = Runnable(::onStuckCheck)
 
     fun install(configuration: GestureConfiguration, geometry: ScreenGeometry) {
         remove()
@@ -110,7 +100,7 @@ internal class EdgeTouchOverlay(
     }
 
     fun remove() {
-        handler.removeCallbacks(stuckRelease)
+        handler.removeCallbacks(stuckCheck)
         strips.values.forEach { view ->
             runCatching { windowManager.removeView(view) }
         }
@@ -119,7 +109,20 @@ internal class EdgeTouchOverlay(
         bellies.clear()
         // Detaching kills any in-flight stream, so its UP never arrives to release the
         // hold; without this reset, freshly installed strips start out inert.
-        streamHeld = false
+        hold.reset()
+    }
+
+    /**
+     * Called when the screen comes on, the moment someone is about to use the gestures. False
+     * when the strips are missing or detached and must be installed again; a stream that
+     * outlived its deadline while the screen was off is released here too.
+     */
+    fun healthy(): Boolean {
+        if (hold.expire(SystemClock.uptimeMillis())) {
+            report("strips were stuck inert, released when the screen came on")
+            applyInteractivity()
+        }
+        return strips.isNotEmpty() && strips.values.all { it.isAttachedToWindow }
     }
 
     private fun addStrip(
@@ -141,9 +144,10 @@ internal class EdgeTouchOverlay(
             hapticStrength = configuration.hapticStrength,
             belly = bellies[edge],
             onStreamStart = ::onStreamStart,
-            onFire = { action -> onFire(action, edge) },
+            onActivity = ::onActivity,
+            onFire = { stream, action -> if (hold.isCurrent(stream)) onFire(action, edge) },
             onUnused = ::onUnused,
-            onStreamEnd = ::releaseStream,
+            onStreamEnd = { stream -> releaseStream(stream) },
         )
         val params = paramsFor(edge, configuration, geometry)
         runCatching {
@@ -202,34 +206,69 @@ internal class EdgeTouchOverlay(
         }
     }
 
-    private fun onStreamStart() {
+    private fun onStreamStart(): Long {
         bellies.values.forEach(BackBellyOverlay::hide)
-        streamHeld = true
-        armWatchdog()
+        val stream = hold.start(SystemClock.uptimeMillis())
         applyInteractivity()
+        scheduleStuckCheck()
+        return stream
+    }
+
+    private fun onActivity(stream: Long) {
+        if (!hold.activity(stream, SystemClock.uptimeMillis())) return
+        // The finger was only still: the stream is alive after all.
+        Log.w(TAG, "stream held again, a touch event followed the stuck release")
+        applyInteractivity()
+        scheduleStuckCheck()
     }
 
     private fun onFire(action: GestureAction, edge: ScreenEdge) {
         onGestureAction(action, edge)
     }
 
-    private fun onUnused(samples: List<TouchSample>) {
-        // The replay can take a few seconds; give the watchdog a fresh start for it.
-        armWatchdog()
-        val dispatched = replayer.replay(samples) { releaseStream() }
-        if (!dispatched) releaseStream()
+    private fun onUnused(stream: Long, samples: List<TouchSample>) {
+        if (!hold.isCurrent(stream)) return
+        if (!hold.mayReplay(stream)) {
+            releaseStream(stream)
+            return
+        }
+        // A replay sends no touch events to the strips, so it counts as activity itself.
+        hold.touch(stream, SystemClock.uptimeMillis())
+        scheduleStuckCheck()
+        val dispatched = replayer.replay(samples) { releaseStream(stream) }
+        if (!dispatched) releaseStream(stream)
     }
 
-    private fun releaseStream() {
-        handler.removeCallbacks(stuckRelease)
-        streamHeld = false
+    private fun releaseStream(stream: Long) {
+        if (!hold.release(stream)) return
+        handler.removeCallbacks(stuckCheck)
         applyInteractivity()
         Log.d(TAG, "stream released; strips interactive again")
     }
 
+    private fun scheduleStuckCheck() {
+        handler.removeCallbacks(stuckCheck)
+        hold.deadlineMs?.let { handler.postAtTime(stuckCheck, it) }
+    }
+
+    private fun onStuckCheck() {
+        if (!hold.expire(SystemClock.uptimeMillis())) {
+            scheduleStuckCheck()
+            return
+        }
+        bellies.values.forEach(BackBellyOverlay::hide)
+        report("strips were stuck inert, released after ${STUCK_STREAM_MS}ms without a touch")
+        applyInteractivity()
+    }
+
+    private fun report(message: String) {
+        Log.w(TAG, message)
+        SetupStore(context).note(message)
+    }
+
     /** See the class comment for why this is alpha 0 as well as non-touchable. */
     private fun applyInteractivity() {
-        val interactive = !streamHeld
+        val interactive = !hold.held
         strips.values.forEach { view ->
             val params = view.layoutParams as? WindowManager.LayoutParams ?: return@forEach
             val flags = if (interactive) {
@@ -254,11 +293,14 @@ internal class EdgeTouchOverlay(
         private val hapticsEnabled: Boolean,
         private val hapticStrength: HapticStrength,
         private val belly: BackBellyOverlay?,
-        private val onStreamStart: () -> Unit,
-        private val onFire: (GestureAction) -> Unit,
-        private val onUnused: (List<TouchSample>) -> Unit,
-        private val onStreamEnd: () -> Unit,
+        private val onStreamStart: () -> Long,
+        private val onActivity: (Long) -> Unit,
+        private val onFire: (Long, GestureAction) -> Unit,
+        private val onUnused: (Long, List<TouchSample>) -> Unit,
+        private val onStreamEnd: (Long) -> Unit,
     ) : View(context) {
+
+        private var stream = 0L
 
         private val samples = ArrayList<TouchSample>(MAX_SAMPLES)
         private var abandoned = false
@@ -281,6 +323,7 @@ internal class EdgeTouchOverlay(
         override fun onTouchEvent(event: MotionEvent): Boolean {
             // rawX/rawY are display coordinates, which is what the replay path expects.
             val sample = TouchSample(event.rawX, event.rawY, event.eventTime)
+            if (event.actionMasked != MotionEvent.ACTION_DOWN) onActivity(stream)
             return when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     samples.clear()
@@ -288,7 +331,7 @@ internal class EdgeTouchOverlay(
                     tickedThisTouch = false
                     samples += sample
                     Log.d(TAG, "$edge DOWN at ${sample.xPx.toInt()},${sample.yPx.toInt()}")
-                    onStreamStart()
+                    stream = onStreamStart()
                     track(tracker.onDown(sample), sample, replayable = false)
                     true
                 }
@@ -318,7 +361,7 @@ internal class EdgeTouchOverlay(
                         track(tracker.onUp(sample), sample, replayable = true)
                     }
                     samples.clear()
-                    if (!releaseDeferred) onStreamEnd()
+                    if (!releaseDeferred) onStreamEnd(stream)
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
@@ -329,7 +372,7 @@ internal class EdgeTouchOverlay(
                     cancelHold()
                     tracker.onCancel()
                     samples.clear()
-                    onStreamEnd()
+                    onStreamEnd(stream)
                     true
                 }
                 else -> false
@@ -364,7 +407,7 @@ internal class EdgeTouchOverlay(
                     if (action.action == GestureAction.CircleToSearch) longPressTick() else tick()
                     // action.id, not ::class.simpleName - R8 obfuscates class names.
                     Log.i(TAG, "GESTURE_FIRED $edge ${action.action.id}")
-                    onFire(action.action)
+                    onFire(stream, action.action)
                 }
                 is TrackerAction.Disarmed -> Log.d(TAG, "$edge disarmed, pulled back inside the trigger")
                 // Consumed rather than replayed: the app never asked for this swipe.
@@ -373,12 +416,19 @@ internal class EdgeTouchOverlay(
                     cancelHold()
                     Log.d(TAG, "$edge unused (${action.reason})")
                     if (replayable && samples.isNotEmpty()) {
-                        onUnused(samples.toList())
+                        onUnused(stream, samples.toList())
                         return true
                     }
                 }
             }
             return false
+        }
+
+        // A strip taken off the screen mid-touch never sees its UP; its timers must not fire
+        // on a stream that is already over.
+        override fun onDetachedFromWindow() {
+            cancelHold()
+            super.onDetachedFromWindow()
         }
 
         // Clears both timers: every caller is ending or deciding the touch, and a long press
@@ -423,7 +473,10 @@ internal class EdgeTouchOverlay(
     private companion object {
         const val TAG = "AnyGest"
 
-        /** Longer than the longest replay (3 s) plus its grace, so it never cuts one short. */
-        const val STUCK_STREAM_MS = 8_000L
+        /**
+         * Past the longest stretch a live stream goes without a touch event (a replay after its
+         * UP), with a second to spare for a busy main thread.
+         */
+        const val STUCK_STREAM_MS = AnyGestAccessibilityService.LONGEST_REPLAY_HOLD_MS + 1_000L
     }
 }

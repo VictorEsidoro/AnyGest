@@ -4,6 +4,30 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.5.1
+
+### Added
+
+- **AnyGest in Recents** card: shows or hides the AnyGest card in Recents. Swiping that card away ends the app and stops the gestures until Android brings it back; hiding it avoids that. Shown by default, so nothing changes unless you choose.
+
+### Fixed
+
+- Stuck edge strips are now released by how long the touch has been quiet rather than by a fixed 8 s from its start, each touch carries its own token so a late release of an old touch cannot affect a new one, and a strip taken off the screen mid-touch stops its timers. Based on HyperGesture commit 209e504 (#124) by Henrique Almeida (h3nc4).
+- When the screen comes on, AnyGest checks that the edge strips are in place and touchable, and reinstalls them if not, so dead gestures are put right before the first swipe.
+- With ADB mode and *Keep the button bar hidden* on, if HyperOS switches the navigation mode back to buttons by itself, gesture navigation is put back at once, only while the gestures are running. Based on HyperGesture commit 81c1ad1 (#127) by Henrique Almeida (h3nc4). To change the mode by hand, turn that switch off first.
+
+### Português
+
+#### Adicionado
+
+- Card **AnyGest nos Recentes**: mostra ou esconde o card do AnyGest nos Recentes. Deslizar esse card para fora encerra o app e para os gestos até o Android religá-lo; escondê-lo evita isso. Aparece por padrão, então nada muda se você não escolher.
+
+#### Corrigido
+
+- As faixas das bordas presas agora são liberadas pelo tempo que o toque ficou parado, e não por 8 s fixos desde o início; cada toque leva uma marca própria, para a liberação atrasada de um toque antigo não afetar um novo; e uma faixa removida da tela no meio de um toque para os próprios timers. Baseado no commit 209e504 (#124) do HyperGesture, de Henrique Almeida (h3nc4).
+- Ao acender a tela, o AnyGest confere se as faixas das bordas estão no lugar e tocáveis, e as recria se não estiverem, para gestos mortos se resolverem antes do primeiro deslize.
+- Com o Modo ADB e *Manter a barra de botões escondida* ligados, se o HyperOS voltar sozinho para a navegação por botões, os gestos são postos de volta na hora, só enquanto o AnyGest está funcionando. Baseado no commit 81c1ad1 (#127) do HyperGesture, de Henrique Almeida (h3nc4). Para trocar o modo à mão, desligue essa chave antes.
+
 ## 3.5.0
 
 ### Added

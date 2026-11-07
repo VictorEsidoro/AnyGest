@@ -277,4 +277,10 @@
     <string name="tile_navigation_gestural">Gestures · tap to change</string>
     <string name="tile_navigation_buttons">Buttons · tap to change</string>
     <string name="tile_navigation_unknown">Tap to open navigation settings</string>
+    <string name="recents_card_title">AnyGest in Recents</string>
+    <string name="recents_card_shown">Shown</string>
+    <string name="recents_card_hidden">Hidden</string>
+    <string name="recents_card_body">Swiping the AnyGest card out of Recents ends the app, and the gestures stop until Android brings it back. If you often clear Recents, hide AnyGest from there: it still opens normally from its icon.</string>
+    <string name="recents_action_hide">Hide from Recents</string>
+    <string name="recents_action_show">Show in Recents</string>
 </resources>
