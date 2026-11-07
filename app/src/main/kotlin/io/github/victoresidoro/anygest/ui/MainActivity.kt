@@ -22,6 +22,8 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.app.LocaleManager
 import android.app.StatusBarManager
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.ContextWrapper
@@ -1307,6 +1309,24 @@ private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) 
     Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = onRefresh) {
             Text(stringResource(R.string.action_refresh_diagnostics))
+        }
+        val copiedMessage = stringResource(R.string.diag_log_copied)
+        TextButton(
+            onClick = {
+                val text = listOfNotNull(
+                    "AnyGest ${diagnostics.appVersionName}",
+                    diagnostics.lastRecordedFailure,
+                    diagnostics.pauseNotes,
+                ).joinToString("\n\n")
+                val clipboard = context.getSystemService(ClipboardManager::class.java)
+                clipboard?.setPrimaryClip(ClipData.newPlainText("AnyGest", text))
+                // Android 13 and later show their own "copied" confirmation.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                }
+            },
+        ) {
+            Text(stringResource(R.string.action_copy_log))
         }
         TextButton(
             onClick = {

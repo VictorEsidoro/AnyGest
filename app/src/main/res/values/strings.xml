@@ -286,4 +286,6 @@
     <string name="tile_card_readd_hint">If the shortcut is gone from Control Center (after reinstalling the app, for example), tap Add again.</string>
     <string name="setup_tile_action_again">Add again</string>
     <string name="alert_action_switch_on">Switch back on</string>
+    <string name="action_copy_log">Copy log</string>
+    <string name="diag_log_copied">Log copied</string>
 </resources>

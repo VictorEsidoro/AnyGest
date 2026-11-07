@@ -10,6 +10,7 @@ Versões em português logo abaixo de cada versão.
 
 - ADB mode: Android now wakes AnyGest whenever the list of enabled accessibility services changes, even with the app's process dead and without any polling. With *Switch the gestures back on by itself* on, AnyGest then does what opening the app would do: switches the gestures back on (shows the button bar first if it was left hidden), except after the tile's off switch or a pause for an exception app. Before, this only happened when the app was opened, the tile panel pulled down or the phone rebooted. To switch the gestures off on purpose, use the Control Center tile, or turn that switch off first.
 - ADB mode: the "gestures stopped" notification (opt-in alerts) has a **Switch back on** button that switches the gestures on directly, with no settings screen.
+- Diagnostics: a **Copy log** button copies the app version and the log to the clipboard, ready to paste.
 
 ### Português
 
@@ -17,6 +18,7 @@ Versões em português logo abaixo de cada versão.
 
 - Modo ADB: o Android agora acorda o AnyGest sempre que a lista de serviços de acessibilidade ligados muda, mesmo com o processo do app morto e sem nenhuma verificação periódica. Com *Religar os gestos sozinho* ligado, o AnyGest faz o mesmo que ao abrir o app: religa os gestos (mostrando antes a barra de botões, se ela tiver ficado escondida), exceto depois do desligamento pelo atalho ou de uma pausa por app em exceção. Antes isso só acontecia ao abrir o app, puxar o painel do atalho ou reiniciar o celular. Para desligar os gestos de propósito, use o atalho do Centro de controle, ou desligue antes essa chave.
 - Modo ADB: a notificação "gestos pararam" (avisos opcionais) ganhou o botão **Ligar de novo**, que religa os gestos direto, sem abrir tela de configurações.
+- Diagnóstico: o botão **Copiar log** copia a versão do app e o registro para a área de transferência, pronto para colar.
 
 ## 3.5.1
 

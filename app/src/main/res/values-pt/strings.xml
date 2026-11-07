@@ -279,4 +279,6 @@
     <string name="tile_card_readd_hint">Se o atalho sumiu do Centro de controle (depois de reinstalar o app, por exemplo), toque em Adicionar de novo.</string>
     <string name="setup_tile_action_again">Adicionar de novo</string>
     <string name="alert_action_switch_on">Ligar de novo</string>
+    <string name="action_copy_log">Copiar log</string>
+    <string name="diag_log_copied">Log copiado</string>
 </resources>
