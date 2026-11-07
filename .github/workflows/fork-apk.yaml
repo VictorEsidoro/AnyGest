@@ -155,10 +155,13 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: anygest-${{ steps.release.outputs.version }}
-      # A fixed asset name keeps .../releases/latest/download/anygest.apk valid forever.
-      - name: Give the APK its permanent name
+      # Two identical files: AnyGest-<version>.apk tells people which version they downloaded,
+      # and the fixed anygest.apk keeps .../releases/latest/download/anygest.apk valid forever.
+      - name: Name the APK for the release
         if: steps.release.outputs.exists == 'false'
-        run: mv "anygest-${{ steps.release.outputs.version }}.apk" anygest.apk
+        run: |
+          cp "anygest-${{ steps.release.outputs.version }}.apk" "AnyGest-${{ steps.release.outputs.version }}.apk"
+          mv "anygest-${{ steps.release.outputs.version }}.apk" anygest.apk
       - name: Run softprops/action-gh-release
         if: steps.release.outputs.exists == 'false'
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
@@ -167,5 +170,7 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: AnyGest ${{ steps.release.outputs.version }}
           body_path: release-notes.md
-          files: anygest.apk
+          files: |
+            AnyGest-${{ steps.release.outputs.version }}.apk
+            anygest.apk
           make_latest: true
