@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.4.4
+
+### Fixed
+
+- The pause for an exception app could end a few seconds after opening it, while still inside the app, because another window (the fingerprint prompt, for example) briefly counted as "left the app". The service came back on next to an app that checks for it. Now another app has to stay in front for 3 s before the pause ends. The Diagnostics log names the package that appeared, so a false alarm can be told from a real exit.
+
+### Português
+
+#### Corrigido
+
+- A pausa para um app em exceção podia terminar poucos segundos depois de abri-lo, ainda dentro do app, porque outra janela (o prompt da digital, por exemplo) contava por um instante como "saiu do app". O serviço voltava a ligar ao lado de um app que o verifica. Agora outro app precisa ficar em primeiro plano por 3 s para a pausa terminar. O registro do Diagnóstico mostra o pacote que apareceu, para distinguir um alarme falso de uma saída de verdade.
+
 ## 3.4.3
 
 ### Fixed
