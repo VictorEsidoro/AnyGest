@@ -291,10 +291,14 @@
     <string name="keepalive_card_title">Keep gestures alive</string>
     <string name="keepalive_card_on">On</string>
     <string name="keepalive_card_off">Off</string>
-    <string name="keepalive_card_body">Swiping AnyGest away in Recents ends the app and the gestures with it. With this on, AnyGest keeps a silent notification (lowest importance, no icon in the status bar) and Android leaves it running. Off by default.</string>
+    <string name="keepalive_card_body">Swiping AnyGest away in Recents ends the app and the gestures with it. With this on, AnyGest keeps a silent notification (lowest importance, no icon in the status bar) and Android leaves it running. In ADB mode it has a Pause button. To hide the notification, use Hide notification: only this one is hidden and the app keeps running. Off by default.</string>
     <string name="keepalive_action_on">Turn on</string>
     <string name="keepalive_action_off">Turn off</string>
     <string name="keepalive_channel_name">Keep gestures alive</string>
     <string name="keepalive_title">AnyGest</string>
-    <string name="keepalive_body">Gestures running</string>
+    <string name="keepalive_body_on">Gestures running</string>
+    <string name="keepalive_body_off">Gestures paused</string>
+    <string name="keepalive_action_pause">Pause</string>
+    <string name="keepalive_action_resume">Switch on</string>
+    <string name="keepalive_action_hide">Hide notification</string>
 </resources>

@@ -556,8 +556,10 @@ private fun KeepAliveCard() {
         onAction = {
             on = !on
             SetupStore(context).keepAlive = on
-            KeepAliveService.sync(context, gesturesRunning = AnyGestAccessibilityService.isRunning())
+            KeepAliveService.refresh(context)
         },
+        secondaryLabel = if (on) stringResource(R.string.keepalive_action_hide) else null,
+        onSecondary = { context.startFirst(KeepAliveService.channelSettings(context), appDetails(context)) },
     )
 }
 
@@ -606,6 +608,8 @@ private fun InfoCard(
     hint: String?,
     actionLabel: String?,
     onAction: () -> Unit,
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -643,7 +647,10 @@ private fun InfoCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            actionLabel?.let { FilledTonalButton(onClick = onAction) { Text(it) } }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                actionLabel?.let { FilledTonalButton(onClick = onAction) { Text(it) } }
+                secondaryLabel?.let { TextButton(onClick = onSecondary) { Text(it) } }
+            }
         }
     }
 }

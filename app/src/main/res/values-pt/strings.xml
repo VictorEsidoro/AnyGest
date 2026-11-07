@@ -284,10 +284,14 @@
     <string name="keepalive_card_title">Manter os gestos vivos</string>
     <string name="keepalive_card_on">Ligado</string>
     <string name="keepalive_card_off">Desligado</string>
-    <string name="keepalive_card_body">Deslizar o AnyGest nos Recentes encerra o app e os gestos junto. Com isso ligado, o AnyGest mantém uma notificação silenciosa (prioridade mínima, sem ícone na barra de status) e o Android deixa o app rodando. Desligado por padrão.</string>
+    <string name="keepalive_card_body">Deslizar o AnyGest nos Recentes encerra o app e os gestos junto. Com isso ligado, o AnyGest mantém uma notificação silenciosa (prioridade mínima, sem ícone na barra de status) e o Android deixa o app rodando. No modo ADB ela tem um botão Pausar. Para escondê-la, use Esconder notificação: só essa some e o app continua rodando. Desligado por padrão.</string>
     <string name="keepalive_action_on">Ligar</string>
     <string name="keepalive_action_off">Desligar</string>
     <string name="keepalive_channel_name">Manter os gestos vivos</string>
     <string name="keepalive_title">AnyGest</string>
-    <string name="keepalive_body">Gestos ativos</string>
+    <string name="keepalive_body_on">Gestos ativos</string>
+    <string name="keepalive_body_off">Gestos pausados</string>
+    <string name="keepalive_action_pause">Pausar</string>
+    <string name="keepalive_action_resume">Ligar</string>
+    <string name="keepalive_action_hide">Esconder notificação</string>
 </resources>

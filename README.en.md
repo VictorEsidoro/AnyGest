@@ -240,7 +240,7 @@ To undo all of this, just revoke the permission: `adb shell pm revoke io.github.
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |
 | **AnyGest in Recents** | Shows or hides the AnyGest card in Recents, so clearing Recents does not end it by accident. |
-| **Keep gestures alive** | Optional, off by default. Runs AnyGest as a foreground service, which HyperOS does not end when you swipe the card away in Recents. Android requires a notification for it: it is silent and has no status bar icon. |
+| **Keep gestures alive** | Optional, off by default. Runs AnyGest as a foreground service, which HyperOS does not end when you swipe the card away in Recents. Android requires a notification for it: it is silent and has no status bar icon, and in ADB mode it has a Pause / Switch on button. To hide it use **Hide notification** on the card: only it goes away and the app keeps running; turning off *all* AnyGest notifications also works, but it silences the stopped-gestures alerts too. |
 | **App language** | Automatic, Português (Brasil) or English (Android 13 or newer). |
 | **Gesture settings** | Widths, distances, times and vibration (light, normal or strong). Also exports and imports the settings to a file, to keep or move to another phone. Collapsed by default so a stray tap changes nothing. |
 | **Diagnostics** | Device details and the last error. Useful for reporting problems — nothing leaves the phone. |

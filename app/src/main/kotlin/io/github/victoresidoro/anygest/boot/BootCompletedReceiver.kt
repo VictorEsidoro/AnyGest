@@ -24,6 +24,7 @@ import android.util.Log
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.service.GesturePower
+import io.github.victoresidoro.anygest.service.KeepAliveService
 import io.github.victoresidoro.anygest.service.RecoveryJob
 
 /**
@@ -40,6 +41,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
         GesturePower.restoreIfNeeded(context)
         // Content-triggered jobs do not survive a reboot.
         RecoveryJob.schedule(context)
+        KeepAliveService.refresh(context)
 
         val status = NavigationIntegrationFactory.create(context).status()
         if (status.available && status.currentMode != NavigationMode.GESTURAL) {

@@ -21,16 +21,24 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 
-/** The "Switch back on" button of the stopped notification, for ADB mode. */
+/** The notification buttons that switch the gestures on or off, for ADB mode. */
 class AlertActionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION_SWITCH_ON) return
-        GesturePower.switchOn(context)
-        AlertNotifier.gesturesRunning(context)
+        when (intent.action) {
+            ACTION_SWITCH_ON -> {
+                GesturePower.switchOn(context)
+                AlertNotifier.gesturesRunning(context)
+            }
+            ACTION_SWITCH_OFF -> {
+                GesturePower.switchOff(context)
+                KeepAliveService.refresh(context)
+            }
+        }
     }
 
     companion object {
         const val ACTION_SWITCH_ON = "io.github.victoresidoro.anygest.action.SWITCH_ON"
+        const val ACTION_SWITCH_OFF = "io.github.victoresidoro.anygest.action.SWITCH_OFF"
     }
 }

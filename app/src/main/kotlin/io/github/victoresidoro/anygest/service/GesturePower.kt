@@ -88,14 +88,19 @@ internal object GesturePower {
         if (starting()) return true
         val store = SetupStore(context)
         return if (DiagnosticsCollector.isAccessibilityServiceEnabled(context)) {
-            store.userPaused = true
-            if (barManaged(context)) SecureSettingsAccess.setBarHidden(context, false)
-            SecureSettingsAccess.setServiceEnabled(context, false)
+            switchOff(context)
             false
         } else {
             switchOn(context)
             true
         }
+    }
+
+    /** The off switch: shows the button bar first, because without gestures or bar nothing navigates. */
+    fun switchOff(context: Context) {
+        SetupStore(context).userPaused = true
+        if (barManaged(context)) SecureSettingsAccess.setBarHidden(context, false)
+        SecureSettingsAccess.setServiceEnabled(context, false)
     }
 
     /** Clears every pause and switches the service on: the tile, and the notification button. */
