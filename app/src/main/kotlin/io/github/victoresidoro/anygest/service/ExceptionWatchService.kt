@@ -62,8 +62,6 @@ class ExceptionWatchService : Service() {
     private var apps: Set<String> = emptySet()
     private var startedAt = 0L
     private var stopped = false
-    private var outsidePackage: String? = null
-    private var outsideSince = 0L
 
     private val poll = object : Runnable {
         override fun run() {
@@ -119,23 +117,7 @@ class ExceptionWatchService : Service() {
         // Only events from the pause onwards count: the newest older one names the app the
         // user came from, and reading it as "left" would end the pause a second after it began.
         val front = ForegroundApp.current(this, window, notBeforeMs = startedAt - EVENT_GRACE_MS)
-        if (!PausePolicy.frontIsOutside(front, apps)) {
-            if (outsidePackage != null) {
-                store.note("watcher: back inside, still paused (was on $outsidePackage)")
-            }
-            outsidePackage = null
-            return
-        }
-        // Another package can sit in front of the app for a moment (the fingerprint prompt, a
-        // permission dialog, the keyboard). Switching the service on then would put it next to
-        // an app that checks for it, so "outside" has to last before it counts as leaving.
-        val now = System.currentTimeMillis()
-        if (front != outsidePackage) {
-            outsidePackage = front
-            outsideSince = now
-            store.note("watcher: $front in front, waiting to see if it stays")
-        }
-        if (now - outsideSince >= OUTSIDE_HOLD_MS) {
+        if (PausePolicy.frontIsOutside(front, apps)) {
             store.note("watcher: left for $front, switching the service back on")
             finish(restore = true)
         }
@@ -184,9 +166,6 @@ class ExceptionWatchService : Service() {
         private const val FAST_MS = 1_000L
         private const val SLOW_MS = 5_000L
         private const val LOOKBACK_MS = 30_000L
-
-        /** How long another app must stay in front before the pause counts as over. */
-        private const val OUTSIDE_HOLD_MS = 3_000L
 
         /** The "resumed" event of the app itself lands just before its window event. */
         private const val EVENT_GRACE_MS = 1_500L
