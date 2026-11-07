@@ -287,6 +287,7 @@ private fun AnyGestScreen(
                 setupRevision++
             },
         )
+        AdbExtrasCard()
         PauseAppsCard(
             enabled = configuration.pauseInAppsEnabled,
             apps = configuration.pauseApps,

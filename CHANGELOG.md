@@ -4,6 +4,28 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.5.0
+
+### Added
+
+- New **Shortcuts through adb** card, always optional: ready-to-copy commands for battery optimisation (AnyGest and your default launcher, named automatically), usage access and restricted settings. Each shows its normal route through the Android screens, so adb is never required. The app only shows the commands and cannot run them.
+- The card checks what is already done (ADB mode permission, battery optimisation for AnyGest and the launcher, usage access) every time you come back to the app, shows ✓ or Pending for each, and confirms when everything is done. Restricted settings cannot be checked from the app.
+
+### Includes
+
+- The 3.4.3 fix: the edge strips are released by a watchdog if a touch never ends, with a line in the Diagnostics log when it happens.
+
+### Português
+
+#### Adicionado
+
+- Novo card **Atalhos por adb**, sempre opcional: comandos prontos para copiar para a economia de bateria (AnyGest e o seu launcher padrão, com o nome descoberto sozinho), o acesso de uso e as configurações restritas. Cada um mostra o caminho normal pelas telas do Android, então o adb nunca é obrigatório. O app só mostra os comandos e não consegue executá-los.
+- O card confere o que já foi feito (permissão do Modo ADB, economia de bateria do AnyGest e do launcher, acesso de uso) toda vez que você volta ao app, mostra ✓ ou Pendente em cada item e confirma quando tudo está pronto. As configurações restritas o app não consegue conferir.
+
+#### Inclui
+
+- A correção da 3.4.3: o vigia que libera as faixas das bordas se um toque nunca terminar, com uma linha no registro do Diagnóstico quando acontece.
+
 ## 3.4.3
 
 ### Fixed

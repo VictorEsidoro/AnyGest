@@ -209,6 +209,14 @@ fabricante.
    "Não configurado" depois de reiniciar, rode o comando de novo.
 4. Para os apps em exceção funcionarem, conceda também o **Acesso de uso** (o card avisa).
 
+**Comandos extras, também opcionais.** O card **Atalhos por adb** mostra, para copiar, comandos
+que fazem pelo adb o que você faria pelas telas do Android: tirar o AnyGest e o seu launcher da
+economia de bateria, liberar o acesso de uso e permitir as configurações restritas. **Nenhum é
+obrigatório**: cada item mostra o caminho normal pelas telas. O app **não executa** esses
+comandos (ele não tem permissão para isso); só os mostra e, ao voltar para ele, confere o que já
+foi feito e mostra ✓ ou "Pendente". Ao terminar tudo, aparece a confirmação "Tudo conferido".
+As configurações restritas são a única que o app não consegue conferir.
+
 Com o Modo ADB ativo o atalho do Centro de controle vira um **liga/desliga dos gestos**:
 desligando, a barra de botões volta na hora; ligando, os gestos e a barra escondida voltam.
 
@@ -224,6 +232,7 @@ Para desfazer tudo isso, basta revogar a permissão: `adb shell pm revoke io.git
 | **Atalho no Centro de controle** | Por que o atalho importa, se ele já foi adicionado e o botão para adicionar. |
 | **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o AnyGest ligado. |
 | **Modo ADB** | Mostra o comando de uma vez só que dá ao AnyGest a permissão de se cuidar sozinho, e as chaves para manter a barra escondida e religar os gestos sozinho. |
+| **Atalhos por adb** | Comandos opcionais para copiar (bateria, acesso de uso, configurações restritas), cada um com o caminho normal pelas telas, e a conferência do que já foi feito. |
 | **Apps em exceção** | A lista de apps, vazia por padrão, em que os gestos pausam enquanto estão abertos. Precisa do Modo ADB e do acesso de uso. Veja o aviso no card antes de adicionar algum app. |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |

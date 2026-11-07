@@ -21,6 +21,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.PowerManager
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +57,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.github.victoresidoro.anygest.R
+import io.github.victoresidoro.anygest.setup.AdbCommands
+import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
 import io.github.victoresidoro.anygest.ui.theme.onSuccessContainer
 import io.github.victoresidoro.anygest.ui.theme.successContainer
@@ -344,3 +349,138 @@ private fun labelOf(context: Context, packageName: String): String = runCatching
     val packages = context.packageManager
     packages.getApplicationInfo(packageName, 0).loadLabel(packages).toString()
 }.getOrDefault(packageName)
+
+/** The default launcher's package, or null when none is set (a chooser would answer "android"). */
+private fun defaultLauncher(context: Context): String? {
+    val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+    val name = context.packageManager
+        .resolveActivity(home, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+    return AdbCommands.safePackage(name)?.takeIf { it != context.packageName }
+}
+
+private fun exemptFromBattery(context: Context, packageName: String): Boolean =
+    context.getSystemService(PowerManager::class.java)
+        ?.isIgnoringBatteryOptimizations(packageName) == true
+
+/**
+ * Optional adb commands to copy, next to what each one does on the Android screens, plus a
+ * live check of what already took. The app only shows and checks: it cannot run them.
+ */
+@Composable
+internal fun AdbExtrasCard() {
+    val context = LocalContext.current
+    val launcher = remember { defaultLauncher(context) }
+    val launcherLabel = remember(launcher) { launcher?.let { labelOf(context, it) } }
+    var revision by remember { mutableStateOf(0) }
+    // The commands run in another app, so everything is read again on the way back.
+    LifecycleResumeEffect(Unit) {
+        revision++
+        onPauseOrDispose {}
+    }
+    val granted = remember(revision) { SecureSettingsAccess.canWrite(context) }
+    val selfExempt = remember(revision) { exemptFromBattery(context, context.packageName) }
+    val launcherExempt = remember(revision) { launcher?.let { exemptFromBattery(context, it) } }
+    val usage = remember(revision) { SetupFactsReader.hasUsageAccess(context) }
+    val allDone = granted && selfExempt && launcherExempt != false && usage
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            CardTitle(
+                icon = R.drawable.ic_sym_tune,
+                title = stringResource(R.string.adb_extras_title),
+            )
+            Text(
+                text = stringResource(R.string.adb_extras_body),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            CheckRow(stringResource(R.string.adb_check_grant), granted)
+            CheckRow(stringResource(R.string.adb_check_battery_self), selfExempt)
+            if (launcherExempt != null && launcherLabel != null) {
+                CheckRow(
+                    stringResource(R.string.adb_check_battery_launcher, launcherLabel),
+                    launcherExempt,
+                )
+            }
+            CheckRow(stringResource(R.string.adb_check_usage), usage)
+            if (allDone) {
+                Text(
+                    text = stringResource(R.string.adb_check_all_done),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = onSuccessContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(successContainer, RoundedCornerShape(12.dp))
+                        .padding(12.dp),
+                )
+            }
+            CommandBlock(
+                title = stringResource(R.string.adb_cmd_battery_title),
+                command = AdbCommands.battery(listOfNotNull(context.packageName, launcher)),
+                alternative = stringResource(R.string.adb_cmd_battery_alt),
+            )
+            CommandBlock(
+                title = stringResource(R.string.adb_cmd_usage_title),
+                command = AdbCommands.usageAccess(context.packageName),
+                alternative = stringResource(R.string.adb_cmd_usage_alt),
+            )
+            CommandBlock(
+                title = stringResource(R.string.adb_cmd_restricted_title),
+                command = AdbCommands.restrictedSettings(context.packageName),
+                alternative = stringResource(R.string.adb_cmd_restricted_alt),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CheckRow(label: String, ok: Boolean) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp),
+        )
+        StatusChip(
+            text = stringResource(if (ok) R.string.adb_check_ok else R.string.adb_check_pending),
+            healthy = ok,
+        )
+    }
+}
+
+@Composable
+private fun CommandBlock(title: String, command: String, alternative: String) {
+    val context = LocalContext.current
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(top = 6.dp),
+        )
+        SelectionContainer {
+            Text(
+                text = command,
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
+        Text(
+            text = alternative,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FilledTonalButton(onClick = { copyCommand(context, command) }) {
+            Text(stringResource(R.string.adb_action_copy))
+        }
+    }
+}

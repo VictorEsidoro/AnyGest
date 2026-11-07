@@ -65,6 +65,11 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <!-- Names the default launcher in the optional battery command. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
         <!-- Lets the tile check that AnyGest's own Accessibility page exists before
              sending the user there; the full Accessibility list is the fallback. -->
         <intent>

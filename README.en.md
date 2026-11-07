@@ -205,6 +205,14 @@ work the same way from a computer's `adb shell`. Not tested on another manufactu
    set up" after a restart, run the command again.
 4. For exception apps to work, also grant **usage access** (the card tells you).
 
+**Extra commands, also optional.** The **Shortcuts through adb** card shows, ready to copy,
+commands that do through adb what you would do on the Android screens: take AnyGest and your
+launcher out of battery optimisation, grant usage access and allow restricted settings. **None
+is required**: each item shows the normal route through the screens. The app **does not run**
+these commands (it has no permission to); it only shows them and, when you come back to it,
+checks what is already done and shows ✓ or "Pending". When everything is done it shows an
+"Everything checked" confirmation. Restricted settings is the one item the app cannot check.
+
 With ADB mode on, the Control Center shortcut becomes a **switch for the gestures**: off brings
 the button bar back at once; on brings the gestures and the hidden bar back.
 
@@ -220,6 +228,7 @@ To undo all of this, just revoke the permission: `adb shell pm revoke io.github.
 | **Control Center shortcut** | Why the shortcut matters, whether it is added, and the button to add it. |
 | **Button bar** | Whether the bar is hidden, and a shortcut to Navigation mode. Unlocks only with AnyGest on. |
 | **ADB mode** | Shows the one-time command that lets AnyGest look after itself, and the switches to keep the bar hidden and to bring the gestures back by itself. |
+| **Shortcuts through adb** | Optional commands to copy (battery, usage access, restricted settings), each with the normal route through the screens, and a check of what is already done. |
 | **Exception apps** | The list of apps, empty by default, the gestures pause for while they are open. Needs ADB mode and usage access. See the warning in the card before adding an app. |
 | **App switching** | Turns on the sideways swipe along the bottom edge. Needs **usage access**. |
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
