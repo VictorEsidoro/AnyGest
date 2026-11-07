@@ -283,4 +283,6 @@
     <string name="recents_card_body">Swiping the AnyGest card out of Recents ends the app, and the gestures stop until Android brings it back. If you often clear Recents, hide AnyGest from there: it still opens normally from its icon.</string>
     <string name="recents_action_hide">Hide from Recents</string>
     <string name="recents_action_show">Show in Recents</string>
+    <string name="tile_card_readd_hint">If the shortcut is gone from Control Center (after reinstalling the app, for example), tap Add again.</string>
+    <string name="setup_tile_action_again">Add again</string>
 </resources>

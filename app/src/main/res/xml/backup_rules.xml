@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The setup file records live device state (tiles added, pauses, whether the service was up).
+     Restored after a reinstall it would be stale, e.g. claiming tiles that are gone. The gesture
+     settings are still backed up. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="setup.xml" />
+</full-backup-content>

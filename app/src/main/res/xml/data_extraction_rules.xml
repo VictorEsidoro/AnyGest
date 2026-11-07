@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See backup_rules.xml: the setup file is device state, not a setting. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="setup.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="setup.xml" />
+    </device-transfer>
+</data-extraction-rules>

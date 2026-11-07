@@ -467,8 +467,12 @@ private fun TileCard(added: Boolean, canRequest: Boolean, onRequest: () -> Unit)
         badge = stringResource(if (added) R.string.tile_card_added else R.string.tile_card_missing),
         healthy = added,
         body = stringResource(R.string.tile_card_body),
-        hint = stringResource(R.string.tile_card_manual).takeUnless { added },
-        actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
+        // Android has no way to ask whether a tile is still there, so "added" is only what was
+        // last seen; adding again is always offered, and the system answers if it already is.
+        hint = stringResource(if (added) R.string.tile_card_readd_hint else R.string.tile_card_manual),
+        actionLabel = stringResource(
+            if (added) R.string.setup_tile_action_again else R.string.setup_tile_action,
+        ).takeIf { canRequest },
         onAction = onRequest,
     )
 }
@@ -482,8 +486,12 @@ private fun NavigationTileCard(added: Boolean, canRequest: Boolean, onRequest: (
         badge = stringResource(if (added) R.string.tile_card_added else R.string.tile_card_missing),
         healthy = added,
         body = stringResource(R.string.navigation_tile_card_body),
-        hint = stringResource(R.string.navigation_tile_card_manual).takeUnless { added },
-        actionLabel = stringResource(R.string.setup_tile_action).takeIf { canRequest && !added },
+        // Android has no way to ask whether a tile is still there, so "added" is only what was
+        // last seen; adding again is always offered, and the system answers if it already is.
+        hint = stringResource(if (added) R.string.tile_card_readd_hint else R.string.navigation_tile_card_manual),
+        actionLabel = stringResource(
+            if (added) R.string.setup_tile_action_again else R.string.setup_tile_action,
+        ).takeIf { canRequest },
         onAction = onRequest,
     )
 }
