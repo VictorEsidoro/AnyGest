@@ -247,7 +247,7 @@ The home screen fits on one screen: a **search box** at the top, then **First st
 | **Button bar** | Whether the bar is hidden, and a shortcut to Navigation mode. Unlocks only with AnyGest on. |
 | **ADB mode** | Shows the one-time command that lets AnyGest look after itself, and the switches to keep the bar hidden and to bring the gestures back by itself. |
 | **Shortcuts through adb** | Optional commands to copy (battery, usage access, restricted settings), each with the normal route through the screens, and a check of what is already done. |
-| **Exception apps** | The list of apps, empty by default, the gestures pause for while they are open. Needs ADB mode and usage access. See the warning in the card before adding an app. |
+| **Exception apps** | The list of apps, empty by default, the gestures pause for while they are open. Needs ADB mode and usage access. See the warning in the card before adding an app. Each app on the list has a **Shortcut without gestures** button that puts an icon on the home screen which switches the gestures off *before* opening the app (for apps that check the moment they open). |
 | **App switching** | Turns on the sideways swipe along the bottom edge. Needs **usage access**. |
 | **Circle to Search** | Turns on the handle long press, with an optional manual hold time instead of the system's. |
 | **Your gestures** | A reminder of what each gesture does. |

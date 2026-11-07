@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.1.0
+
+### Added
+
+- **Shortcut without gestures** for apps on the exception list (ADB mode and usage access). From the list, an app opens with the gestures on and the pause comes a moment later; some apps, such as banking apps, check for accessibility services the moment they open and can notice AnyGest in that moment. The shortcut places an icon on the home screen, the app's own with a small AnyGest badge, that switches the gestures off **before** opening the app, so it never sees AnyGest. Not needed for apps that already work fine with the list alone. They come back when you leave the app, as with any pause. Your launcher must accept shortcuts from apps (Nova does).
+
+### Português
+
+#### Adicionado
+
+- **Atalho sem gestos** para os apps da lista de exceções (Modo ADB e acesso de uso). Pela lista, o app abre com os gestos ligados e a pausa vem um instante depois; alguns apps, como os de banco, conferem os serviços de acessibilidade logo ao abrir e podem perceber o AnyGest nesse instante. O atalho coloca um ícone na tela inicial, o do próprio app com um pequeno selo do AnyGest, que desliga os gestos **antes** de abrir o app, então ele nunca vê o AnyGest. Não é necessário para apps que já funcionam bem só com a lista. Eles voltam quando você sai do app, como em qualquer pausa. O launcher precisa aceitar atalhos de apps (o Nova aceita).
+
 ## 4.0.0
 
 ### Changed

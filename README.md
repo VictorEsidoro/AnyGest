@@ -251,7 +251,7 @@ A tela inicial cabe numa tela só: no topo, uma **caixa de busca**; logo abaixo,
 | **Barra de botões** | Se a barra está escondida, e o atalho para o Modo de navegação. Só libera com o AnyGest ligado. |
 | **Modo ADB** | Mostra o comando de uma vez só que dá ao AnyGest a permissão de se cuidar sozinho, e as chaves para manter a barra escondida e religar os gestos sozinho. |
 | **Atalhos por adb** | Comandos opcionais para copiar (bateria, acesso de uso, configurações restritas), cada um com o caminho normal pelas telas, e a conferência do que já foi feito. |
-| **Apps em exceção** | A lista de apps, vazia por padrão, em que os gestos pausam enquanto estão abertos. Precisa do Modo ADB e do acesso de uso. Veja o aviso no card antes de adicionar algum app. |
+| **Apps em exceção** | A lista de apps, vazia por padrão, em que os gestos pausam enquanto estão abertos. Precisa do Modo ADB e do acesso de uso. Veja o aviso no card antes de adicionar algum app. Cada app da lista tem o botão **Atalho sem gestos**, que põe na tela inicial um ícone que desliga os gestos *antes* de abrir o app (para apps que conferem logo ao abrir). |
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |

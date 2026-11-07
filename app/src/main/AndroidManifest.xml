@@ -96,6 +96,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Opened only by AnyGest's own home screen shortcuts ("open without gestures"). No
+             screen of its own; kept out of Recents and of the app's task. -->
+        <activity
+            android:name=".shortcut.OpenWithoutGesturesActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- exported so the system can bind it; the permission limits that to the system. -->
         <service
             android:name=".service.AnyGestAccessibilityService"

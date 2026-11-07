@@ -335,4 +335,14 @@
     <string name="search_kw_diagnostics">diagnóstico log registro notas falha versão aparelho</string>
     <string name="search_kw_copylog">copiar log área de transferência colar</string>
     <string name="search_kw_credits">créditos sobre licença henrique h3nc4 hypergesture autores</string>
+    <!-- 4.1 open without gestures -->
+    <string name="pause_shortcut">Atalho sem gestos</string>
+    <string name="pause_shortcut_title">Abrir um app sem gestos</string>
+    <string name="pause_shortcut_hint">Para que serve o Atalho sem gestos: pela lista, o app abre com os gestos ligados e a pausa vem um instante depois. Alguns apps, como os de banco, conferem os serviços de acessibilidade logo ao abrir e podem perceber o AnyGest nesse instante. O atalho põe na tela inicial um ícone que desliga os gestos antes de abrir o app; eles voltam quando você sai dele. Se o app já funciona bem só com a lista, você não precisa do atalho.</string>
+    <string name="shortcut_long_label">%1$s sem gestos</string>
+    <string name="shortcut_unsupported">Seu launcher não aceita atalhos de apps.</string>
+    <string name="shortcut_app_missing">Esse app não está mais instalado.</string>
+    <string name="shortcut_needs_adb">Sem Modo ADB e acesso de uso, o app abre com os gestos ligados.</string>
+    <string name="shortcut_not_listed">Esse app não está mais na lista de exceções, então abre com os gestos ligados.</string>
+    <string name="search_kw_shortcut">atalho ícone tela inicial abrir sem gestos iniciar banco nubank</string>
 </resources>

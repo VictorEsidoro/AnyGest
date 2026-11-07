@@ -342,4 +342,14 @@
     <string name="search_kw_diagnostics">diagnostics log notes failure version device</string>
     <string name="search_kw_copylog">copy log clipboard paste</string>
     <string name="search_kw_credits">credits about license henrique h3nc4 hypergesture authors</string>
+    <!-- 4.1 open without gestures -->
+    <string name="pause_shortcut">Shortcut without gestures</string>
+    <string name="pause_shortcut_title">Open an app without gestures</string>
+    <string name="pause_shortcut_hint">What Shortcut without gestures is for: from the list, the app opens with the gestures on and the pause comes a moment later. Some apps, such as banking apps, check for accessibility services the moment they open and can notice AnyGest in that moment. The shortcut puts an icon on the home screen that switches the gestures off before opening the app; they come back when you leave it. If the app already works fine with the list alone, you do not need the shortcut.</string>
+    <string name="shortcut_long_label">%1$s without gestures</string>
+    <string name="shortcut_unsupported">Your launcher does not accept shortcuts from apps.</string>
+    <string name="shortcut_app_missing">That app is no longer installed.</string>
+    <string name="shortcut_needs_adb">Without ADB mode and usage access, the app opens with the gestures on.</string>
+    <string name="shortcut_not_listed">This app is no longer on the exception list, so it opens with the gestures on.</string>
+    <string name="search_kw_shortcut">shortcut icon home screen open without gestures launch bank nubank</string>
 </resources>

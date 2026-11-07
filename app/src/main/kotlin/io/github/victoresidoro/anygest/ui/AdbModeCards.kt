@@ -57,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.github.victoresidoro.anygest.R
+import io.github.victoresidoro.anygest.shortcut.NoGestureShortcut
 import io.github.victoresidoro.anygest.setup.AdbCommands
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
@@ -224,22 +225,37 @@ internal fun PauseAppsCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            val shortcuts = active && NoGestureShortcut.supported(context)
+            if (shortcuts && apps.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.pause_shortcut_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             apps.sorted().forEach { packageName ->
                 val label = remember(packageName) { labelOf(context, packageName) }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 12.dp),
-                    )
-                    TextButton(onClick = { onRemove(packageName) }) {
-                        Text(stringResource(R.string.pause_remove, label))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (shortcuts) {
+                            TextButton(
+                                onClick = {
+                                    if (!NoGestureShortcut.request(context, packageName)) {
+                                        Toast.makeText(
+                                            context,
+                                            R.string.shortcut_unsupported,
+                                            Toast.LENGTH_LONG,
+                                        ).show()
+                                    }
+                                },
+                            ) {
+                                Text(stringResource(R.string.pause_shortcut))
+                            }
+                        }
+                        TextButton(onClick = { onRemove(packageName) }) {
+                            Text(stringResource(R.string.pause_remove, label))
+                        }
                     }
                 }
             }

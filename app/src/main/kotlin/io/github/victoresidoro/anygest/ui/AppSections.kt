@@ -104,6 +104,7 @@ internal fun searchTargets(navigationAvailable: Boolean): List<SearchTarget> = b
     add(SearchTarget("appswitch", Section.GESTURES, "appswitch", R.string.section_app_switch, R.string.search_kw_appswitch))
     add(SearchTarget("circle", Section.GESTURES, "circle", R.string.section_circle_to_search, R.string.search_kw_circle))
     add(SearchTarget("pause", Section.GESTURES, "pause", R.string.pause_card_title, R.string.search_kw_pause))
+    add(SearchTarget("shortcut", Section.GESTURES, "pause", R.string.pause_shortcut_title, R.string.search_kw_shortcut))
     add(SearchTarget("tuning", Section.GESTURES, "tuning", R.string.section_gestures, R.string.search_kw_tuning))
     if (navigationAvailable) {
         add(SearchTarget("navbar", Section.BAR, "navbar", R.string.navigation_card_title, R.string.search_kw_navbar))
