@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 3.4.3
+
+### Fixed
+
+- Gestures that stopped working while the service still looked healthy (the button bar stayed hidden and only switching the service off and on from the tile brought them back). While a touch is being handled the edge strips are made inert; if the end of that touch never reached them, they stayed inert. A watchdog now releases them after 8 s and writes a line to the Diagnostics log ("strips were stuck inert") whenever it has to, so a repeat is visible.
+
+### Português
+
+#### Corrigido
+
+- Gestos que paravam de funcionar com o serviço aparentemente saudável (a barra de botões continuava escondida e só desligar e ligar o serviço pelo tile os trazia de volta). Enquanto um toque é tratado, as faixas das bordas ficam inertes; se o fim desse toque não chegasse a elas, continuavam inertes. Agora um vigia as libera após 8 s e escreve uma linha no registro do Diagnóstico ("strips were stuck inert") sempre que precisar, para uma repetição ficar visível.
+
 ## 3.4.2
 
 ### Added
