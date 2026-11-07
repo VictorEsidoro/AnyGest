@@ -216,6 +216,12 @@ checks what is already done and shows ✓ or "Pending". When everything is done 
 With ADB mode on, the Control Center shortcut becomes a **switch for the gestures**: off brings
 the button bar back at once; on brings the gestures and the hidden bar back.
 
+With *Switch the gestures back on by itself* on, if the service is switched off other than by
+the shortcut or a pause, Android tells AnyGest at once (even with the app closed, at no battery
+cost) and it switches the gestures back on. So, to turn the gestures off on purpose, use the
+**Control Center shortcut**: switching off on the Accessibility screen makes AnyGest switch them
+back on. If you prefer to switch off there, turn *Switch the gestures back on by itself* off first.
+
 To undo all of this, just revoke the permission: `adb shell pm revoke io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS`. The app goes back to behaving as in steps 1–5.
 
 ---
@@ -278,7 +284,7 @@ To undo all of this, just revoke the permission: `adb shell pm revoke io.github.
 | Gestures stop for a moment and, in ADB mode, the button bar stays hidden | You probably **swiped the AnyGest card up in Recents**, which ends the app. Android restarts it on its own within seconds, but until then there are no gestures and no bar. Avoid swiping that card, or hide AnyGest from Recents with the **AnyGest in Recents** card. If the gestures do not come back, open the app or pull down the tile panel: with ADB mode the bar returns and the gestures are switched back on. Diagnostics shows in its log what happened. |
 | I want to be told when the gestures stop or the bar comes back | Turn on the **Alerts** card in the app (it starts off). Android 13+ asks for the notification permission right then. The alert only takes you to the screen that fixes it; actually turning things back on is still a tap from you. |
 | An app closes saying an accessibility service is on | Set up **ADB mode** (Step 6) and add the app to the **Exception apps** list: AnyGest switches itself off while it is open and returns when you leave. It is experimental and works around that app's check on purpose; read the warning in the card and that app's own terms before using it. |
-| Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. |
+| Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. With **ADB mode** and **alerts** on, the gestures-stopped notification has a **Switch back on** button that does it directly. |
 | The button bar came back on its own, but gestures are still on | HyperOS switched the navigation mode by itself (common with third-party launchers). With **ADB mode** and *Keep the button bar hidden* on, AnyGest puts gestures back by itself (to change the mode by hand, turn that switch off first). Without ADB mode, tap the second Control Center shortcut (navigation) to jump straight to that screen and pick gesture navigation again. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
 | Each gesture seems to fire twice | The old HyperGesture is probably still installed and turned on. Uninstall it: AnyGest is a separate app and does not replace it by itself. |

@@ -220,6 +220,12 @@ As configurações restritas são a única que o app não consegue conferir.
 Com o Modo ADB ativo o atalho do Centro de controle vira um **liga/desliga dos gestos**:
 desligando, a barra de botões volta na hora; ligando, os gestos e a barra escondida voltam.
 
+Com *Religar os gestos sozinho* ligado, se o serviço for desligado sem ser pelo atalho nem por
+uma pausa, o Android avisa o AnyGest na hora (mesmo com o app fechado, sem gastar bateria) e
+ele religa os gestos. Por isso, para desligar os gestos de propósito, use o **atalho do Centro
+de controle**: desligar na tela de Acessibilidade faz o AnyGest religar sozinho. Se preferir
+desligar por lá, desligue antes a chave *Religar os gestos sozinho*.
+
 Para desfazer tudo isso, basta revogar a permissão: `adb shell pm revoke io.github.victoresidoro.anygest android.permission.WRITE_SECURE_SETTINGS`. O app volta a se comportar como nos passos 1–5.
 
 ---
@@ -285,7 +291,7 @@ Para desfazer tudo isso, basta revogar a permissão: `adb shell pm revoke io.git
 | Os gestos param por um instante e, no modo ADB, a barra de botões continua escondida | Provavelmente você **deslizou o card do AnyGest para cima nos Recentes**, o que encerra o app. O Android o religa sozinho em poucos segundos, mas nesse intervalo não há gestos nem barra. Evite deslizar esse card, ou esconda o AnyGest dos Recentes pelo card **AnyGest nos Recentes**. Se os gestos não voltarem, abra o app ou puxe o painel do tile: com o modo ADB, a barra volta e os gestos são religados. O Diagnóstico mostra no registro o que aconteceu. |
 | Quero ser avisado quando os gestos pararem ou a barra voltar | Ative o card **Alertas** no app (vem desligado). O Android 13+ pede a permissão de notificações na hora. O aviso só leva você à tela que resolve; religar de verdade continua sendo um toque seu. |
 | Um app fecha dizendo que há um serviço de acessibilidade | Configure o **Modo ADB** (Passo 6) e adicione o app na lista de **Apps em exceção**: o AnyGest se desliga enquanto ele está aberto e volta quando você sai. É experimental e contorna de propósito a checagem desse app; leia o aviso no card e os termos de uso do app antes de usar. |
-| Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. |
+| Os gestos pararam e a barra de botões está escondida | Deslize do topo para abrir o Centro de controle e toque no atalho do AnyGest: ele abre a Acessibilidade para religar. Com o **Modo ADB** e os **avisos** ligados, a notificação de gestos parados traz o botão **Ligar de novo**, que religa direto. |
 | A barra de botões voltou sozinha, mas os gestos continuam ligados | O HyperOS mudou o modo de navegação por conta própria (normal com launchers de terceiros). Com o **Modo ADB** e *Manter a barra de botões escondida* ligados, o AnyGest põe os gestos de volta sozinho (para trocar o modo à mão, desligue essa chave antes). Sem o Modo ADB, toque no segundo atalho do Centro de controle (navegação) pra ir direto à tela e escolher Navegação por gestos de novo. |
 | O Circule para pesquisar não abre | Confira se o Google é o **App assistente digital** (em **Assistivo e voz**). O motivo do erro aparece em **Diagnóstico → Última falha**. |
 | Toque longo na borda abre o Circule para pesquisar sem querer | Ele só vale no centro, sobre a alça. Se ainda atrapalhar, desligue **Usar o Atraso ao tocar e pressionar do sistema** e aumente o tempo manual. |

@@ -100,6 +100,7 @@ import io.github.victoresidoro.anygest.gesture.SettingsLimits
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.service.AlertNotifier
 import io.github.victoresidoro.anygest.service.GesturePower
+import io.github.victoresidoro.anygest.service.RecoveryJob
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
@@ -156,6 +157,8 @@ private fun AnyGestScreen(
         GesturePower.restoreIfNeeded(context)
         AnyGestAccessibilityService.refreshSubscription()
         applyRecentsVisibility(context)
+        // Right after the one-time grant, the first moment the recovery job can be set up.
+        RecoveryJob.schedule(context)
         setupRevision++
         onPauseOrDispose {}
     }

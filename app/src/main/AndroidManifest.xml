@@ -145,6 +145,18 @@
             </intent-filter>
         </service>
 
+        <!-- Woken by Android when the enabled accessibility services change, even with the
+             process dead, so ADB mode can put the gestures back without polling. -->
+        <service
+            android:name=".service.RecoveryJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- The "Switch back on" button of the stopped notification. -->
+        <receiver
+            android:name=".service.AlertActionReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".boot.BootCompletedReceiver"
             android:exported="false">

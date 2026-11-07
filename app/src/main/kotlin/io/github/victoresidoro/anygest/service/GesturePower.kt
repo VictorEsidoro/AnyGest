@@ -75,11 +75,17 @@ internal object GesturePower {
             SecureSettingsAccess.setServiceEnabled(context, false)
             false
         } else {
-            store.userPaused = false
-            store.pausedForApp = null
-            ExceptionWatchService.stop(context)
-            SecureSettingsAccess.setServiceEnabled(context, true)
+            switchOn(context)
             true
         }
+    }
+
+    /** Clears every pause and switches the service on: the tile, and the notification button. */
+    fun switchOn(context: Context) {
+        val store = SetupStore(context)
+        store.userPaused = false
+        store.pausedForApp = null
+        ExceptionWatchService.stop(context)
+        SecureSettingsAccess.setServiceEnabled(context, true)
     }
 }

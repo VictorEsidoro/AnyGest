@@ -153,6 +153,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             else store.note("service connected")
             store.serviceUp = true
         }
+        RecoveryJob.schedule(this)
         try {
             setUp()
         } catch (t: Throwable) {

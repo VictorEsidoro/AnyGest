@@ -30,12 +30,13 @@ import io.github.victoresidoro.anygest.R
 import io.github.victoresidoro.anygest.navigation.HyperOSNavigationIntegration
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.setup.GestureTileService
+import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupStore
 
 /**
  * Two quiet notifications, both opt-in: the gestures stopped, and the system put the button
- * bar back. Neither can be fixed from here (that needs WRITE_SECURE_SETTINGS), so each one
- * only shortens the trip to the screen that fixes it.
+ * bar back. Without ADB mode neither can be fixed from here, so each one only shortens the
+ * trip to the screen that fixes it; with it, the stopped one also gets a "Switch back on".
  */
 internal object AlertNotifier {
 
@@ -54,12 +55,28 @@ internal object AlertNotifier {
 
     fun gesturesStopped(context: Context) {
         if (!enabled(context)) return
+        // With ADB mode the service can be switched on from the notification itself.
+        val switchOn = if (SecureSettingsAccess.canWrite(context)) {
+            Notification.Action.Builder(
+                null,
+                context.getString(R.string.alert_action_switch_on),
+                PendingIntent.getBroadcast(
+                    context,
+                    ID_STOPPED,
+                    Intent(AlertActionReceiver.ACTION_SWITCH_ON).setPackage(context.packageName),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                ),
+            ).build()
+        } else {
+            null
+        }
         post(
             context,
             ID_STOPPED,
             R.string.alert_stopped_title,
             R.string.alert_stopped_body,
             GestureTileService.accessibilityIntent(context),
+            switchOn,
         )
     }
 
@@ -81,7 +98,14 @@ internal object AlertNotifier {
     private fun enabled(context: Context): Boolean =
         SetupStore(context).alertsEnabled && canPost(context)
 
-    private fun post(context: Context, id: Int, title: Int, body: Int, target: Intent) {
+    private fun post(
+        context: Context,
+        id: Int,
+        title: Int,
+        body: Int,
+        target: Intent,
+        action: Notification.Action? = null,
+    ) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         manager.createNotificationChannel(
             NotificationChannel(
@@ -102,6 +126,7 @@ internal object AlertNotifier {
             .setContentText(context.getString(body))
             .setContentIntent(opens)
             .setAutoCancel(true)
+            .apply { action?.let(::addAction) }
             .build()
         runCatching { manager.notify(id, notification) }
     }
