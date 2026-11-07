@@ -39,7 +39,9 @@ private val LightScheme = lightColorScheme(
     onSecondaryContainer = Color(0xFF16305C),
     tertiary = Color(0xFF2C5EA8),
     onTertiary = Color.White,
-    background = Color(0xFFF6F8FB),
+    // Cards (surfaceContainerHighest) are white on a blue-grey ground, so each one reads as
+    // its own object instead of a grey slab on a grey page.
+    background = Color(0xFFEAEFF5),
     onBackground = Color(0xFF10151C),
     surface = Color.White,
     onSurface = Color(0xFF10151C),
@@ -49,7 +51,7 @@ private val LightScheme = lightColorScheme(
     surfaceContainerLow = Color(0xFFF2F5FA),
     surfaceContainer = Color(0xFFECF0F7),
     surfaceContainerHigh = Color(0xFFE6EBF3),
-    surfaceContainerHighest = Color(0xFFE0E6EF),
+    surfaceContainerHighest = Color.White,
     outline = Color(0xFF79808B),
     outlineVariant = Color(0xFFC9D0DA),
 )
@@ -65,7 +67,7 @@ private val DarkScheme = darkColorScheme(
     onSecondaryContainer = Color(0xFFD7E3FA),
     tertiary = Color(0xFF8AB4F8),
     onTertiary = Color(0xFF0B2A57),
-    background = Color(0xFF10151C),
+    background = Color(0xFF0C1117),
     onBackground = Color(0xFFE6EAF0),
     surface = Color(0xFF151B23),
     onSurface = Color(0xFFE6EAF0),
@@ -75,7 +77,7 @@ private val DarkScheme = darkColorScheme(
     surfaceContainerLow = Color(0xFF151B23),
     surfaceContainer = Color(0xFF1A222C),
     surfaceContainerHigh = Color(0xFF232C38),
-    surfaceContainerHighest = Color(0xFF2C3644),
+    surfaceContainerHighest = Color(0xFF1C2530),
     outline = Color(0xFF8A93A0),
     outlineVariant = Color(0xFF3C4654),
 )

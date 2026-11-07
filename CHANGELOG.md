@@ -10,6 +10,8 @@ Versões em português logo abaixo de cada versão.
 
 - New home screen. The app had grown into one long list of cards; it now opens on a search box, the **First steps** checklist and five sections: **Gestures**, **Bar and shortcuts**, **Alerts and app**, **ADB mode** and **Diagnostics and credits**. Each section opens its own screen with a back arrow, and Android's back gesture returns home. Every card is still there and works as before; only where it lives changed.
 - Diagnostics and Credits open already expanded in their own section.
+- Livelier look: white cards on a blue-grey ground (dark cards on a darker ground in the dark theme), card icons in the accent colour, section icons on tinted tiles and a bolder title.
+- The **AnyGest in Recents** and **Keep gestures alive** cards now explain the same thing the same way: swiping AnyGest away in Recents stops the gestures until the app is opened or the shortcut panel is pulled down, and either hiding it from Recents or Keep gestures alive (which protects it even while it shows there) avoids that.
 - Each GitHub release now also carries the APK with its version in the name (`AnyGest-4.0.0.apk`, for example). The plain `anygest.apk` stays, so the README's download link keeps working.
 
 ### Added
@@ -22,6 +24,8 @@ Versões em português logo abaixo de cada versão.
 
 - Nova tela inicial. O app tinha virado uma lista comprida de cards; agora ele abre numa caixa de busca, nos **Primeiros passos** e em cinco seções: **Gestos**, **Barra e atalhos**, **Avisos e app**, **Modo ADB** e **Diagnóstico e créditos**. Cada seção abre a própria tela com uma seta de voltar, e o gesto de voltar do Android retorna ao início. Todos os cards continuam lá e funcionam como antes; só mudou onde cada um mora.
 - Diagnóstico e Créditos já abrem expandidos na seção deles.
+- Visual mais vivo: cards brancos sobre um fundo cinza-azulado (cards escuros sobre um fundo mais escuro no tema escuro), ícones dos cards na cor de destaque, ícones das seções sobre quadrinhos coloridos e um título mais forte.
+- Os cards **AnyGest nos Recentes** e **Manter os gestos vivos** agora explicam a mesma coisa do mesmo jeito: deslizar o AnyGest nos Recentes para os gestos até o app ser aberto ou o painel do atalho ser puxado, e esconder dos Recentes ou ligar Manter os gestos vivos (que protege o app mesmo aparecendo lá) evita isso.
 - Cada release no GitHub agora traz também o APK com a versão no nome (`AnyGest-4.0.0.apk`, por exemplo). O `anygest.apk` de sempre continua, então o link de download do README segue funcionando.
 
 #### Adicionado

@@ -280,7 +280,7 @@
     <string name="recents_card_title">AnyGest in Recents</string>
     <string name="recents_card_shown">Shown</string>
     <string name="recents_card_hidden">Hidden</string>
-    <string name="recents_card_body">Swiping the AnyGest card out of Recents ends the app, and the gestures stop until Android brings it back. If you often clear Recents, hide AnyGest from there: it still opens normally from its icon.</string>
+    <string name="recents_card_body">Swiping the AnyGest card out of Recents ends the app and stops the gestures, and Android does not bring them back by itself: they return when you open the app or pull down the shortcut panel. To avoid it, hide AnyGest from here or turn on Keep gestures alive, just below, which protects the app even while it shows in Recents.</string>
     <string name="recents_action_hide">Hide from Recents</string>
     <string name="recents_action_show">Show in Recents</string>
     <string name="tile_card_readd_hint">If the shortcut is gone from Control Center (after reinstalling the app, for example), tap Add again.</string>
@@ -291,7 +291,7 @@
     <string name="keepalive_card_title">Keep gestures alive</string>
     <string name="keepalive_card_on">On</string>
     <string name="keepalive_card_off">Off</string>
-    <string name="keepalive_card_body">Swiping AnyGest away in Recents ends the app and the gestures with it. With this on, AnyGest keeps a silent notification (lowest importance, no icon in the status bar) and Android leaves it running. In ADB mode it has a Pause button. To hide the notification, use Hide notification: only this one is hidden and the app keeps running. Off by default.</string>
+    <string name="keepalive_card_body">Stops a swipe in Recents from ending AnyGest and its gestures, even while it shows there. Android requires a notification for this: it is silent, has no status bar icon, and in ADB mode has a Pause button. Hide notification removes only that notification, and the app stays protected. Off by default.</string>
     <string name="keepalive_action_on">Turn on</string>
     <string name="keepalive_action_off">Turn off</string>
     <string name="keepalive_channel_name">Keep gestures alive</string>

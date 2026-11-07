@@ -273,7 +273,7 @@
     <string name="recents_card_title">AnyGest nos Recentes</string>
     <string name="recents_card_shown">Aparece</string>
     <string name="recents_card_hidden">Escondido</string>
-    <string name="recents_card_body">Deslizar o card do AnyGest para fora dos Recentes encerra o app, e os gestos param até o Android religá-lo. Se você costuma limpar os Recentes, esconda o AnyGest de lá: ele continua abrindo normalmente pelo ícone.</string>
+    <string name="recents_card_body">Deslizar o card do AnyGest para fora dos Recentes encerra o app e para os gestos, e o Android não os religa sozinho: só voltam ao abrir o app ou puxar o painel do atalho. Para evitar, esconda o AnyGest daqui ou ligue Manter os gestos vivos, logo abaixo, que protege o app mesmo visível nos Recentes.</string>
     <string name="recents_action_hide">Esconder dos Recentes</string>
     <string name="recents_action_show">Mostrar nos Recentes</string>
     <string name="tile_card_readd_hint">Se o atalho sumiu do Centro de controle (depois de reinstalar o app, por exemplo), toque em Adicionar de novo.</string>
@@ -284,7 +284,7 @@
     <string name="keepalive_card_title">Manter os gestos vivos</string>
     <string name="keepalive_card_on">Ligado</string>
     <string name="keepalive_card_off">Desligado</string>
-    <string name="keepalive_card_body">Deslizar o AnyGest nos Recentes encerra o app e os gestos junto. Com isso ligado, o AnyGest mantém uma notificação silenciosa (prioridade mínima, sem ícone na barra de status) e o Android deixa o app rodando. No modo ADB ela tem um botão Pausar. Para escondê-la, use Esconder notificação: só essa some e o app continua rodando. Desligado por padrão.</string>
+    <string name="keepalive_card_body">Impede que deslizar o AnyGest nos Recentes encerre o app e os gestos, mesmo com ele aparecendo lá. Para isso o Android exige uma notificação: ela é silenciosa, sem ícone na barra de status, e no Modo ADB tem um botão Pausar. Esconder notificação some só com ela, e o app continua protegido. Desligado por padrão.</string>
     <string name="keepalive_action_on">Ligar</string>
     <string name="keepalive_action_off">Desligar</string>
     <string name="keepalive_channel_name">Manter os gestos vivos</string>

@@ -32,13 +32,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-/** A card's Material Symbols icon (thin outline), drawn in a quiet colour. Decorative. */
+/** A card's Material Symbols icon (thin outline), drawn in the accent colour. Decorative. */
 @Composable
 internal fun CardIcon(@DrawableRes icon: Int, modifier: Modifier = Modifier) {
     Icon(
         painter = painterResource(icon),
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        tint = MaterialTheme.colorScheme.primary,
         modifier = modifier.size(24.dp),
     )
 }

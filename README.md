@@ -255,7 +255,7 @@ A tela inicial cabe numa tela só: no topo, uma **caixa de busca**; logo abaixo,
 | **Troca de apps** | Liga o deslize lateral na borda inferior. Pede o acesso aos **Dados de uso do app**. |
 | **Circule para pesquisar** | Liga o toque longo na alça e permite usar um tempo manual em vez do do sistema. |
 | **Seus gestos** | Um lembrete do que cada gesto faz. |
-| **AnyGest nos Recentes** | Mostra ou esconde o card do AnyGest na tela de Recentes, para ele não ser encerrado sem querer ao limpar os Recentes. |
+| **AnyGest nos Recentes** | Mostra ou esconde o card do AnyGest na tela de Recentes, para ele não ser encerrado sem querer ao limpar os Recentes. Com **Manter os gestos vivos** ligado, o app fica protegido mesmo aparecendo lá. |
 | **Manter os gestos vivos** | Opcional, desligado por padrão. Faz o AnyGest rodar como serviço em primeiro plano, que a HyperOS não encerra quando você desliza o card nos Recentes. O Android exige uma notificação para isso: ela é silenciosa e sem ícone na barra de status, e no modo ADB tem o botão Pausar / Ligar. Para escondê-la use **Esconder notificação** no card: só ela some e o app continua rodando; desligar *todas* as notificações do AnyGest também funciona, mas apaga junto os avisos de gestos parados. |
 | **Idioma do app** | Automático, Português (Brasil) ou English (Android 13 ou mais novo). |
 | **Configurações dos gestos** | Larguras, distâncias, tempos e vibração (leve, normal ou forte). Também exporta e importa as configurações num arquivo, para guardar ou levar a outro celular. Fica recolhido para um toque sem querer não mexer em nada. |
