@@ -103,6 +103,11 @@ internal class SetupStore(context: Context) {
         set(value) = preferences.edit { putBoolean(KEY_SERVICE_UP, value) }
 
     /** Whether AnyGest's own screen shows up in Recents, where a swipe would end the app. */
+    /** Keeps the gestures alive with a foreground service; off unless the user asks. */
+    var keepAlive: Boolean
+        get() = preferences.getBoolean(KEY_KEEP_ALIVE, false)
+        set(value) = preferences.edit { putBoolean(KEY_KEEP_ALIVE, value) }
+
     var showInRecents: Boolean
         get() = preferences.getBoolean(KEY_SHOW_IN_RECENTS, true)
         set(value) = preferences.edit { putBoolean(KEY_SHOW_IN_RECENTS, value) }
@@ -125,6 +130,7 @@ internal class SetupStore(context: Context) {
         const val KEY_USER_PAUSED = "user_paused"
         const val KEY_SERVICE_UP = "service_up"
         const val KEY_SHOW_IN_RECENTS = "show_in_recents"
+        const val KEY_KEEP_ALIVE = "keep_alive"
         const val KEY_AUTO_HIDE_BAR = "auto_hide_bar"
         const val KEY_AUTO_RESTORE = "auto_restore"
         const val KEY_CONFIRMED = "confirmed_"

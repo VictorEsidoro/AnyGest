@@ -281,4 +281,13 @@
     <string name="alert_action_switch_on">Ligar de novo</string>
     <string name="action_copy_log">Copiar log</string>
     <string name="diag_log_copied">Log copiado</string>
+    <string name="keepalive_card_title">Manter os gestos vivos</string>
+    <string name="keepalive_card_on">Ligado</string>
+    <string name="keepalive_card_off">Desligado</string>
+    <string name="keepalive_card_body">Deslizar o AnyGest nos Recentes encerra o app e os gestos junto. Com isso ligado, o AnyGest mantém uma notificação silenciosa (prioridade mínima, sem ícone na barra de status) e o Android deixa o app rodando. Desligado por padrão.</string>
+    <string name="keepalive_action_on">Ligar</string>
+    <string name="keepalive_action_off">Desligar</string>
+    <string name="keepalive_channel_name">Manter os gestos vivos</string>
+    <string name="keepalive_title">AnyGest</string>
+    <string name="keepalive_body">Gestos ativos</string>
 </resources>

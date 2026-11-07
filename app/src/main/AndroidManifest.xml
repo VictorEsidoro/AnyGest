@@ -110,6 +110,16 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <!-- Optional: keeps the gestures alive when the app is swiped away in Recents. -->
+        <service
+            android:name=".service.KeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps the edge gesture service process alive while gestures are on, at the user's choice" />
+        </service>
+
         <!-- Foreground only while the gestures are paused for an app on the exception list. -->
         <service
             android:name=".service.ExceptionWatchService"

@@ -154,6 +154,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             store.serviceUp = true
         }
         RecoveryJob.schedule(this)
+        KeepAliveService.sync(this, gesturesRunning = true)
         try {
             setUp()
         } catch (t: Throwable) {
@@ -353,6 +354,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
+        KeepAliveService.sync(this, gesturesRunning = false)
         teardown()
         val store = SetupStore(this)
         store.serviceUp = false

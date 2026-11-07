@@ -288,4 +288,13 @@
     <string name="alert_action_switch_on">Switch back on</string>
     <string name="action_copy_log">Copy log</string>
     <string name="diag_log_copied">Log copied</string>
+    <string name="keepalive_card_title">Keep gestures alive</string>
+    <string name="keepalive_card_on">On</string>
+    <string name="keepalive_card_off">Off</string>
+    <string name="keepalive_card_body">Swiping AnyGest away in Recents ends the app and the gestures with it. With this on, AnyGest keeps a silent notification (lowest importance, no icon in the status bar) and Android leaves it running. Off by default.</string>
+    <string name="keepalive_action_on">Turn on</string>
+    <string name="keepalive_action_off">Turn off</string>
+    <string name="keepalive_channel_name">Keep gestures alive</string>
+    <string name="keepalive_title">AnyGest</string>
+    <string name="keepalive_body">Gestures running</string>
 </resources>

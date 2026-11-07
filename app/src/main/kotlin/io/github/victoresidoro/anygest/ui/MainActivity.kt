@@ -102,6 +102,7 @@ import io.github.victoresidoro.anygest.gesture.SettingsLimits
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.service.AlertNotifier
 import io.github.victoresidoro.anygest.service.GesturePower
+import io.github.victoresidoro.anygest.service.KeepAliveService
 import io.github.victoresidoro.anygest.service.RecoveryJob
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.navigation.NavigationMode
@@ -327,6 +328,7 @@ private fun AnyGestScreen(
         LanguageCard()
 
         RecentsCard()
+        KeepAliveCard()
 
         // Both sections stay collapsed by default: an accidental tap while scrolling
         // must not silently change navigation behaviour.
@@ -533,6 +535,28 @@ private fun RecentsCard() {
             shown = !shown
             SetupStore(context).showInRecents = shown
             applyRecentsVisibility(context)
+        },
+    )
+}
+
+@Composable
+private fun KeepAliveCard() {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(SetupStore(context).keepAlive) }
+    InfoCard(
+        title = stringResource(R.string.keepalive_card_title),
+        icon = R.drawable.ic_sym_tune,
+        badge = stringResource(if (on) R.string.keepalive_card_on else R.string.keepalive_card_off),
+        healthy = on,
+        body = stringResource(R.string.keepalive_card_body),
+        hint = null,
+        actionLabel = stringResource(
+            if (on) R.string.keepalive_action_off else R.string.keepalive_action_on,
+        ),
+        onAction = {
+            on = !on
+            SetupStore(context).keepAlive = on
+            KeepAliveService.sync(context, gesturesRunning = AnyGestAccessibilityService.isRunning())
         },
     )
 }
