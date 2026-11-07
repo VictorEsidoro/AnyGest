@@ -228,6 +228,18 @@ To undo all of this, just revoke the permission: `adb shell pm revoke io.github.
 
 ## Getting to know the app
 
+The home screen fits on one screen: a **search box** at the top, then **First steps** (which folds to "All set" when done), then five sections that open the cards below.
+
+| Section | What's inside |
+|---|---|
+| **Gestures** | Your gestures, App switching, Circle to Search, Exception apps and fine tuning |
+| **Bar and shortcuts** | Button bar and the Control Center shortcuts |
+| **Alerts and app** | Alerts, language, AnyGest in Recents and Keep gestures alive |
+| **ADB mode** | The permission command, its switches and the adb shortcuts |
+| **Diagnostics and credits** | The service log, the version and who helped |
+
+> 🔎 **Can't find a feature?** Type it in the search box: it ignores accents, takes several words and knows synonyms (for example "bank" leads to Exception apps). Tapping a result opens the right section and highlights the card.
+
 | Card | What you'll find |
 |---|---|
 | **First steps** | What is left for gestures to work, in order and colour-coded, with a button for each system screen. Folds to "All set" when done. |

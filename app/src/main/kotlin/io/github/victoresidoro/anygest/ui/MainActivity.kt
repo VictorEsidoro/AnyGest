@@ -41,6 +41,8 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -181,192 +183,267 @@ private fun AnyGestScreen(
         SetupStore(context).alertsEnabled = granted
         setupRevision++
     }
-    var settingsExpanded by remember { mutableStateOf(false) }
-    var diagnosticsExpanded by remember { mutableStateOf(false) }
-    var creditsExpanded by remember { mutableStateOf(false) }
+    // 4.0: a home screen (search, checklist, five sections) instead of one long list. The
+    // section on screen survives rotation; the card to glow at does not need to.
+    var openSection by rememberSaveable { mutableStateOf<String?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var focus by remember { mutableStateOf<FocusRequest?>(null) }
+    val section = openSection?.let { name -> Section.entries.firstOrNull { it.name == name } }
+    BackHandler(enabled = section != null) {
+        openSection = null
+        focus = null
+    }
+    BackHandler(enabled = section == null && query.isNotEmpty()) { query = "" }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Header()
+    val adbMode = remember(setupRevision) { SecureSettingsAccess.canWrite(context) }
+    LaunchedEffect(section) {
+        if (section == Section.ABOUT) diagnostics = DiagnosticsCollector.collect(context)
+    }
 
-        SetupCard(
-            states = setupStates,
-            onAction = { step ->
-                when (step) {
-                    // Both live on the app's own info page, in sections HyperOS names itself.
-                    SetupStep.RESTRICTED_SETTINGS, SetupStep.BATTERY -> openAppInfo(context)
-                    SetupStep.ACCESSIBILITY -> context.startFirst(
-                        GestureTileService.accessibilityIntent(context),
-                        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
-                    )
-                    SetupStep.AUTOSTART -> openAutostart(context)
-                    SetupStep.LOCK_RECENTS -> AnyGestAccessibilityService.openRecents()
-                    SetupStep.USAGE_ACCESS ->
-                        context.startFirst(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                    SetupStep.DIGITAL_ASSISTANT -> openAssistantSettings(context)
-                }
-            },
-            onConfirm = { step ->
-                SetupStore(context).confirm(step)
-                setupRevision++
-            },
-            onUndo = { step ->
-                SetupStore(context).unconfirm(step)
-                setupRevision++
-            },
-        )
-
-        // Outside the checklist on purpose: both are choices the user comes back to, and a
-        // folded checklist would hide them.
-        TileCard(
-            added = tileAdded,
-            canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
-            onRequest = {
-                requestTile(
-                    context = context,
-                    component = GestureTileService.component(context),
-                    label = R.string.app_name,
-                    icon = R.drawable.ic_tile,
-                    onAdded = { SetupStore(context).tileAdded = true },
-                    onResult = { setupRevision++ },
+    if (section == null) {
+        val targets = remember(navigationStatus.available) { searchTargets(navigationStatus.available) }
+        val items = rememberSearchItems(targets)
+        val results = remember(query, items) {
+            val ranked = SettingsSearch.rank(query, items.map { it.second })
+            ranked.map { item -> items.first { it.second.id == item.id } }
+        }
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Header()
+            SearchField(query = query, onQuery = { query = it })
+            if (query.isBlank()) {
+                SetupCard(
+                    states = setupStates,
+                    onAction = { step ->
+                        when (step) {
+                            // Both live on the app's own info page, in sections HyperOS names itself.
+                            SetupStep.RESTRICTED_SETTINGS, SetupStep.BATTERY -> openAppInfo(context)
+                            SetupStep.ACCESSIBILITY -> context.startFirst(
+                                GestureTileService.accessibilityIntent(context),
+                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
+                            )
+                            SetupStep.AUTOSTART -> openAutostart(context)
+                            SetupStep.LOCK_RECENTS -> AnyGestAccessibilityService.openRecents()
+                            SetupStep.USAGE_ACCESS ->
+                                context.startFirst(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                            SetupStep.DIGITAL_ASSISTANT -> openAssistantSettings(context)
+                        }
+                    },
+                    onConfirm = { step ->
+                        SetupStore(context).confirm(step)
+                        setupRevision++
+                    },
+                    onUndo = { step ->
+                        SetupStore(context).unconfirm(step)
+                        setupRevision++
+                    },
                 )
-            },
-        )
-
-        if (navigationStatus.available) {
-            NavigationBarCard(
-                hidden = navigationStatus.currentMode == NavigationMode.GESTURAL,
-                canChange = SetupChecklist.canChangeNavigationBar(
-                    accessibilityEnabled = setupFacts.accessibilityEnabled,
-                    navigationGestural = navigationStatus.currentMode == NavigationMode.GESTURAL,
-                ),
-                onOpen = { integration.requestEnable() },
-            )
-
-            // A separate shortcut, not folded into TileCard above: it targets a different
-            // vendor screen and only makes sense once HyperOS is confirmed.
-            NavigationTileCard(
-                added = navigationTileAdded,
-                canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
-                onRequest = {
-                    requestTile(
-                        context = context,
-                        component = NavigationModeTileService.component(context),
-                        label = R.string.tile_navigation_label,
-                        icon = R.drawable.ic_navigation_tile,
-                        onAdded = { SetupStore(context).navigationTileAdded = true },
-                        onResult = { setupRevision++ },
-                    )
-                },
-            )
+                SectionList(onOpen = { openSection = it.name })
+            } else {
+                SearchResults(
+                    query = query,
+                    results = results,
+                    onPick = { target ->
+                        if (target.section == null) {
+                            // The checklist lives on the home screen itself.
+                            query = ""
+                        } else {
+                            focus = FocusRequest(target.anchor)
+                            openSection = target.section.name
+                        }
+                    },
+                )
+            }
         }
+        return
+    }
 
-        AlertsCard(
-            enabled = alertsOn,
-            onToggle = {
-                val store = SetupStore(context)
-                when {
-                    alertsOn -> store.alertsEnabled = false
-                    AlertNotifier.canPost(context) -> store.alertsEnabled = true
-                    else -> notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    SectionScreen(
+        section = section,
+        focus = focus,
+        onBack = {
+            openSection = null
+            focus = null
+        },
+        modifier = modifier,
+    ) {
+        when (section) {
+            Section.GESTURES -> {
+                Anchor("cheatsheet") { GestureCheatSheet() }
+                // Never collapsed: this is the one gesture that needs a permission before it
+                // works, and hiding the toggle behind a tap is how it goes unnoticed.
+                Anchor("appswitch") {
+                    AppSwitchCard(configuration) { update -> scope.launch { settings.update(update) } }
                 }
-                setupRevision++
-            },
-        )
-
-        // ADB mode and the exception list sit together: the list does nothing without the grant.
-        val adbMode = remember(setupRevision) { SecureSettingsAccess.canWrite(context) }
-        AdbModeCard(
-            granted = adbMode,
-            command = SecureSettingsAccess.grantCommand(context),
-            autoHideBar = remember(setupRevision) { SetupStore(context).autoHideBar },
-            autoRestore = remember(setupRevision) { SetupStore(context).autoRestore },
-            onAutoHideBar = {
-                SetupStore(context).autoHideBar = it
-                setupRevision++
-            },
-            onAutoRestore = {
-                SetupStore(context).autoRestore = it
-                setupRevision++
-            },
-        )
-        AdbExtrasCard()
-        PauseAppsCard(
-            enabled = configuration.pauseInAppsEnabled,
-            apps = configuration.pauseApps,
-            adbMode = adbMode,
-            onEnabled = { on ->
-                scope.launch { settings.update { it.copy(pauseInAppsEnabled = on) } }
-            },
-            onAdd = { app ->
-                scope.launch { settings.update { it.copy(pauseApps = it.pauseApps + app) } }
-            },
-            onRemove = { app ->
-                scope.launch { settings.update { it.copy(pauseApps = it.pauseApps - app) } }
-            },
-        )
-
-        // Never collapsed: this is the one gesture that needs a permission before it works,
-        // and hiding the toggle behind a tap is how it goes unnoticed.
-        AppSwitchCard(configuration) { update ->
-            scope.launch { settings.update(update) }
-        }
-
-        // Also never collapsed: it depends on a setting outside this app (the default
-        // assistant), and the card is where that requirement is explained.
-        CircleToSearchCard(configuration) { update ->
-            scope.launch { settings.update(update) }
-        }
-
-        GestureCheatSheet()
-
-        LanguageCard()
-
-        RecentsCard()
-        KeepAliveCard()
-
-        // Both sections stay collapsed by default: an accidental tap while scrolling
-        // must not silently change navigation behaviour.
-        ExpandableCard(
-            title = stringResource(R.string.section_gestures),
-            icon = R.drawable.ic_sym_tune,
-            summary = stringResource(R.string.section_gestures_summary),
-            expanded = settingsExpanded,
-            onToggle = { settingsExpanded = !settingsExpanded },
-        ) {
-            GestureSettings(configuration) { update ->
-                scope.launch { settings.update(update) }
+                // Also never collapsed: it depends on a setting outside this app (the default
+                // assistant), and the card is where that requirement is explained.
+                Anchor("circle") {
+                    CircleToSearchCard(configuration) { update -> scope.launch { settings.update(update) } }
+                }
+                Anchor("pause") {
+                    PauseAppsCard(
+                        enabled = configuration.pauseInAppsEnabled,
+                        apps = configuration.pauseApps,
+                        adbMode = adbMode,
+                        onEnabled = { on ->
+                            scope.launch { settings.update { it.copy(pauseInAppsEnabled = on) } }
+                        },
+                        onAdd = { app ->
+                            scope.launch { settings.update { it.copy(pauseApps = it.pauseApps + app) } }
+                        },
+                        onRemove = { app ->
+                            scope.launch { settings.update { it.copy(pauseApps = it.pauseApps - app) } }
+                        },
+                    )
+                }
+                // Collapsed unless the search asked for it: an accidental tap while scrolling
+                // must not silently change navigation behaviour.
+                var tuningExpanded by remember(focus) { mutableStateOf(focus?.anchor == "tuning") }
+                Anchor("tuning") {
+                    ExpandableCard(
+                        title = stringResource(R.string.section_gestures),
+                        icon = R.drawable.ic_sym_tune,
+                        summary = stringResource(R.string.section_gestures_summary),
+                        expanded = tuningExpanded,
+                        onToggle = { tuningExpanded = !tuningExpanded },
+                    ) {
+                        GestureSettings(configuration) { update ->
+                            scope.launch { settings.update(update) }
+                        }
+                    }
+                }
             }
-        }
 
-        ExpandableCard(
-            title = stringResource(R.string.section_diagnostics),
-            icon = R.drawable.ic_sym_bug_report,
-            summary = stringResource(R.string.section_diagnostics_summary),
-            expanded = diagnosticsExpanded,
-            onToggle = {
-                diagnosticsExpanded = !diagnosticsExpanded
-                if (diagnosticsExpanded) diagnostics = DiagnosticsCollector.collect(context)
-            },
-        ) {
-            DiagnosticsContent(diagnostics) {
-                diagnostics = DiagnosticsCollector.collect(context)
+            Section.BAR -> {
+                if (navigationStatus.available) {
+                    Anchor("navbar") {
+                        NavigationBarCard(
+                            hidden = navigationStatus.currentMode == NavigationMode.GESTURAL,
+                            canChange = SetupChecklist.canChangeNavigationBar(
+                                accessibilityEnabled = setupFacts.accessibilityEnabled,
+                                navigationGestural = navigationStatus.currentMode == NavigationMode.GESTURAL,
+                            ),
+                            onOpen = { integration.requestEnable() },
+                        )
+                    }
+                }
+                Anchor("tile") {
+                    TileCard(
+                        added = tileAdded,
+                        canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
+                        onRequest = {
+                            requestTile(
+                                context = context,
+                                component = GestureTileService.component(context),
+                                label = R.string.app_name,
+                                icon = R.drawable.ic_tile,
+                                onAdded = { SetupStore(context).tileAdded = true },
+                                onResult = { setupRevision++ },
+                            )
+                        },
+                    )
+                }
+                if (navigationStatus.available) {
+                    // A separate shortcut: it targets a different vendor screen and only makes
+                    // sense once HyperOS is confirmed.
+                    Anchor("navtile") {
+                        NavigationTileCard(
+                            added = navigationTileAdded,
+                            canRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
+                            onRequest = {
+                                requestTile(
+                                    context = context,
+                                    component = NavigationModeTileService.component(context),
+                                    label = R.string.tile_navigation_label,
+                                    icon = R.drawable.ic_navigation_tile,
+                                    onAdded = { SetupStore(context).navigationTileAdded = true },
+                                    onResult = { setupRevision++ },
+                                )
+                            },
+                        )
+                    }
+                }
             }
-        }
 
-        ExpandableCard(
-            title = stringResource(R.string.section_credits),
-            icon = R.drawable.ic_sym_favorite,
-            summary = stringResource(R.string.section_credits_summary),
-            expanded = creditsExpanded,
-            onToggle = { creditsExpanded = !creditsExpanded },
-        ) {
-            CreditsContent()
+            Section.APP -> {
+                Anchor("alerts") {
+                    AlertsCard(
+                        enabled = alertsOn,
+                        onToggle = {
+                            val store = SetupStore(context)
+                            when {
+                                alertsOn -> store.alertsEnabled = false
+                                AlertNotifier.canPost(context) -> store.alertsEnabled = true
+                                else -> notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            setupRevision++
+                        },
+                    )
+                }
+                Anchor("language") { LanguageCard() }
+                Anchor("recents") { RecentsCard() }
+                Anchor("keepalive") { KeepAliveCard() }
+            }
+
+            Section.ADB -> {
+                // ADB mode and its extras sit together; the exception list, which needs the
+                // grant too, explains that on its own card under Gestures.
+                Anchor("adb") {
+                    AdbModeCard(
+                        granted = adbMode,
+                        command = SecureSettingsAccess.grantCommand(context),
+                        autoHideBar = remember(setupRevision) { SetupStore(context).autoHideBar },
+                        autoRestore = remember(setupRevision) { SetupStore(context).autoRestore },
+                        onAutoHideBar = {
+                            SetupStore(context).autoHideBar = it
+                            setupRevision++
+                        },
+                        onAutoRestore = {
+                            SetupStore(context).autoRestore = it
+                            setupRevision++
+                        },
+                    )
+                }
+                Anchor("extras") { AdbExtrasCard() }
+            }
+
+            Section.ABOUT -> {
+                // Open by default here: this screen exists to show them.
+                var diagnosticsExpanded by remember { mutableStateOf(true) }
+                var creditsExpanded by remember { mutableStateOf(true) }
+                Anchor("diagnostics") {
+                    ExpandableCard(
+                        title = stringResource(R.string.section_diagnostics),
+                        icon = R.drawable.ic_sym_bug_report,
+                        summary = stringResource(R.string.section_diagnostics_summary),
+                        expanded = diagnosticsExpanded,
+                        onToggle = {
+                            diagnosticsExpanded = !diagnosticsExpanded
+                            if (diagnosticsExpanded) diagnostics = DiagnosticsCollector.collect(context)
+                        },
+                    ) {
+                        DiagnosticsContent(diagnostics) {
+                            diagnostics = DiagnosticsCollector.collect(context)
+                        }
+                    }
+                }
+                Anchor("credits") {
+                    ExpandableCard(
+                        title = stringResource(R.string.section_credits),
+                        icon = R.drawable.ic_sym_favorite,
+                        summary = stringResource(R.string.section_credits_summary),
+                        expanded = creditsExpanded,
+                        onToggle = { creditsExpanded = !creditsExpanded },
+                    ) {
+                        CreditsContent()
+                    }
+                }
+            }
         }
     }
 }

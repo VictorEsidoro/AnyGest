@@ -232,6 +232,18 @@ Para desfazer tudo isso, basta revogar a permissão: `adb shell pm revoke io.git
 
 ## Conhecendo o app
 
+A tela inicial cabe numa tela só: no topo, uma **caixa de busca**; logo abaixo, os **Primeiros passos** (que encolhem para "Tudo pronto" quando acaba); e cinco seções que abrem os cards abaixo.
+
+| Seção | O que tem dentro |
+|---|---|
+| **Gestos** | Seus gestos, Troca de apps, Circule para pesquisar, Apps em exceção e os ajustes finos |
+| **Barra e atalhos** | Barra de botões e os atalhos do Centro de controle |
+| **Avisos e app** | Alertas, idioma, AnyGest nos Recentes e Manter os gestos vivos |
+| **Modo ADB** | O comando de permissão, as chaves e os atalhos por adb |
+| **Diagnóstico e créditos** | O registro do serviço, a versão e quem ajudou |
+
+> 🔎 **Não sabe onde fica uma função?** Digite na busca: ela ignora acentos, aceita várias palavras e entende sinônimos (por exemplo, "nubank" leva a Apps em exceção). Ao tocar num resultado, o app abre a seção certa e destaca o card.
+
 | Card | O que você encontra |
 |---|---|
 | **Primeiros passos** | O que falta para os gestos funcionarem, em ordem e com cores, e um botão para cada tela do sistema. Encolhe para "Tudo pronto" quando acaba. |

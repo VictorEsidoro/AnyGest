@@ -4,6 +4,28 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.0.0
+
+### Changed
+
+- New home screen. The app had grown into one long list of cards; it now opens on a search box, the **First steps** checklist and five sections: **Gestures**, **Bar and shortcuts**, **Alerts and app**, **ADB mode** and **Diagnostics and credits**. Each section opens its own screen with a back arrow, and Android's back gesture returns home. Every card is still there and works as before; only where it lives changed.
+- Diagnostics and Credits open already expanded in their own section.
+
+### Added
+
+- **Search box** on the home screen. It finds any feature by its name, by related words (for example "nubank" leads to Exception apps) or by its section, ignoring accents and case and taking several words. Tapping a result opens the right section, scrolls to the card and makes it glow for a moment; back returns to the results.
+
+### Português
+
+#### Alterado
+
+- Nova tela inicial. O app tinha virado uma lista comprida de cards; agora ele abre numa caixa de busca, nos **Primeiros passos** e em cinco seções: **Gestos**, **Barra e atalhos**, **Avisos e app**, **Modo ADB** e **Diagnóstico e créditos**. Cada seção abre a própria tela com uma seta de voltar, e o gesto de voltar do Android retorna ao início. Todos os cards continuam lá e funcionam como antes; só mudou onde cada um mora.
+- Diagnóstico e Créditos já abrem expandidos na seção deles.
+
+#### Adicionado
+
+- **Caixa de busca** na tela inicial. Ela encontra qualquer função pelo nome, por palavras relacionadas (por exemplo, "nubank" leva a Apps em exceção) ou pela seção, ignorando acentos e maiúsculas e aceitando várias palavras. Ao tocar num resultado, o app abre a seção certa, rola até o card e o destaca por um instante; voltar retorna aos resultados.
+
 ## 3.6.0
 
 ### Added
