@@ -18,6 +18,7 @@
 package io.github.victoresidoro.anygest.service
 
 import android.content.Context
+import android.os.SystemClock
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
@@ -29,6 +30,19 @@ import io.github.victoresidoro.anygest.setup.SetupStore
  * the one-time `pm grant`. Every entry point here is a no-op without it.
  */
 internal object GesturePower {
+
+    /** When this process last asked Android to bind the service; the bind takes a few seconds. */
+    @Volatile
+    private var switchOnAskedAt = Long.MIN_VALUE
+
+    /** True for a few seconds after a switch-on request, while the service is still starting. */
+    fun starting(): Boolean = SystemClock.elapsedRealtime() - switchOnAskedAt < STARTING_MS
+
+    private fun markStarting() {
+        switchOnAskedAt = SystemClock.elapsedRealtime()
+    }
+
+    private const val STARTING_MS = 5_000L
 
     /** Pausing for an app needs the permission and the usage access that shows when it ends. */
     fun pauseAvailable(context: Context): Boolean =
@@ -60,6 +74,7 @@ internal object GesturePower {
         if (store.pausedForApp != null && ExceptionWatchService.running) return
         store.pausedForApp = null
         store.note("restore: switching the service back on")
+        markStarting()
         SecureSettingsAccess.setServiceEnabled(context, true)
     }
 
@@ -68,6 +83,9 @@ internal object GesturePower {
      * the phone cannot be navigated. Returns whether the gestures are now meant to run.
      */
     fun toggleByUser(context: Context): Boolean {
+        // Pulling the panel down may already have started the service, and a tap right after
+        // would read it as "on" and switch it off. Taps during the start do nothing.
+        if (starting()) return true
         val store = SetupStore(context)
         return if (DiagnosticsCollector.isAccessibilityServiceEnabled(context)) {
             store.userPaused = true
@@ -86,6 +104,7 @@ internal object GesturePower {
         store.userPaused = false
         store.pausedForApp = null
         ExceptionWatchService.stop(context)
+        markStarting()
         SecureSettingsAccess.setServiceEnabled(context, true)
     }
 }

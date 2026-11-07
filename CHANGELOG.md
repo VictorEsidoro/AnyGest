@@ -14,7 +14,7 @@ Versões em português logo abaixo de cada versão.
 
 ### Fixed
 
-- After the app was closed from Recents, the Control Center tile could not switch the gestures back on: Android kept AnyGest in the list of enabled services but marked it as stopped, and writing the same list again changed nothing. Switching on now takes AnyGest out of the list and puts it back half a second later, which makes Android bind the service again.
+- After the app was closed from Recents, the Control Center tile could not switch the gestures back on: Android kept AnyGest in the list of enabled services but marked it as stopped, and writing the same list again changed nothing. Switching on now takes AnyGest out of the list and puts it back half a second later, which makes Android bind the service again. While it starts (a few seconds), the tile shows it as on and a tap on it does nothing, so a tap right after pulling the panel down no longer switches it off again.
 
 ### Português
 
@@ -26,7 +26,7 @@ Versões em português logo abaixo de cada versão.
 
 #### Corrigido
 
-- Depois de fechar o app nos Recentes, o atalho do Centro de controle não conseguia religar os gestos: o Android mantinha o AnyGest na lista de serviços ligados, mas marcado como parado, e gravar a mesma lista de novo não mudava nada. Ao ligar, o AnyGest agora sai da lista e volta meio segundo depois, o que faz o Android acionar o serviço de novo.
+- Depois de fechar o app nos Recentes, o atalho do Centro de controle não conseguia religar os gestos: o Android mantinha o AnyGest na lista de serviços ligados, mas marcado como parado, e gravar a mesma lista de novo não mudava nada. Ao ligar, o AnyGest agora sai da lista e volta meio segundo depois, o que faz o Android acionar o serviço de novo. Enquanto ele sobe (alguns segundos), o atalho aparece como ligado e um toque nele não faz nada, então um toque logo depois de puxar o painel não desliga mais de novo.
 
 ## 3.5.1
 

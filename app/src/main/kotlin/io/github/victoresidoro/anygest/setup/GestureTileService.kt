@@ -75,7 +75,9 @@ class GestureTileService : TileService() {
         if (isLocked) unlockAndRun { open(target) } else open(target)
     }
 
-    private fun refresh() = render(DiagnosticsCollector.isAccessibilityServiceEnabled(this))
+    private fun refresh() = render(
+        DiagnosticsCollector.isAccessibilityServiceEnabled(this) || GesturePower.starting(),
+    )
 
     private fun render(running: Boolean) {
         val tile = qsTile ?: return
