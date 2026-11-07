@@ -12,6 +12,10 @@ Versões em português logo abaixo de cada versão.
 - ADB mode: the "gestures stopped" notification (opt-in alerts) has a **Switch back on** button that switches the gestures on directly, with no settings screen.
 - Diagnostics: a **Copy log** button copies the app version and the log to the clipboard, ready to paste.
 
+### Fixed
+
+- After the app was closed from Recents, the Control Center tile could not switch the gestures back on: Android kept AnyGest in the list of enabled services but marked it as stopped, and writing the same list again changed nothing. Switching on now takes AnyGest out of the list and puts it back half a second later, which makes Android bind the service again.
+
 ### Português
 
 #### Adicionado
@@ -19,6 +23,10 @@ Versões em português logo abaixo de cada versão.
 - Modo ADB: o Android agora acorda o AnyGest sempre que a lista de serviços de acessibilidade ligados muda, mesmo com o processo do app morto e sem nenhuma verificação periódica. Com *Religar os gestos sozinho* ligado, o AnyGest faz o mesmo que ao abrir o app: religa os gestos (mostrando antes a barra de botões, se ela tiver ficado escondida), exceto depois do desligamento pelo atalho ou de uma pausa por app em exceção. Antes isso só acontecia ao abrir o app, puxar o painel do atalho ou reiniciar o celular. Para desligar os gestos de propósito, use o atalho do Centro de controle, ou desligue antes essa chave.
 - Modo ADB: a notificação "gestos pararam" (avisos opcionais) ganhou o botão **Ligar de novo**, que religa os gestos direto, sem abrir tela de configurações.
 - Diagnóstico: o botão **Copiar log** copia a versão do app e o registro para a área de transferência, pronto para colar.
+
+#### Corrigido
+
+- Depois de fechar o app nos Recentes, o atalho do Centro de controle não conseguia religar os gestos: o Android mantinha o AnyGest na lista de serviços ligados, mas marcado como parado, e gravar a mesma lista de novo não mudava nada. Ao ligar, o AnyGest agora sai da lista e volta meio segundo depois, o que faz o Android acionar o serviço de novo.
 
 ## 3.5.1
 

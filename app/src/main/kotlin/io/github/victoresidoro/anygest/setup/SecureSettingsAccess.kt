@@ -21,6 +21,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
@@ -85,6 +87,19 @@ internal object SecureSettingsAccess {
         return runCatching {
             val current =
                 Settings.Secure.getString(resolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            if (enabled && EnabledServicesList.contains(current, component)) {
+                // Listed but not running: the process died and Android marked the service
+                // as crashed. Writing the same list changes nothing, so the system never
+                // binds it again. Take it out and put it back after a short gap.
+                Settings.Secure.putString(
+                    resolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                    EnabledServicesList.without(current, component),
+                )
+                val app = context.applicationContext
+                Handler(Looper.getMainLooper()).postDelayed({ putBack(app, component) }, REBIND_GAP_MS)
+                return@runCatching true
+            }
             val updated = if (enabled) {
                 EnabledServicesList.with(current, component)
             } else {
@@ -100,5 +115,21 @@ internal object SecureSettingsAccess {
             }
             true
         }.getOrDefault(false)
+    }
+
+    private const val REBIND_GAP_MS = 500L
+
+    private fun putBack(context: Context, component: String) {
+        runCatching {
+            val resolver = context.contentResolver
+            val current =
+                Settings.Secure.getString(resolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            Settings.Secure.putString(
+                resolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                EnabledServicesList.with(current, component),
+            )
+            Settings.Secure.putInt(resolver, Settings.Secure.ACCESSIBILITY_ENABLED, 1)
+        }
     }
 }
