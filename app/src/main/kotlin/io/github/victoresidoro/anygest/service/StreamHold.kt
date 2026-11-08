@@ -29,7 +29,8 @@ internal class StreamHold(
 ) {
 
     /** Set once a replay runs: it sends the strips no touch events, so it may stay quiet longer. */
-    private var replaying = false
+    var replaying = false
+        private set
 
     private var token = 0L
 

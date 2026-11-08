@@ -336,13 +336,14 @@ internal class EdgeTouchOverlay(
     private fun onStuckCheck() {
         val now = SystemClock.uptimeMillis()
         val quietMs = hold.quietMs(now)
+        val replaying = hold.replaying
         if (!hold.expire(now)) {
             scheduleStuckCheck()
             return
         }
         bellies.values.forEach(BackBellyOverlay::hide)
         drops.values.forEach(EdgeIndicatorOverlay::hide)
-        report("strips were stuck inert, released after ${quietMs}ms without a touch")
+        report("strips were stuck inert, released after ${quietMs}ms without a touch (replay: $replaying)")
         applyInteractivity()
     }
 
