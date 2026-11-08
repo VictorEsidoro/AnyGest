@@ -915,7 +915,7 @@ private fun GestureSettings(
 
     SettingsBackupActions(configuration) { restored -> onUpdate { restored } }
 
-    TextButton(onClick = { onUpdate { GestureConfiguration() } }) {
+    TextButton(onClick = { onUpdate { it.withGestureSettingsOf(GestureConfiguration()) } }) {
         Text(stringResource(R.string.action_reset_defaults))
     }
 }

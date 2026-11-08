@@ -119,6 +119,28 @@ data class GestureConfiguration(
      */
     val platform: PlatformDefaults = PlatformDefaults(),
 ) {
+    /**
+     * Takes from [source] only the values the Gesture settings screen shows, for its reset.
+     * The pause list, app switching, Circle to Search and the rest live on other screens and
+     * are not the reset's to touch.
+     *
+     * Based on HyperGesture commit d55afb4 (#123) by Henrique Almeida (h3nc4).
+     */
+    fun withGestureSettingsOf(source: GestureConfiguration): GestureConfiguration = copy(
+        edgeWidthDp = source.edgeWidthDp,
+        sideLengthPercent = source.sideLengthPercent,
+        sidePosition = source.sidePosition,
+        sideMinimumSwipeDistanceDp = source.sideMinimumSwipeDistanceDp,
+        bottomMinimumSwipeDistanceDp = source.bottomMinimumSwipeDistanceDp,
+        recentsHoldMs = source.recentsHoldMs,
+        maximumArmDurationMs = source.maximumArmDurationMs,
+        leftEdgeBackEnabled = source.leftEdgeBackEnabled,
+        rightEdgeBackEnabled = source.rightEdgeBackEnabled,
+        hapticFeedbackEnabled = source.hapticFeedbackEnabled,
+        hapticStrength = source.hapticStrength,
+        hapticConfirmEnabled = source.hapticConfirmEnabled,
+    )
+
     /** What the long-press timer actually waits for. */
     val effectiveCircleToSearchHoldMs: Long
         get() = if (circleToSearchFollowsSystemTiming) {
