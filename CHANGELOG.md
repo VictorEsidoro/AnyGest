@@ -4,6 +4,22 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.2.0
+
+### Added
+
+- **Side edges length and position** (Gestures section). The two side strips can now be shortened (30 to 100% of the screen height) and sit at the top, middle or bottom of the edge, so back swipes stop clashing with side menus or buttons near the top of apps.
+- **Extra click when the gesture fires** (off by default, under Vibrate). Arming keeps its light tick and firing adds a firmer click, so the two read as two steps. It follows the vibration strength you chose.
+- **Pause 10 min** button on the keep-alive notification (ADB mode). The gestures go off and come back by themselves ten minutes later, handy for a game or a video. Switching on by hand cancels the countdown.
+
+### Português
+
+#### Adicionado
+
+- **Comprimento e posição das bordas laterais** (seção Gestos). As duas bordas laterais agora podem ser encurtadas (de 30 a 100% da altura da tela) e ficar no topo, no meio ou embaixo, para o voltar não brigar com menus laterais ou botões perto do topo dos apps.
+- **Clique extra quando o gesto é executado** (desligado por padrão, em Vibrar). Armar mantém o toque leve e disparar acrescenta um clique mais firme, e os dois se distinguem. Segue a força de vibração escolhida.
+- Botão **Pausar 10 min** na notificação de manter vivo (modo ADB). Os gestos desligam e voltam sozinhos dez minutos depois, bom para jogo ou vídeo. Ligar na mão cancela a contagem.
+
 ## 4.1.1
 
 ### Changed

@@ -20,6 +20,7 @@ package io.github.victoresidoro.anygest.settings
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
+import io.github.victoresidoro.anygest.gesture.SidePosition
 import java.io.StringReader
 import java.io.StringWriter
 import java.util.Properties
@@ -55,6 +56,9 @@ object SettingsBackup {
         properties["right_edge_back_enabled"] = configuration.rightEdgeBackEnabled.toString()
         properties["haptic_feedback_enabled"] = configuration.hapticFeedbackEnabled.toString()
         properties["haptic_strength"] = configuration.hapticStrength.name
+        properties["haptic_confirm_enabled"] = configuration.hapticConfirmEnabled.toString()
+        properties["side_length_percent"] = configuration.sideLengthPercent.toString()
+        properties["side_position"] = configuration.sidePosition.name
         properties["circle_to_search_enabled"] = configuration.circleToSearchEnabled.toString()
         properties["circle_to_search_hold_ms"] = configuration.circleToSearchHoldMs.toString()
         properties["circle_to_search_follows_system_timing"] =
@@ -123,6 +127,13 @@ object SettingsBackup {
         read("haptic_feedback_enabled", boolean) { c, v -> c.copy(hapticFeedbackEnabled = v) }
         read("haptic_strength", { raw -> HapticStrength.entries.firstOrNull { it.name == raw } }) { c, v ->
             c.copy(hapticStrength = v)
+        }
+        read("haptic_confirm_enabled", boolean) { c, v -> c.copy(hapticConfirmEnabled = v) }
+        read("side_length_percent", { raw -> raw.toIntOrNull()?.takeIf { it in SettingsLimits.SIDE_LENGTH_PERCENT } }) { c, v ->
+            c.copy(sideLengthPercent = v)
+        }
+        read("side_position", { raw -> SidePosition.entries.firstOrNull { it.name == raw } }) { c, v ->
+            c.copy(sidePosition = v)
         }
         read("circle_to_search_enabled", boolean) { c, v -> c.copy(circleToSearchEnabled = v) }
         read("circle_to_search_hold_ms", long(SettingsLimits.CIRCLE_TO_SEARCH_HOLD_MS)) { c, v ->

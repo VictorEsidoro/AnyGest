@@ -19,6 +19,7 @@ package io.github.victoresidoro.anygest.settings
 
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
+import io.github.victoresidoro.anygest.gesture.SidePosition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -41,6 +42,9 @@ class SettingsBackupTest {
             rightEdgeBackEnabled = true,
             hapticFeedbackEnabled = false,
             hapticStrength = HapticStrength.Strong,
+            hapticConfirmEnabled = true,
+            sideLengthPercent = 60,
+            sidePosition = SidePosition.Bottom,
             circleToSearchEnabled = true,
             circleToSearchHoldMs = 500L,
             circleToSearchFollowsSystemTiming = false,
@@ -53,6 +57,16 @@ class SettingsBackupTest {
         assertNotNull(decoded)
         assertEquals(original, decoded!!.configuration)
         assertEquals(0, decoded.ignored)
+    }
+
+    @Test
+    fun `an out of range side length is skipped and counted`() {
+        val decoded = SettingsBackup.decode("format=1\nside_length_percent=5\nside_position=Sideways\n")
+
+        assertNotNull(decoded)
+        assertEquals(GestureConfiguration().sideLengthPercent, decoded!!.configuration.sideLengthPercent)
+        assertEquals(GestureConfiguration().sidePosition, decoded.configuration.sidePosition)
+        assertEquals(2, decoded.ignored)
     }
 
     @Test

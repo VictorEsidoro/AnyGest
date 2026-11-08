@@ -52,10 +52,9 @@ internal data class ScreenGeometry(
 }
 
 /**
- * Strips stop short of each edge's full length so the status bar, app bar controls and
+ * The bottom strip stops short of the edge's full length (the side strips' length is a setting) so the status bar, app bar controls and
  * the bottom corners stay natively touchable.
  */
 internal data class OverlayLayout(
-    val sideLengthPercent: Int = 80,
     val bottomLengthPercent: Int = 90,
 )

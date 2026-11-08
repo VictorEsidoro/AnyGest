@@ -101,6 +101,7 @@ import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
+import io.github.victoresidoro.anygest.gesture.SidePosition
 import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.service.AlertNotifier
 import io.github.victoresidoro.anygest.service.GesturePower
@@ -846,6 +847,20 @@ private fun GestureSettings(
     ) { updated -> onUpdate { it.copy(edgeWidthDp = updated) } }
 
     ThresholdSlider(
+        label = stringResource(R.string.label_side_length),
+        value = configuration.sideLengthPercent.toFloat(),
+        range = SettingsLimits.SIDE_LENGTH_PERCENT.first.toFloat()..
+            SettingsLimits.SIDE_LENGTH_PERCENT.last.toFloat(),
+        formatter = { stringResource(R.string.value_percent, it.toInt()) },
+    ) { updated -> onUpdate { it.copy(sideLengthPercent = updated.toInt()) } }
+
+    if (configuration.sideLengthPercent < 100) {
+        SidePositionChoice(selected = configuration.sidePosition) { chosen ->
+            onUpdate { it.copy(sidePosition = chosen) }
+        }
+    }
+
+    ThresholdSlider(
         label = stringResource(R.string.label_side_distance),
         value = configuration.sideMinimumSwipeDistanceDp,
         range = SettingsLimits.SIDE_DISTANCE_DP,
@@ -892,6 +907,10 @@ private fun GestureSettings(
         HapticStrengthChoice(selected = configuration.hapticStrength) { chosen ->
             onUpdate { it.copy(hapticStrength = chosen) }
         }
+        ToggleRow(
+            label = stringResource(R.string.label_haptic_confirm),
+            checked = configuration.hapticConfirmEnabled,
+        ) { updated -> onUpdate { it.copy(hapticConfirmEnabled = updated) } }
     }
 
     SettingsBackupActions(configuration) { restored -> onUpdate { restored } }
@@ -1301,6 +1320,42 @@ internal fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> U
                 .padding(end = 12.dp),
         )
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun SidePositionChoice(selected: SidePosition, onChoose: (SidePosition) -> Unit) {
+    Column {
+        Text(
+            text = stringResource(R.string.label_side_position),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        SidePosition.entries.forEach { option ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = selected == option,
+                        role = Role.RadioButton,
+                        onClick = { onChoose(option) },
+                    )
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(selected = selected == option, onClick = null)
+                Text(
+                    text = stringResource(
+                        when (option) {
+                            SidePosition.Top -> R.string.side_position_top
+                            SidePosition.Center -> R.string.side_position_center
+                            SidePosition.Bottom -> R.string.side_position_bottom
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 12.dp),
+                )
+            }
+        }
     }
 }
 

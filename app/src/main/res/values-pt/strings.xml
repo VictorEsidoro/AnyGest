@@ -74,6 +74,13 @@
     <string name="action_grant_usage_access">Permitir</string>
     <string name="label_last_app_switch_failure">Último problema na troca de apps</string>
     <string name="label_haptics">Vibrar quando um gesto for executado</string>
+    <string name="label_haptic_confirm">Clique extra quando o gesto for executado</string>
+    <string name="label_side_length">Comprimento das bordas laterais</string>
+    <string name="label_side_position">Posição das bordas laterais</string>
+    <string name="side_position_top">Em cima</string>
+    <string name="side_position_center">No meio</string>
+    <string name="side_position_bottom">Embaixo</string>
+    <string name="value_percent">%1$d%%</string>
     <string name="label_haptic_strength">Força da vibração</string>
     <string name="haptic_light">Leve</string>
     <string name="haptic_normal">Normal</string>
@@ -292,6 +299,7 @@
     <string name="keepalive_body_on">Gestos ativos</string>
     <string name="keepalive_body_off">Gestos pausados</string>
     <string name="keepalive_action_pause">Pausar</string>
+    <string name="keepalive_action_pause_timed">Pausar 10 min</string>
     <string name="keepalive_action_resume">Ligar</string>
     <string name="keepalive_action_hide">Esconder notificação</string>
     <!-- 4.0 home screen: sections and search -->
@@ -316,7 +324,7 @@
     <string name="search_kw_appswitch">trocar apps anterior próximo último app troca rápida</string>
     <string name="search_kw_circle">circule para pesquisar circle to search google lens segurar pressionar assistente</string>
     <string name="search_kw_pause">exceção pausa pausar banco app detecta bloqueia nubank fgts</string>
-    <string name="search_kw_tuning">largura distância borda tamanho sensibilidade vibração háptico segurar duração ajustes finos backup restaurar</string>
+    <string name="search_kw_tuning">largura comprimento posição cima baixo clique distância borda tamanho sensibilidade vibração háptico segurar duração ajustes finos backup restaurar</string>
     <string name="search_kw_navbar">barra de navegação botões esconder gestos hyperos</string>
     <string name="search_kw_tile">tile atalho centro de controle configurações rápidas ligar desligar pausar</string>
     <string name="search_kw_navtile">tile atalho navegação botões gestos alternar modo</string>

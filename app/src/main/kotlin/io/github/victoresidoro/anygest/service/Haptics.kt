@@ -35,6 +35,9 @@ internal sealed interface Haptic {
 
     /** [amplitude] is 1..255; phones without amplitude control only honour [durationMs]. */
     data class Buzz(val durationMs: Long, val amplitude: Int) : Haptic
+
+    /** One of the motor's own tuned effects ([VibrationEffect] EFFECT_*), played as is. */
+    data class Effect(val id: Int) : Haptic
 }
 
 /**
@@ -59,10 +62,18 @@ internal object Haptics {
         HapticStrength.Strong -> Haptic.Buzz(durationMs = 60, amplitude = 255)
     }
 
+    /** Played when an armed gesture fires: firmer than [tick], so the two read as two steps. */
+    fun confirm(strength: HapticStrength): Haptic = when (strength) {
+        HapticStrength.Light -> Haptic.Buzz(durationMs = 14, amplitude = 90)
+        HapticStrength.Normal -> Haptic.Effect(VibrationEffect.EFFECT_CLICK)
+        HapticStrength.Strong -> Haptic.Buzz(durationMs = 45, amplitude = 255)
+    }
+
     fun play(view: View, haptic: Haptic) {
         when (haptic) {
             is Haptic.System -> view.performHapticFeedback(haptic.constant)
             is Haptic.Buzz -> buzz(view.context, haptic)
+            is Haptic.Effect -> effect(view.context, haptic)
         }
     }
 
@@ -78,7 +89,21 @@ internal object Haptics {
             if (!vibrator.hasVibrator()) return
             val amplitude =
                 if (vibrator.hasAmplitudeControl()) haptic.amplitude else VibrationEffect.DEFAULT_AMPLITUDE
-            val effect = VibrationEffect.createOneShot(haptic.durationMs, amplitude)
+            vibrate(vibrator, VibrationEffect.createOneShot(haptic.durationMs, amplitude))
+        }
+    }
+
+    private fun effect(context: Context, haptic: Haptic.Effect) {
+        runCatching {
+            val vibrator = context.getSystemService(Vibrator::class.java) ?: return
+            if (!vibrator.hasVibrator()) return
+            vibrate(vibrator, VibrationEffect.createPredefined(haptic.id))
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun vibrate(vibrator: Vibrator, effect: VibrationEffect) {
+        runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 vibrator.vibrate(
                     effect,

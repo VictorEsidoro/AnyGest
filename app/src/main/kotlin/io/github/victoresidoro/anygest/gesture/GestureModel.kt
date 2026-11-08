@@ -54,6 +54,9 @@ sealed interface GestureAction {
 
 enum class ScreenEdge { LEFT, RIGHT, BOTTOM }
 
+/** Where the two side strips sit along the screen edge when they do not span all of it. */
+enum class SidePosition { Top, Center, Bottom }
+
 data class TouchSample(val xPx: Float, val yPx: Float, val timestampMs: Long)
 
 data class GestureConfiguration(
@@ -80,6 +83,14 @@ data class GestureConfiguration(
     val hapticFeedbackEnabled: Boolean = true,
     /** Only read while [hapticFeedbackEnabled] is on. */
     val hapticStrength: HapticStrength = HapticStrength.Normal,
+    /**
+     * Off by default: a second, firmer click when an armed gesture fires, so arming and
+     * firing feel different. Only read while [hapticFeedbackEnabled] is on.
+     */
+    val hapticConfirmEnabled: Boolean = false,
+    /** Share of the screen height the side strips cover; the rest stays free for the app. */
+    val sideLengthPercent: Int = 80,
+    val sidePosition: SidePosition = SidePosition.Center,
     /**
      * Off by default: a still finger on the bottom strip otherwise reaches the app
      * underneath as a long press, and this takes that touch away from it.

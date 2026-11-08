@@ -25,12 +25,15 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
+import io.github.victoresidoro.anygest.gesture.SettingsLimits
+import io.github.victoresidoro.anygest.gesture.SidePosition
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -61,6 +64,9 @@ class GestureSettingsRepository(private val context: Context) {
             preferences[RIGHT_EDGE_BACK] = updated.rightEdgeBackEnabled
             preferences[HAPTIC_FEEDBACK] = updated.hapticFeedbackEnabled
             preferences[HAPTIC_STRENGTH] = updated.hapticStrength.name
+            preferences[HAPTIC_CONFIRM] = updated.hapticConfirmEnabled
+            preferences[SIDE_LENGTH_PERCENT] = updated.sideLengthPercent
+            preferences[SIDE_POSITION] = updated.sidePosition.name
             preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
             preferences[CIRCLE_TO_SEARCH_HOLD_MS] = updated.circleToSearchHoldMs
             preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = updated.circleToSearchFollowsSystemTiming
@@ -89,6 +95,11 @@ class GestureSettingsRepository(private val context: Context) {
             rightEdgeBackEnabled = preferences[RIGHT_EDGE_BACK] ?: defaults.rightEdgeBackEnabled,
             hapticFeedbackEnabled = preferences[HAPTIC_FEEDBACK] ?: defaults.hapticFeedbackEnabled,
             hapticStrength = hapticStrengthOf(preferences[HAPTIC_STRENGTH]) ?: defaults.hapticStrength,
+            hapticConfirmEnabled = preferences[HAPTIC_CONFIRM] ?: defaults.hapticConfirmEnabled,
+            sideLengthPercent = (preferences[SIDE_LENGTH_PERCENT] ?: defaults.sideLengthPercent)
+                .coerceIn(SettingsLimits.SIDE_LENGTH_PERCENT),
+            sidePosition = SidePosition.entries.firstOrNull { it.name == preferences[SIDE_POSITION] }
+                ?: defaults.sidePosition,
             circleToSearchEnabled =
                 preferences[CIRCLE_TO_SEARCH] ?: defaults.circleToSearchEnabled,
             circleToSearchHoldMs =
@@ -143,6 +154,9 @@ class GestureSettingsRepository(private val context: Context) {
         val RIGHT_EDGE_BACK = booleanPreferencesKey("right_edge_back_enabled")
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback_enabled")
         val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
+        val HAPTIC_CONFIRM = booleanPreferencesKey("haptic_confirm_enabled")
+        val SIDE_LENGTH_PERCENT = intPreferencesKey("side_length_percent")
+        val SIDE_POSITION = stringPreferencesKey("side_position")
         val CIRCLE_TO_SEARCH = booleanPreferencesKey("circle_to_search_enabled")
         val CIRCLE_TO_SEARCH_HOLD_MS = longPreferencesKey("circle_to_search_hold_ms")
         val CIRCLE_TO_SEARCH_SYSTEM_TIMING =

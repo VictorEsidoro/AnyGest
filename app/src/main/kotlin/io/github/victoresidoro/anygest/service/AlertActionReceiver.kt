@@ -30,7 +30,16 @@ class AlertActionReceiver : BroadcastReceiver() {
                 GesturePower.switchOn(context)
                 AlertNotifier.gesturesRunning(context)
             }
+            ACTION_PAUSE_TIMED -> {
+                TimedPause.start(context)
+                KeepAliveService.refresh(context)
+            }
+            ACTION_RESUME_TIMED -> {
+                TimedPause.finish(context)
+                KeepAliveService.refresh(context)
+            }
             ACTION_SWITCH_OFF -> {
+                TimedPause.cancel(context)
                 GesturePower.switchOff(context)
                 KeepAliveService.refresh(context)
             }
@@ -39,6 +48,8 @@ class AlertActionReceiver : BroadcastReceiver() {
 
     companion object {
         const val ACTION_SWITCH_ON = "io.github.victoresidoro.anygest.action.SWITCH_ON"
+        const val ACTION_PAUSE_TIMED = "io.github.victoresidoro.anygest.action.PAUSE_TIMED"
+        const val ACTION_RESUME_TIMED = "io.github.victoresidoro.anygest.action.RESUME_TIMED"
         const val ACTION_SWITCH_OFF = "io.github.victoresidoro.anygest.action.SWITCH_OFF"
     }
 }

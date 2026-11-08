@@ -26,6 +26,7 @@ import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.service.GesturePower
 import io.github.victoresidoro.anygest.service.KeepAliveService
 import io.github.victoresidoro.anygest.service.RecoveryJob
+import io.github.victoresidoro.anygest.service.TimedPause
 
 /**
  * Android rebinds the accessibility service on boot by itself, so this exists only for the
@@ -37,6 +38,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
+        TimedPause.settleAfterBoot(context)
         // Only does anything once ADB mode is set up; otherwise Android's own rebind is it.
         GesturePower.restoreIfNeeded(context)
         // Content-triggered jobs do not survive a reboot.

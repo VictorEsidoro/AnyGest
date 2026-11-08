@@ -108,6 +108,7 @@ internal object GesturePower {
         val store = SetupStore(context)
         store.userPaused = false
         store.pausedForApp = null
+        TimedPause.cancel(context)
         ExceptionWatchService.stop(context)
         markStarting()
         SecureSettingsAccess.setServiceEnabled(context, true)

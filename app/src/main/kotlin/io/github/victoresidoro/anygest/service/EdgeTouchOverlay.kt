@@ -35,6 +35,7 @@ import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.GestureTracker
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.ScreenEdge
+import io.github.victoresidoro.anygest.gesture.SidePosition
 import io.github.victoresidoro.anygest.gesture.TouchSample
 import io.github.victoresidoro.anygest.gesture.TrackerAction
 import io.github.victoresidoro.anygest.setup.SetupStore
@@ -142,6 +143,7 @@ internal class EdgeTouchOverlay(
             ),
             hapticsEnabled = configuration.hapticFeedbackEnabled,
             hapticStrength = configuration.hapticStrength,
+            hapticConfirm = configuration.hapticConfirmEnabled,
             belly = bellies[edge],
             onStreamStart = ::onStreamStart,
             onActivity = ::onActivity,
@@ -176,13 +178,13 @@ internal class EdgeTouchOverlay(
         val (widthPx, heightPx, gravity) = when (edge) {
             ScreenEdge.LEFT -> Triple(
                 thicknessPx + geometry.navLeftPx,
-                (geometry.heightPx * layout.sideLengthPercent / 100).coerceAtLeast(1),
-                Gravity.START or Gravity.CENTER_VERTICAL,
+                (geometry.heightPx * configuration.sideLengthPercent / 100).coerceAtLeast(1),
+                Gravity.START or sideVerticalGravity(configuration.sidePosition),
             )
             ScreenEdge.RIGHT -> Triple(
                 thicknessPx + geometry.navRightPx,
-                (geometry.heightPx * layout.sideLengthPercent / 100).coerceAtLeast(1),
-                Gravity.END or Gravity.CENTER_VERTICAL,
+                (geometry.heightPx * configuration.sideLengthPercent / 100).coerceAtLeast(1),
+                Gravity.END or sideVerticalGravity(configuration.sidePosition),
             )
             ScreenEdge.BOTTOM -> Triple(
                 (geometry.widthPx * layout.bottomLengthPercent / 100).coerceAtLeast(1),
@@ -204,6 +206,12 @@ internal class EdgeTouchOverlay(
             // Without this the strip is pushed inside the inset it was just extended across.
             fitInsetsTypes = 0
         }
+    }
+
+    private fun sideVerticalGravity(position: SidePosition): Int = when (position) {
+        SidePosition.Top -> Gravity.TOP
+        SidePosition.Center -> Gravity.CENTER_VERTICAL
+        SidePosition.Bottom -> Gravity.BOTTOM
     }
 
     private fun onStreamStart(): Long {
@@ -292,6 +300,7 @@ internal class EdgeTouchOverlay(
         private val tracker: GestureTracker,
         private val hapticsEnabled: Boolean,
         private val hapticStrength: HapticStrength,
+        private val hapticConfirm: Boolean,
         private val belly: BackBellyOverlay?,
         private val onStreamStart: () -> Long,
         private val onActivity: (Long) -> Unit,
@@ -404,7 +413,9 @@ internal class EdgeTouchOverlay(
                 }
                 is TrackerAction.Fire -> {
                     cancelHold()
+                    val armedWithTick = tickedThisTouch
                     if (action.action == GestureAction.CircleToSearch) longPressTick() else tick()
+                    if (armedWithTick) confirmTick()
                     // action.id, not ::class.simpleName - R8 obfuscates class names.
                     Log.i(TAG, "GESTURE_FIRED $edge ${action.action.id}")
                     onFire(stream, action.action)
@@ -453,7 +464,13 @@ internal class EdgeTouchOverlay(
             return if (edge == ScreenEdge.RIGHT) down.xPx - sample.xPx else sample.xPx - down.xPx
         }
 
-                private fun tick() {
+        /** The firmer click that tells "it fired" from "it armed"; only when the option is on. */
+        private fun confirmTick() {
+            if (!hapticsEnabled || !hapticConfirm) return
+            Haptics.play(this, Haptics.confirm(hapticStrength))
+        }
+
+        private fun tick() {
             if (!hapticsEnabled || tickedThisTouch) return
             tickedThisTouch = true
             Haptics.play(this, Haptics.tick(hapticStrength))

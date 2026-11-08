@@ -72,6 +72,13 @@
     <string name="action_grant_usage_access">Grant</string>
     <string name="label_last_app_switch_failure">Last app switch problem</string>
     <string name="label_haptics">Vibrate when a gesture fires</string>
+    <string name="label_haptic_confirm">Extra click when the gesture fires</string>
+    <string name="label_side_length">Side edges length</string>
+    <string name="label_side_position">Side edges position</string>
+    <string name="side_position_top">Top</string>
+    <string name="side_position_center">Middle</string>
+    <string name="side_position_bottom">Bottom</string>
+    <string name="value_percent">%1$d%%</string>
     <string name="label_haptic_strength">Vibration strength</string>
     <string name="haptic_light">Light</string>
     <string name="haptic_normal">Normal</string>
@@ -299,6 +306,7 @@
     <string name="keepalive_body_on">Gestures running</string>
     <string name="keepalive_body_off">Gestures paused</string>
     <string name="keepalive_action_pause">Pause</string>
+    <string name="keepalive_action_pause_timed">Pause 10 min</string>
     <string name="keepalive_action_resume">Switch on</string>
     <string name="keepalive_action_hide">Hide notification</string>
     <!-- 4.0 home screen: sections and search -->
@@ -323,7 +331,7 @@
     <string name="search_kw_appswitch">switch apps previous next last app quick switch</string>
     <string name="search_kw_circle">circle to search google lens hold press assistant</string>
     <string name="search_kw_pause">exception pause bank banking app detects blocked nubank fgts</string>
-    <string name="search_kw_tuning">width distance edge size sensitivity vibration haptics hold duration fine tuning backup restore</string>
+    <string name="search_kw_tuning">width length position top bottom click distance edge size sensitivity vibration haptics hold duration fine tuning backup restore</string>
     <string name="search_kw_navbar">navigation bar buttons hide gestures hyperos</string>
     <string name="search_kw_tile">tile control center shortcut quick settings switch on off pause</string>
     <string name="search_kw_navtile">tile navigation buttons gestures switch mode</string>

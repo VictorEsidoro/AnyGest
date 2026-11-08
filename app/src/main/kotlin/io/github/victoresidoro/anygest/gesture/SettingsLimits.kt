@@ -23,6 +23,7 @@ package io.github.victoresidoro.anygest.gesture
  */
 object SettingsLimits {
     val EDGE_WIDTH_DP = 8f..64f
+    val SIDE_LENGTH_PERCENT = 30..100
     val SIDE_DISTANCE_DP = 8f..80f
     val BOTTOM_DISTANCE_DP = 4f..60f
     val RECENTS_HOLD_MS = 50L..500L

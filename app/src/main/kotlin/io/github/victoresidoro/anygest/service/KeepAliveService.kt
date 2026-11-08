@@ -147,6 +147,20 @@ class KeepAliveService : Service() {
                     ).build(),
                 )
             }
+            if (up && SecureSettingsAccess.canWrite(context)) {
+                builder.addAction(
+                    Notification.Action.Builder(
+                        null,
+                        context.getString(R.string.keepalive_action_pause_timed),
+                        PendingIntent.getBroadcast(
+                            context,
+                            2,
+                            Intent(AlertActionReceiver.ACTION_PAUSE_TIMED).setPackage(context.packageName),
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                        ),
+                    ).build(),
+                )
+            }
             return builder.build()
         }
     }

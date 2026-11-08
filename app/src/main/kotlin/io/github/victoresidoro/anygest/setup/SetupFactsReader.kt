@@ -103,6 +103,11 @@ internal class SetupStore(context: Context) {
         set(value) = preferences.edit { putBoolean(KEY_SERVICE_UP, value) }
 
     /** Whether AnyGest's own screen shows up in Recents, where a swipe would end the app. */
+    /** When the "pause for 10 minutes" countdown ends (epoch ms); 0 when none runs. */
+    var timedPauseEndsAt: Long
+        get() = preferences.getLong(KEY_TIMED_PAUSE, 0L)
+        set(value) = preferences.edit { putLong(KEY_TIMED_PAUSE, value) }
+
     /** Keeps the gestures alive with a foreground service; off unless the user asks. */
     var keepAlive: Boolean
         get() = preferences.getBoolean(KEY_KEEP_ALIVE, false)
@@ -131,6 +136,7 @@ internal class SetupStore(context: Context) {
         const val KEY_SERVICE_UP = "service_up"
         const val KEY_SHOW_IN_RECENTS = "show_in_recents"
         const val KEY_KEEP_ALIVE = "keep_alive"
+        const val KEY_TIMED_PAUSE = "timed_pause_ends_at"
         const val KEY_AUTO_HIDE_BAR = "auto_hide_bar"
         const val KEY_AUTO_RESTORE = "auto_restore"
         const val KEY_CONFIRMED = "confirmed_"
