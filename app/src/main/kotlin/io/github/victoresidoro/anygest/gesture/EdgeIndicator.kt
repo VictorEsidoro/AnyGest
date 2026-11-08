@@ -21,7 +21,7 @@ import kotlin.math.exp
 import kotlin.math.tanh
 
 /** The shape that follows the finger when a swipe starts at an edge. Purely visual. */
-enum class EdgeAnimation { Off, Lens, Capsule, Bubble, Card }
+enum class EdgeAnimation { Off, Lens, LensArrow, Dot, DotDark }
 
 /** The numbers behind the edge indicator, kept free of Android so they can be tested. */
 object EdgeIndicator {

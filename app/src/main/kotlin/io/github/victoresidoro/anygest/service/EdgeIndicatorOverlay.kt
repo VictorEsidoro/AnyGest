@@ -25,7 +25,9 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
-import android.graphics.RectF
+import android.graphics.LinearGradient
+import android.graphics.RadialGradient
+import android.graphics.Shader
 import android.os.SystemClock
 import android.util.Log
 import android.view.Gravity
@@ -37,7 +39,6 @@ import io.github.victoresidoro.anygest.gesture.ScreenEdge
 import io.github.victoresidoro.anygest.gesture.TrackerAction
 import kotlin.math.abs
 import kotlin.math.ceil
-import kotlin.math.sqrt
 
 /**
  * The shape that rises from an edge under the finger while a swipe is under way: from the
@@ -178,13 +179,17 @@ internal class EdgeIndicatorOverlay(
 
         private val frame = Matrix()
         private val body = Path()
-        private val box = RectF()
         private val iconPath = Path()
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(12, 13, 16) }
         private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = density
             color = Color.argb(70, 255, 255, 255)
+        }
+        private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val dotRim = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = density * 0.8f
         }
         private val icon = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -266,8 +271,12 @@ internal class EdgeIndicatorOverlay(
             canvas.save()
             canvas.concat(frame)
             val a = along
-            val centreY = drawBody(canvas, a, r)
-            if (r > ICON_MIN_RISE_DP * density) drawIcon(canvas, a, centreY)
+            if (style == EdgeAnimation.Dot || style == EdgeAnimation.DotDark) {
+                drawDot(canvas, a, r)
+            } else {
+                val centreY = drawBody(canvas, a, r)
+                if (r > ICON_MIN_RISE_DP * density) drawIcon(canvas, a, centreY)
+            }
             canvas.restore()
         }
 
@@ -285,7 +294,7 @@ internal class EdgeIndicatorOverlay(
             body.rewind()
             val d = density
             return when (style) {
-                EdgeAnimation.Lens -> {
+                EdgeAnimation.Lens, EdgeAnimation.LensArrow -> {
                     val hw = LENS_HALF_WIDTH_DP * d
                     body.moveTo(a - hw, 0f)
                     body.cubicTo(a - hw * 0.35f, 0f, a - hw * 0.42f, r, a, r)
@@ -294,36 +303,54 @@ internal class EdgeIndicatorOverlay(
                     paint(canvas)
                     r * 0.5f
                 }
-                EdgeAnimation.Capsule -> {
-                    val hw = CAPSULE_HALF_WIDTH_DP * d
-                    val radius = CAPSULE_RADIUS_DP * d
-                    box.set(a - hw, -CAPSULE_TAIL_DP * d, a + hw, r)
-                    body.addRoundRect(box, radius, radius, Path.Direction.CW)
-                    paint(canvas)
-                    r - maxOf(radius, ICON_MIN_RISE_DP * d)
-                }
-                EdgeAnimation.Bubble -> {
-                    val radius = BUBBLE_RADIUS_DP * d
-                    // A little taller than wide while it is still coming out of the edge.
-                    val stretch = 1f + 0.18f * (1f - minOf(1f, r / (BUBBLE_STRETCH_END_DP * d)))
-                    val cy = r - radius * stretch
-                    val halfWidth = radius / sqrt(stretch)
-                    box.set(a - halfWidth, cy - radius * stretch, a + halfWidth, cy + radius * stretch)
-                    body.addOval(box, Path.Direction.CW)
-                    paint(canvas)
-                    cy
-                }
-                EdgeAnimation.Card -> {
-                    val hw = CARD_HALF_SIDE_DP * d
-                    val radius = CARD_RADIUS_DP * d
-                    box.set(a - hw, r - CARD_SIDE_DP * d - CARD_TAIL_DP * d, a + hw, r)
-                    body.addRoundRect(box, radius, radius, Path.Direction.CW)
-                    paint(canvas)
-                    r - hw
-                }
-                EdgeAnimation.Off -> r
+                EdgeAnimation.Off, EdgeAnimation.Dot, EdgeAnimation.DotDark -> r
             }
         }
+
+        /**
+         * A small filled dot hugging the edge: it lifts only a few dp however far the finger
+         * goes, and its halo opens and the dot grows a little as the finger nears the point
+         * where the gesture fires. [EdgeAnimation.Dot] is light, for dark content; the other
+         * is dark, for light content. Both stay neutral, with a faint pearl sheen.
+         */
+        private fun drawDot(canvas: Canvas, a: Float, r: Float) {
+            val d = density
+            val visible = iconAlpha.coerceIn(0f, 1f)
+            if (visible <= 0.01f) return
+            val light = style == EdgeAnimation.Dot
+            val armed = ((r / d - DOT_ARM_FROM_DP) / DOT_ARM_SPAN_DP).coerceIn(0f, 1f)
+            val toward = EdgeIndicator.riseDp(r / d) / EdgeIndicator.MAX_RISE_DP
+            val cy = (DOT_BASE_DP + DOT_LIFT_DP * toward) * d
+            val radius = DOT_RADIUS_DP * d * (1f + 0.35f * armed)
+            val halo = radius * (2.6f + 1.2f * armed)
+            val glow = if (light) Color.WHITE else Color.BLACK
+            val glowAlpha = ((if (light) 115 else 90) * visible).toInt()
+            dotPaint.shader = RadialGradient(
+                a, cy, halo,
+                intArrayOf(withAlpha(glow, glowAlpha), withAlpha(glow, 0)),
+                floatArrayOf(radius / halo, 1f),
+                Shader.TileMode.CLAMP,
+            )
+            canvas.drawCircle(a, cy, halo, dotPaint)
+            dotPaint.shader = LinearGradient(
+                a - radius, cy - radius, a + radius, cy + radius,
+                if (light) {
+                    intArrayOf(Color.rgb(238, 243, 250), Color.WHITE, Color.rgb(250, 242, 246))
+                } else {
+                    intArrayOf(Color.rgb(34, 38, 46), Color.rgb(12, 13, 16), Color.rgb(40, 34, 38))
+                },
+                null,
+                Shader.TileMode.CLAMP,
+            )
+            dotPaint.alpha = (visible * 255).toInt()
+            canvas.drawCircle(a, cy, radius, dotPaint)
+            dotRim.color = if (light) Color.argb(60, 12, 13, 16) else Color.argb(70, 255, 255, 255)
+            dotRim.alpha = (dotRim.alpha * visible).toInt()
+            canvas.drawCircle(a, cy, radius, dotRim)
+        }
+
+        private fun withAlpha(color: Int, alpha: Int): Int = Color.argb(alpha.coerceIn(0, 255),
+            Color.red(color), Color.green(color), Color.blue(color))
 
         private fun paint(canvas: Canvas) {
             canvas.drawPath(body, fill)
@@ -335,7 +362,18 @@ internal class EdgeIndicatorOverlay(
             icon.alpha = (iconAlpha.coerceIn(0f, 1f) * 255).toInt()
             if (icon.alpha == 0) return
             iconPath.rewind()
-            if (edge != ScreenEdge.BOTTOM) {
+            if (style == EdgeAnimation.LensArrow) {
+                // The arrow of the logo: shaft and head, pointing away from the edge at the
+                // bottom and back toward it on the sides.
+                val tipY = if (edge == ScreenEdge.BOTTOM) cy + radius else cy - radius
+                val tailY = if (edge == ScreenEdge.BOTTOM) cy - radius else cy + radius
+                val back = if (edge == ScreenEdge.BOTTOM) -1f else 1f
+                iconPath.moveTo(cx, tailY)
+                iconPath.lineTo(cx, tipY)
+                iconPath.moveTo(cx - radius * 0.62f, tipY + back * radius * 0.62f)
+                iconPath.lineTo(cx, tipY)
+                iconPath.lineTo(cx + radius * 0.62f, tipY + back * radius * 0.62f)
+            } else if (edge != ScreenEdge.BOTTOM) {
                 // A chevron pointing toward the edge it came from: Back.
                 iconPath.moveTo(cx - radius * 0.7f, cy + radius * 0.35f)
                 iconPath.lineTo(cx, cy - radius * 0.35f)
@@ -363,15 +401,11 @@ internal class EdgeIndicatorOverlay(
             const val ICON_RADIUS_DP = 9f
             const val ICON_STROKE_DP = 1.8f
             const val LENS_HALF_WIDTH_DP = 52f
-            const val CAPSULE_HALF_WIDTH_DP = 38f
-            const val CAPSULE_RADIUS_DP = 26f
-            const val CAPSULE_TAIL_DP = 30f
-            const val BUBBLE_RADIUS_DP = 24f
-            const val BUBBLE_STRETCH_END_DP = 56f
-            const val CARD_HALF_SIDE_DP = 26f
-            const val CARD_SIDE_DP = 52f
-            const val CARD_RADIUS_DP = 18f
-            const val CARD_TAIL_DP = 30f
+            const val DOT_BASE_DP = 5f
+            const val DOT_LIFT_DP = 8f
+            const val DOT_RADIUS_DP = 4.2f
+            const val DOT_ARM_FROM_DP = 36f
+            const val DOT_ARM_SPAN_DP = 12f
         }
     }
 

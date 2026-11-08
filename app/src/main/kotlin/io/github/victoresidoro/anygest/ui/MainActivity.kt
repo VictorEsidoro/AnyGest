@@ -1359,9 +1359,9 @@ private fun EdgeAnimationChoice(selected: EdgeAnimation, onChoose: (EdgeAnimatio
                         when (option) {
                             EdgeAnimation.Off -> R.string.edge_animation_off
                             EdgeAnimation.Lens -> R.string.edge_animation_lens
-                            EdgeAnimation.Capsule -> R.string.edge_animation_capsule
-                            EdgeAnimation.Bubble -> R.string.edge_animation_bubble
-                            EdgeAnimation.Card -> R.string.edge_animation_card
+                            EdgeAnimation.LensArrow -> R.string.edge_animation_lens_arrow
+                            EdgeAnimation.Dot -> R.string.edge_animation_dot
+                            EdgeAnimation.DotDark -> R.string.edge_animation_dot_dark
                         },
                     ),
                     style = MaterialTheme.typography.bodyMedium,

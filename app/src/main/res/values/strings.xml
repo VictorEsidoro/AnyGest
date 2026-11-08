@@ -75,9 +75,9 @@
     <string name="label_edge_animation">Animation on the edges</string>
     <string name="edge_animation_off">Off</string>
     <string name="edge_animation_lens">Lens</string>
-    <string name="edge_animation_capsule">Capsule</string>
-    <string name="edge_animation_bubble">Bubble</string>
-    <string name="edge_animation_card">Card</string>
+    <string name="edge_animation_lens_arrow">Lens with arrow</string>
+    <string name="edge_animation_dot">Light dot</string>
+    <string name="edge_animation_dot_dark">Dark dot</string>
     <string name="label_landscape_confirm">Swipe up twice to leave a landscape app</string>
     <string name="label_haptic_confirm">Extra click when the gesture fires</string>
     <string name="label_side_length">Side edges length</string>
@@ -338,7 +338,7 @@
     <string name="search_kw_appswitch">switch apps previous next last app quick switch</string>
     <string name="search_kw_circle">circle to search google lens hold press assistant</string>
     <string name="search_kw_pause">exception pause bank banking app detects blocked nubank fgts</string>
-    <string name="search_kw_tuning">edge animation lens capsule bubble card width length position top bottom click distance edge size sensitivity vibration haptics hold duration fine tuning backup restore</string>
+    <string name="search_kw_tuning">edge animation lens arrow dot light dark width length position top bottom click distance edge size sensitivity vibration haptics hold duration fine tuning backup restore</string>
     <string name="search_kw_navbar">navigation bar buttons hide gestures hyperos</string>
     <string name="search_kw_tile">tile control center shortcut quick settings switch on off pause</string>
     <string name="search_kw_navtile">tile navigation buttons gestures switch mode</string>

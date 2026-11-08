@@ -8,13 +8,13 @@ Versões em português logo abaixo de cada versão.
 
 ### Added
 
-- **Animation on the edges** (Gesture settings, off by default). When you start a swipe from an edge, a shape rises from it under your finger, follows you along the edge and sinks back when you let go. From the bottom it carries a Home icon, from the sides the Back arrow. Pick the shape: **Lens** (a smooth bump in the edge), **Capsule**, **Bubble** or **Card**. With one on, it replaces the plain back indicator on the sides. It is only drawn while a swipe is under way, never takes touches, and leaves the screen before any touch is passed on to the app.
+- **Animation on the edges** (Gesture settings, off by default). When you start a swipe from an edge, a shape rises from it under your finger, follows you along the edge and sinks back when you let go. From the bottom it carries a Home icon, from the sides the Back arrow. Pick the style: **Lens** (a smooth bump in the edge), **Lens with arrow** (the arrow from the logo instead of the icon: up from the bottom, back toward the edge on the sides), or a small **light dot** / **dark dot** that hugs the edge, follows your finger and opens up a little when the gesture is about to fire. With one on, it replaces the plain back indicator on the sides. It is only drawn while a swipe is under way, never takes touches, and leaves the screen before any touch is passed on to the app.
 
 ### Português
 
 #### Adicionado
 
-- **Animação nas bordas** (ajustes dos gestos, desligada por padrão). Ao começar um deslize por uma borda, uma forma sobe dela por baixo do seu dedo, acompanha você ao longo da borda e volta para dentro quando você solta. Embaixo ela leva o ícone de Início, nas laterais a seta de Voltar. Escolha a forma: **Lente** (uma curva suave na borda), **Cápsula**, **Bolha** ou **Cartão**. Ligada, ela substitui o indicador simples de voltar das laterais. Só é desenhada enquanto o deslize acontece, não recebe toques e sai da tela antes de qualquer toque ser repassado ao app.
+- **Animação nas bordas** (ajustes dos gestos, desligada por padrão). Ao começar um deslize por uma borda, uma forma sobe dela por baixo do seu dedo, acompanha você ao longo da borda e volta para dentro quando você solta. Embaixo ela leva o ícone de Início, nas laterais a seta de Voltar. Escolha o estilo: **Lente** (uma curva suave na borda), **Lente com seta** (a seta do logo no lugar do ícone: para cima embaixo, de volta para a borda nas laterais) ou um pequeno **ponto claro** / **ponto escuro** que fica colado na borda, acompanha o dedo e se abre um pouco quando o gesto está para disparar. Ligada, ela substitui o indicador simples de voltar das laterais. Só é desenhada enquanto o deslize acontece, não recebe toques e sai da tela antes de qualquer toque ser repassado ao app.
 
 ## 4.3.0
 
