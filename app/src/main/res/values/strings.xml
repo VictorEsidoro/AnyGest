@@ -72,6 +72,7 @@
     <string name="action_grant_usage_access">Grant</string>
     <string name="label_last_app_switch_failure">Last app switch problem</string>
     <string name="label_haptics">Vibrate when a gesture fires</string>
+    <string name="label_landscape_confirm">Swipe up twice to leave a landscape app</string>
     <string name="label_haptic_confirm">Extra click when the gesture fires</string>
     <string name="label_side_length">Side edges length</string>
     <string name="label_side_position">Side edges position</string>

@@ -74,6 +74,7 @@
     <string name="action_grant_usage_access">Permitir</string>
     <string name="label_last_app_switch_failure">Último problema na troca de apps</string>
     <string name="label_haptics">Vibrar quando um gesto for executado</string>
+    <string name="label_landscape_confirm">Deslizar duas vezes para sair de um app deitado</string>
     <string name="label_haptic_confirm">Clique extra quando o gesto for executado</string>
     <string name="label_side_length">Comprimento das bordas laterais</string>
     <string name="label_side_position">Posição das bordas laterais</string>

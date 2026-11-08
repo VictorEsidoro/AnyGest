@@ -889,6 +889,11 @@ private fun GestureSettings(
     ) { updated -> onUpdate { it.copy(maximumArmDurationMs = updated.toLong()) } }
 
     ToggleRow(
+        label = stringResource(R.string.label_landscape_confirm),
+        checked = configuration.landscapeConfirmEnabled,
+    ) { updated -> onUpdate { it.copy(landscapeConfirmEnabled = updated) } }
+
+    ToggleRow(
         label = stringResource(R.string.label_left_edge_back),
         checked = configuration.leftEdgeBackEnabled,
     ) { updated -> onUpdate { it.copy(leftEdgeBackEnabled = updated) } }

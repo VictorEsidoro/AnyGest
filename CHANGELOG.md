@@ -4,6 +4,26 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.3.0
+
+### Added
+
+- **Swipe up twice to leave a landscape app** (Gesture settings, on by default). With the phone on its side, the first bottom swipe (Home, Recents, previous or next app) only shows a small pill, and a second swipe within 2 seconds goes ahead, as HyperOS does in games. It stops an accidental swipe from throwing you out of a game or a video. Turn it off in Gesture settings to go back to the old behaviour. Based on HyperGesture by Henrique Almeida (h3nc4).
+
+### Fixed
+
+- **Restore defaults** in Gesture settings also wiped things that live on other screens: the exception app list, app switching and Circle to Search. It now restores only the values that screen shows. Based on HyperGesture by Henrique Almeida (h3nc4).
+
+### Português
+
+#### Adicionado
+
+- **Deslizar duas vezes para sair de um app deitado** (ajustes dos gestos, ligado por padrão). Com o celular deitado, o primeiro deslize da borda de baixo (Início, Recentes, app anterior ou seguinte) só mostra uma pílula pequena, e um segundo deslize em até 2 segundos executa, como a HyperOS faz em jogos. Evita que um deslize sem querer tire você de um jogo ou vídeo. Desligue nos ajustes dos gestos para voltar ao comportamento antigo. Baseado no HyperGesture, de Henrique Almeida (h3nc4).
+
+#### Corrigido
+
+- **Restaurar padrões** nos ajustes dos gestos também apagava coisas de outras telas: a lista de apps de exceção, a troca de apps e o Circle to Search. Agora restaura só os valores daquela tela. Baseado no HyperGesture, de Henrique Almeida (h3nc4).
+
 ## 4.2.0
 
 ### Added

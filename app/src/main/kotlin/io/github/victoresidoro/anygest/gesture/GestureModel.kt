@@ -89,6 +89,8 @@ data class GestureConfiguration(
      */
     val hapticConfirmEnabled: Boolean = false,
     /** Share of the screen height the side strips cover; the rest stays free for the app. */
+    /** On by default, as HyperOS asks for a second bottom swipe in a landscape app. */
+    val landscapeConfirmEnabled: Boolean = true,
     val sideLengthPercent: Int = 80,
     val sidePosition: SidePosition = SidePosition.Center,
     /**
@@ -128,6 +130,7 @@ data class GestureConfiguration(
      */
     fun withGestureSettingsOf(source: GestureConfiguration): GestureConfiguration = copy(
         edgeWidthDp = source.edgeWidthDp,
+        landscapeConfirmEnabled = source.landscapeConfirmEnabled,
         sideLengthPercent = source.sideLengthPercent,
         sidePosition = source.sidePosition,
         sideMinimumSwipeDistanceDp = source.sideMinimumSwipeDistanceDp,

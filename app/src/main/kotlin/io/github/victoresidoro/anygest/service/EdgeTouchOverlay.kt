@@ -30,10 +30,12 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import io.github.victoresidoro.anygest.gesture.ConfirmVerdict
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.GestureTracker
 import io.github.victoresidoro.anygest.gesture.HapticStrength
+import io.github.victoresidoro.anygest.gesture.LandscapeConfirm
 import io.github.victoresidoro.anygest.gesture.ScreenEdge
 import io.github.victoresidoro.anygest.gesture.SidePosition
 import io.github.victoresidoro.anygest.gesture.TouchSample
@@ -80,8 +82,22 @@ internal class EdgeTouchOverlay(
 
     private val stuckCheck = Runnable(::onStuckCheck)
 
+    // Owned here rather than by a strip, so a pending pill is kept across a reinstall.
+    private val confirmation = LandscapeConfirm()
+
+    private var pill: ConfirmPillOverlay? = null
+
+    private var pillVisible = false
+
+    private val pillExpiry = Runnable(::onPillTimeout)
+
     fun install(configuration: GestureConfiguration, geometry: ScreenGeometry) {
         remove()
+        confirmation.configure(configuration.landscapeConfirmEnabled, geometry.landscape)
+        if (configuration.landscapeConfirmEnabled && geometry.landscape) {
+            pill = ConfirmPillOverlay(context, windowManager, geometry).also { it.install() }
+        }
+        syncPill()
 
         val edges = buildList {
             if (configuration.leftEdgeBackEnabled) add(ScreenEdge.LEFT)
@@ -102,6 +118,10 @@ internal class EdgeTouchOverlay(
 
     fun remove() {
         handler.removeCallbacks(stuckCheck)
+        handler.removeCallbacks(pillExpiry)
+        pill?.remove()
+        pill = null
+        pillVisible = false
         strips.values.forEach { view ->
             runCatching { windowManager.removeView(view) }
         }
@@ -145,11 +165,12 @@ internal class EdgeTouchOverlay(
             hapticStrength = configuration.hapticStrength,
             hapticConfirm = configuration.hapticConfirmEnabled,
             belly = bellies[edge],
-            onStreamStart = ::onStreamStart,
+            onStreamStart = { onStreamStart(edge) },
             onActivity = ::onActivity,
+            admit = { action -> admit(action, edge) },
             onFire = { stream, action -> if (hold.isCurrent(stream)) onFire(action, edge) },
-            onUnused = ::onUnused,
-            onStreamEnd = { stream -> releaseStream(stream) },
+            onUnused = { stream, samples -> onUnused(edge, stream, samples) },
+            onStreamEnd = { stream -> endStream(edge, stream) },
         )
         val params = paramsFor(edge, configuration, geometry)
         runCatching {
@@ -214,8 +235,10 @@ internal class EdgeTouchOverlay(
         SidePosition.Bottom -> Gravity.BOTTOM
     }
 
-    private fun onStreamStart(): Long {
+    private fun onStreamStart(edge: ScreenEdge): Long {
         bellies.values.forEach(BackBellyOverlay::hide)
+        confirmation.onDown(edge, SystemClock.uptimeMillis())
+        syncPill()
         val stream = hold.start(SystemClock.uptimeMillis())
         applyInteractivity()
         scheduleStuckCheck()
@@ -234,8 +257,47 @@ internal class EdgeTouchOverlay(
         onGestureAction(action, edge)
     }
 
-    private fun onUnused(stream: Long, samples: List<TouchSample>) {
+    /** False when the gesture is held back behind the pill instead. */
+    private fun admit(action: GestureAction, edge: ScreenEdge): Boolean {
+        val verdict = confirmation.onFire(action, edge, SystemClock.uptimeMillis())
+        syncPill()
+        if (verdict is ConfirmVerdict.ShowPill) Log.i(TAG, "GESTURE_CONFIRM_SHOWN $edge ${action.id}")
+        return verdict is ConfirmVerdict.Perform
+    }
+
+    private fun endStream(edge: ScreenEdge, stream: Long) {
+        confirmation.onStreamEnd(edge, SystemClock.uptimeMillis())
+        syncPill()
+        releaseStream(stream)
+    }
+
+    private fun onPillTimeout() {
+        confirmation.expire(SystemClock.uptimeMillis())
+        if (!confirmation.pillShown) Log.i(TAG, "GESTURE_CONFIRM_EXPIRED")
+        syncPill()
+    }
+
+    // Brings the pill window and its expiry timer in line with the model.
+    private fun syncPill(immediate: Boolean = false) {
+        val expiresAt = confirmation.expiresAtMs
+        val overlay = pill
+        if (expiresAt != null && overlay != null) {
+            if (!pillVisible) overlay.show()
+            pillVisible = true
+            handler.removeCallbacks(pillExpiry)
+            handler.postAtTime(pillExpiry, expiresAt)
+            return
+        }
+        handler.removeCallbacks(pillExpiry)
+        if (!pillVisible) return
+        pillVisible = false
+        if (immediate) overlay?.hide() else overlay?.fadeOut()
+    }
+
+    private fun onUnused(edge: ScreenEdge, stream: Long, samples: List<TouchSample>) {
         if (!hold.isCurrent(stream)) return
+        confirmation.onReplayed(edge)
+        syncPill(immediate = true)
         if (!hold.mayReplay(stream)) {
             releaseStream(stream)
             return
@@ -304,6 +366,7 @@ internal class EdgeTouchOverlay(
         private val belly: BackBellyOverlay?,
         private val onStreamStart: () -> Long,
         private val onActivity: (Long) -> Unit,
+        private val admit: (GestureAction) -> Boolean,
         private val onFire: (Long, GestureAction) -> Unit,
         private val onUnused: (Long, List<TouchSample>) -> Unit,
         private val onStreamEnd: (Long) -> Unit,
@@ -413,6 +476,12 @@ internal class EdgeTouchOverlay(
                 }
                 is TrackerAction.Fire -> {
                     cancelHold()
+                    // Held back behind the landscape pill: nothing fires, and the buzz is a
+                    // lighter one, since nothing happened yet.
+                    if (!admit(action.action)) {
+                        if (hapticsEnabled) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                        return false
+                    }
                     val armedWithTick = tickedThisTouch
                     if (action.action == GestureAction.CircleToSearch) longPressTick() else tick()
                     if (armedWithTick) confirmTick()
