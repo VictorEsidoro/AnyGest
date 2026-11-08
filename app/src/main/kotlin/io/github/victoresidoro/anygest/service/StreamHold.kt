@@ -23,7 +23,13 @@ package io.github.victoresidoro.anygest.service
  *
  * Based on HyperGesture commit 209e504 (#124) by Henrique Almeida (h3nc4).
  */
-internal class StreamHold(private val quietLimitMs: Long) {
+internal class StreamHold(
+    private val quietLimitMs: Long,
+    private val replayLimitMs: Long = quietLimitMs,
+) {
+
+    /** Set once a replay runs: it sends the strips no touch events, so it may stay quiet longer. */
+    private var replaying = false
 
     private var token = 0L
 
@@ -36,15 +42,19 @@ internal class StreamHold(private val quietLimitMs: Long) {
 
     /** When [expire] would release the stream, or null while nothing is held. */
     val deadlineMs: Long?
-        get() = if (held) lastActivityMs + quietLimitMs else null
+        get() = if (held) lastActivityMs + (if (replaying) replayLimitMs else quietLimitMs) else null
 
     fun start(nowMs: Long): Long {
         token++
         held = true
         reheld = false
+        replaying = false
         lastActivityMs = nowMs
         return token
     }
+
+    /** How long the held stream has gone without a touch event. */
+    fun quietMs(nowMs: Long): Long = nowMs - lastActivityMs
 
     fun isCurrent(streamToken: Long): Boolean = streamToken == token
 
@@ -66,7 +76,9 @@ internal class StreamHold(private val quietLimitMs: Long) {
 
     /** A replay keeps the stream alive without touch events; it counts as activity. */
     fun touch(streamToken: Long, nowMs: Long) {
-        if (isCurrent(streamToken) && held) lastActivityMs = nowMs
+        if (!isCurrent(streamToken) || !held) return
+        replaying = true
+        lastActivityMs = nowMs
     }
 
     fun release(streamToken: Long): Boolean {

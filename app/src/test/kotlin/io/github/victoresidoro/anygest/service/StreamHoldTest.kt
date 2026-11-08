@@ -73,4 +73,15 @@ class StreamHoldTest {
         assertFalse(hold.isCurrent(stream))
         assertFalse(hold.activity(stream, 1))
     }
+
+    @Test
+    fun `a stream with no replay gives up sooner than one with a replay`() {
+        val hold = StreamHold(2_000, 5_000)
+        val quiet = hold.start(0)
+        assertEquals(2_000L, hold.deadlineMs)
+        hold.touch(quiet, 100)
+        assertEquals(5_100L, hold.deadlineMs)
+        hold.start(200)
+        assertEquals(2_200L, hold.deadlineMs)
+    }
 }

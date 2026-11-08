@@ -6,11 +6,19 @@ Versões em português logo abaixo de cada versão.
 
 ## 4.4.0
 
+### Fixed
+
+- When a swipe's end never reached the edge strips, the gestures stayed dead for 5 seconds before the safety release. It now takes 2 seconds, and only a touch being passed on to the app keeps the longer wait.
+
 ### Added
 
 - **Animation on the edges** (Gesture settings, off by default). When you start a swipe from an edge, a shape rises from it under your finger, follows you along the edge and sinks back when you let go. From the bottom it carries a Home icon, from the sides the Back arrow. Pick the style: **Lens** (a smooth bump in the edge), **Lens with arrow** (the arrow from the logo instead of the icon: up from the bottom, back toward the edge on the sides), or a small **light dot** / **dark dot** that hugs the edge, follows your finger and opens up a little when the gesture is about to fire. With one on, it replaces the plain back indicator on the sides. It is only drawn while a swipe is under way, never takes touches, and leaves the screen before any touch is passed on to the app.
 
 ### Português
+
+#### Corrigido
+
+- Quando o fim de um deslize não chegava às faixas das bordas, os gestos ficavam parados por 5 segundos até a liberação de segurança. Agora leva 2 segundos, e só um toque sendo repassado ao app mantém a espera maior.
 
 #### Adicionado
 

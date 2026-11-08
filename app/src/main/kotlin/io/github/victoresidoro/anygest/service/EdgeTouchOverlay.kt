@@ -80,7 +80,7 @@ internal class EdgeTouchOverlay(
      * while the service still looks healthy, so a stream that goes quiet for too long is
      * released. Tokens keep a late release of an old stream from touching a new one.
      */
-    private val hold = StreamHold(STUCK_STREAM_MS)
+    private val hold = StreamHold(STUCK_STREAM_MS, REPLAY_STUCK_STREAM_MS)
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -334,13 +334,15 @@ internal class EdgeTouchOverlay(
     }
 
     private fun onStuckCheck() {
-        if (!hold.expire(SystemClock.uptimeMillis())) {
+        val now = SystemClock.uptimeMillis()
+        val quietMs = hold.quietMs(now)
+        if (!hold.expire(now)) {
             scheduleStuckCheck()
             return
         }
         bellies.values.forEach(BackBellyOverlay::hide)
         drops.values.forEach(EdgeIndicatorOverlay::hide)
-        report("strips were stuck inert, released after ${STUCK_STREAM_MS}ms without a touch")
+        report("strips were stuck inert, released after ${quietMs}ms without a touch")
         applyInteractivity()
     }
 
@@ -584,6 +586,15 @@ internal class EdgeTouchOverlay(
          * Past the longest stretch a live stream goes without a touch event (a replay after its
          * UP), with a second to spare for a busy main thread.
          */
-        const val STUCK_STREAM_MS = AnyGestAccessibilityService.LONGEST_REPLAY_HOLD_MS + 1_000L
+        /**
+         * How long a stream may go without a touch event before the strips are given back. A
+         * finger holding still is not quiet for long (the longest hold gesture waits 900 ms),
+         * so a stream that goes silent this long lost its UP and must not keep the gestures
+         * dead for seconds.
+         */
+        const val STUCK_STREAM_MS = 2_000L
+
+        /** A replay sends the strips no events and can last this long, so it gets longer. */
+        const val REPLAY_STUCK_STREAM_MS = AnyGestAccessibilityService.LONGEST_REPLAY_HOLD_MS + 1_000L
     }
 }
