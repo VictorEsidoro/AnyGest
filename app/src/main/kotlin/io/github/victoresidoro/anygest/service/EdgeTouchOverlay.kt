@@ -375,7 +375,7 @@ internal class EdgeTouchOverlay(
 
         private var stream = 0L
 
-        private val samples = ArrayList<TouchSample>(MAX_SAMPLES)
+        private val samples = ArrayList<TouchSample>(64)
         private var abandoned = false
 
         // One gesture, one buzz: an edge that ticked when its swipe armed stays quiet when
@@ -553,7 +553,9 @@ internal class EdgeTouchOverlay(
         }
 
         private companion object {
-            const val MAX_SAMPLES = 400
+            // Up to a few seconds of a 240 Hz panel; a replay cut short would drop the end of a
+            // long touch.
+            const val MAX_SAMPLES = 4000
         }
     }
 

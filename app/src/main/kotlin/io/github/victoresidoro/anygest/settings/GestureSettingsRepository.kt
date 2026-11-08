@@ -21,9 +21,11 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.provider.Settings
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -38,8 +40,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
+/**
+ * A damaged file (a power cut halfway through a write, say) reads as empty, so the defaults
+ * apply instead of every reader of the settings throwing until the app data is cleared.
+ * Based on HyperGesture work by Rohith-E-S.
+ */
 private val Context.gestureDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "gesture_configuration")
+    preferencesDataStore(
+        name = "gesture_configuration",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 
 /** Defaults are never duplicated here: a missing key falls back to [GestureConfiguration]. */
 class GestureSettingsRepository(private val context: Context) {

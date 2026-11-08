@@ -96,6 +96,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import io.github.victoresidoro.anygest.R
+import io.github.victoresidoro.anygest.diagnostics.DiagnosticReport
 import io.github.victoresidoro.anygest.diagnostics.Diagnostics
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
@@ -1481,11 +1482,7 @@ private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) 
         val copiedMessage = stringResource(R.string.diag_log_copied)
         TextButton(
             onClick = {
-                val text = listOfNotNull(
-                    "AnyGest ${diagnostics.appVersionName}",
-                    diagnostics.lastRecordedFailure,
-                    diagnostics.pauseNotes,
-                ).joinToString("\n\n")
+                val text = DiagnosticReport.format(diagnostics)
                 val clipboard = context.getSystemService(ClipboardManager::class.java)
                 clipboard?.setPrimaryClip(ClipData.newPlainText("AnyGest", text))
                 // Android 13 and later show their own "copied" confirmation.

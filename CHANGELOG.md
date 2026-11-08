@@ -13,6 +13,13 @@ Versões em português logo abaixo de cada versão.
 ### Fixed
 
 - **Restore defaults** in Gesture settings also wiped things that live on other screens: the exception app list, app switching and Circle to Search. It now restores only the values that screen shows. Based on HyperGesture by Henrique Almeida (h3nc4).
+- The settings file no longer breaks the app if it gets damaged (a power cut halfway through a write, say): it reads as empty and the defaults apply. Based on work by Rohith-E-S on HyperGesture.
+- The accessibility service rebuilds its settings reader when it is connected again on the same instance, instead of keeping one that was already cancelled.
+- A touch replayed to the app underneath is no longer cut short after 400 samples (under 2 seconds on a 240 Hz screen); it now keeps up to 4000.
+
+### Changed
+
+- **Copy log** now copies a short report with the version, device, Android and HyperOS, navigation mode, service state and ADB mode, followed by the recorded failures and pause notes, so one paste says what the phone is. Layout inspired by Rohith-E-S's HyperGesture fork.
 
 ### Português
 
@@ -23,6 +30,13 @@ Versões em português logo abaixo de cada versão.
 #### Corrigido
 
 - **Restaurar padrões** nos ajustes dos gestos também apagava coisas de outras telas: a lista de apps de exceção, a troca de apps e o Circle to Search. Agora restaura só os valores daquela tela. Baseado no HyperGesture, de Henrique Almeida (h3nc4).
+- O arquivo de ajustes não derruba mais o app se for danificado (uma queda de energia no meio da gravação, por exemplo): ele é lido como vazio e valem os padrões. Baseado em trabalho de Rohith-E-S no HyperGesture.
+- O serviço de acessibilidade recria o leitor de ajustes quando é conectado de novo na mesma instância, em vez de manter um que já estava cancelado.
+- Um toque repassado ao app por baixo não é mais cortado depois de 400 amostras (menos de 2 segundos numa tela de 240 Hz); agora guarda até 4000.
+
+#### Alterado
+
+- **Copiar log** agora copia um relatório curto com versão, aparelho, Android e HyperOS, modo de navegação, estado do serviço e Modo ADB, seguido das falhas registradas e das anotações da pausa, e uma colagem já diz como é o aparelho. Formato inspirado no fork do HyperGesture de Rohith-E-S.
 
 ## 4.2.0
 

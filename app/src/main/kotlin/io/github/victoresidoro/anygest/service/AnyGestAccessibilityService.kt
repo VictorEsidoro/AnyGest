@@ -57,6 +57,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
@@ -74,7 +75,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private val coroutineFailures = CoroutineExceptionHandler { _, throwable ->
         FailureLog.record(this, "settings collector", throwable)
     }
-    private val scope =
+    // Rebuilt in setUp: teardown cancels it, and a service that is connected again on the same
+    // instance would otherwise read its settings with a scope that is already dead.
+    private var scope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + coroutineFailures)
     private val handler = Handler(Looper.getMainLooper())
 
@@ -181,6 +184,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     private fun setUp() {
+        if (!scope.isActive) {
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + coroutineFailures)
+        }
         settings = GestureSettingsRepository(applicationContext)
         performer = GestureActionPerformer(this)
         windowManager = getSystemService(WindowManager::class.java)
