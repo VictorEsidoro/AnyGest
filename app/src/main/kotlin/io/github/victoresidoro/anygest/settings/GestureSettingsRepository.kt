@@ -32,6 +32,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import io.github.victoresidoro.anygest.gesture.EdgeAnimation
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
@@ -76,7 +77,7 @@ class GestureSettingsRepository(private val context: Context) {
             preferences[HAPTIC_STRENGTH] = updated.hapticStrength.name
             preferences[HAPTIC_CONFIRM] = updated.hapticConfirmEnabled
             preferences[LANDSCAPE_CONFIRM] = updated.landscapeConfirmEnabled
-            preferences[DROP_ANIMATION] = updated.dropAnimationEnabled
+            preferences[EDGE_ANIMATION] = updated.edgeAnimation.name
             preferences[SIDE_LENGTH_PERCENT] = updated.sideLengthPercent
             preferences[SIDE_POSITION] = updated.sidePosition.name
             preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
@@ -110,7 +111,8 @@ class GestureSettingsRepository(private val context: Context) {
             hapticConfirmEnabled = preferences[HAPTIC_CONFIRM] ?: defaults.hapticConfirmEnabled,
             landscapeConfirmEnabled =
                 preferences[LANDSCAPE_CONFIRM] ?: defaults.landscapeConfirmEnabled,
-            dropAnimationEnabled = preferences[DROP_ANIMATION] ?: defaults.dropAnimationEnabled,
+            edgeAnimation = EdgeAnimation.entries.firstOrNull { it.name == preferences[EDGE_ANIMATION] }
+                ?: defaults.edgeAnimation,
             sideLengthPercent = (preferences[SIDE_LENGTH_PERCENT] ?: defaults.sideLengthPercent)
                 .coerceIn(SettingsLimits.SIDE_LENGTH_PERCENT),
             sidePosition = SidePosition.entries.firstOrNull { it.name == preferences[SIDE_POSITION] }
@@ -170,7 +172,7 @@ class GestureSettingsRepository(private val context: Context) {
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback_enabled")
         val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
         val HAPTIC_CONFIRM = booleanPreferencesKey("haptic_confirm_enabled")
-        val DROP_ANIMATION = booleanPreferencesKey("drop_animation_enabled")
+        val EDGE_ANIMATION = stringPreferencesKey("edge_animation")
         val LANDSCAPE_CONFIRM = booleanPreferencesKey("landscape_confirm_enabled")
         val SIDE_LENGTH_PERCENT = intPreferencesKey("side_length_percent")
         val SIDE_POSITION = stringPreferencesKey("side_position")

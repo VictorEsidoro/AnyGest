@@ -99,6 +99,7 @@ import io.github.victoresidoro.anygest.R
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticReport
 import io.github.victoresidoro.anygest.diagnostics.Diagnostics
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
+import io.github.victoresidoro.anygest.gesture.EdgeAnimation
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
@@ -889,10 +890,9 @@ private fun GestureSettings(
         formatter = { stringResource(R.string.value_ms, it) },
     ) { updated -> onUpdate { it.copy(maximumArmDurationMs = updated.toLong()) } }
 
-    ToggleRow(
-        label = stringResource(R.string.label_drop_animation),
-        checked = configuration.dropAnimationEnabled,
-    ) { updated -> onUpdate { it.copy(dropAnimationEnabled = updated) } }
+    EdgeAnimationChoice(selected = configuration.edgeAnimation) { chosen ->
+        onUpdate { it.copy(edgeAnimation = chosen) }
+    }
 
     ToggleRow(
         label = stringResource(R.string.label_landscape_confirm),
@@ -1331,6 +1331,44 @@ internal fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> U
                 .padding(end = 12.dp),
         )
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun EdgeAnimationChoice(selected: EdgeAnimation, onChoose: (EdgeAnimation) -> Unit) {
+    Column {
+        Text(
+            text = stringResource(R.string.label_edge_animation),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        EdgeAnimation.entries.forEach { option ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = selected == option,
+                        role = Role.RadioButton,
+                        onClick = { onChoose(option) },
+                    )
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(selected = selected == option, onClick = null)
+                Text(
+                    text = stringResource(
+                        when (option) {
+                            EdgeAnimation.Off -> R.string.edge_animation_off
+                            EdgeAnimation.Lens -> R.string.edge_animation_lens
+                            EdgeAnimation.Capsule -> R.string.edge_animation_capsule
+                            EdgeAnimation.Bubble -> R.string.edge_animation_bubble
+                            EdgeAnimation.Card -> R.string.edge_animation_card
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 12.dp),
+                )
+            }
+        }
     }
 }
 

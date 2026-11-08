@@ -8,13 +8,13 @@ Versões em português logo abaixo de cada versão.
 
 ### Added
 
-- **Drop animation on the edges** (Gesture settings, off by default). When you start a swipe from an edge, a black drop rises from it under your finger, joined to the edge by a soft neck that thins as you pull away, leans as you slide and wobbles once as it forms. From the bottom it carries a Home icon, from the sides the Back arrow, and it springs back into the edge when you let go. With it on, it replaces the plain back indicator on the sides. It is only drawn while a swipe is under way. Ported from NavGesture by vijayyaso (a fork of HyperGesture); the neck geometry comes from Ramotion's MIT-licensed fluid slider.
+- **Animation on the edges** (Gesture settings, off by default). When you start a swipe from an edge, a shape rises from it under your finger, follows you along the edge and sinks back when you let go. From the bottom it carries a Home icon, from the sides the Back arrow. Pick the shape: **Lens** (a smooth bump in the edge), **Capsule**, **Bubble** or **Card**. With one on, it replaces the plain back indicator on the sides. It is only drawn while a swipe is under way, never takes touches, and leaves the screen before any touch is passed on to the app.
 
 ### Português
 
 #### Adicionado
 
-- **Animação de gota nas bordas** (ajustes dos gestos, desligada por padrão). Ao começar um deslize pela borda, uma gota preta sobe dela por baixo do seu dedo, ligada à borda por um pescoço mole que afina quando você puxa, se inclina quando você desliza e balança uma vez ao se formar. Embaixo ela leva o ícone de Início, nas laterais a seta de Voltar, e volta para dentro da borda quando você solta. Ligada, ela substitui o indicador simples de voltar das laterais. Só é desenhada enquanto o deslize acontece. Portada do NavGesture, de vijayyaso (um fork do HyperGesture); a geometria do pescoço vem do slider fluido da Ramotion, de licença MIT.
+- **Animação nas bordas** (ajustes dos gestos, desligada por padrão). Ao começar um deslize por uma borda, uma forma sobe dela por baixo do seu dedo, acompanha você ao longo da borda e volta para dentro quando você solta. Embaixo ela leva o ícone de Início, nas laterais a seta de Voltar. Escolha a forma: **Lente** (uma curva suave na borda), **Cápsula**, **Bolha** ou **Cartão**. Ligada, ela substitui o indicador simples de voltar das laterais. Só é desenhada enquanto o deslize acontece, não recebe toques e sai da tela antes de qualquer toque ser repassado ao app.
 
 ## 4.3.0
 

@@ -32,6 +32,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import io.github.victoresidoro.anygest.gesture.ConfirmVerdict
+import io.github.victoresidoro.anygest.gesture.EdgeAnimation
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.GestureTracker
@@ -71,7 +72,7 @@ internal class EdgeTouchOverlay(
 
     private val bellies = mutableMapOf<ScreenEdge, BackBellyOverlay>()
 
-    private val drops = mutableMapOf<ScreenEdge, FluidBubbleOverlay>()
+    private val drops = mutableMapOf<ScreenEdge, EdgeIndicatorOverlay>()
 
     /**
      * While a stream is held the strips are inert (not touchable, alpha 0). If the UP or CANCEL
@@ -109,8 +110,8 @@ internal class EdgeTouchOverlay(
         }
 
         for (edge in edges) {
-            if (configuration.dropAnimationEnabled) {
-                drops[edge] = FluidBubbleOverlay(context, windowManager, edge, geometry).also {
+            if (configuration.edgeAnimation != EdgeAnimation.Off) {
+                drops[edge] = EdgeIndicatorOverlay(context, windowManager, edge, geometry, configuration.edgeAnimation).also {
                     it.install()
                 }
             } else if (edge != ScreenEdge.BOTTOM) {
@@ -135,7 +136,7 @@ internal class EdgeTouchOverlay(
         strips.clear()
         bellies.values.forEach(BackBellyOverlay::remove)
         bellies.clear()
-        drops.values.forEach(FluidBubbleOverlay::remove)
+        drops.values.forEach(EdgeIndicatorOverlay::remove)
         drops.clear()
         // Detaching kills any in-flight stream, so its UP never arrives to release the
         // hold; without this reset, freshly installed strips start out inert.
@@ -247,7 +248,7 @@ internal class EdgeTouchOverlay(
 
     private fun onStreamStart(edge: ScreenEdge): Long {
         bellies.values.forEach(BackBellyOverlay::hide)
-        drops.values.forEach(FluidBubbleOverlay::hide)
+        drops.values.forEach(EdgeIndicatorOverlay::hide)
         confirmation.onDown(edge, SystemClock.uptimeMillis())
         syncPill()
         val stream = hold.start(SystemClock.uptimeMillis())
@@ -338,7 +339,7 @@ internal class EdgeTouchOverlay(
             return
         }
         bellies.values.forEach(BackBellyOverlay::hide)
-        drops.values.forEach(FluidBubbleOverlay::hide)
+        drops.values.forEach(EdgeIndicatorOverlay::hide)
         report("strips were stuck inert, released after ${STUCK_STREAM_MS}ms without a touch")
         applyInteractivity()
     }
@@ -376,7 +377,7 @@ internal class EdgeTouchOverlay(
         private val hapticStrength: HapticStrength,
         private val hapticConfirm: Boolean,
         private val belly: BackBellyOverlay?,
-        private val drop: FluidBubbleOverlay?,
+        private val drop: EdgeIndicatorOverlay?,
         private val onStreamStart: () -> Long,
         private val onActivity: (Long) -> Unit,
         private val admit: (GestureAction) -> Boolean,

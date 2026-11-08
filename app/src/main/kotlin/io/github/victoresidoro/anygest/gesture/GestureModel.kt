@@ -92,10 +92,10 @@ data class GestureConfiguration(
     /** On by default, as HyperOS asks for a second bottom swipe in a landscape app. */
     val landscapeConfirmEnabled: Boolean = true,
     /**
-     * Off by default: a black drop rises from the edge under the finger instead of the plain
-     * back indicator, and from the bottom edge too. Purely visual.
+     * Off by default: a shape rises from the edge under the finger, in place of the plain back
+     * indicator on the sides and on the bottom edge too. Purely visual.
      */
-    val dropAnimationEnabled: Boolean = false,
+    val edgeAnimation: EdgeAnimation = EdgeAnimation.Off,
     val sideLengthPercent: Int = 80,
     val sidePosition: SidePosition = SidePosition.Center,
     /**
@@ -136,7 +136,7 @@ data class GestureConfiguration(
     fun withGestureSettingsOf(source: GestureConfiguration): GestureConfiguration = copy(
         edgeWidthDp = source.edgeWidthDp,
         landscapeConfirmEnabled = source.landscapeConfirmEnabled,
-        dropAnimationEnabled = source.dropAnimationEnabled,
+        edgeAnimation = source.edgeAnimation,
         sideLengthPercent = source.sideLengthPercent,
         sidePosition = source.sidePosition,
         sideMinimumSwipeDistanceDp = source.sideMinimumSwipeDistanceDp,

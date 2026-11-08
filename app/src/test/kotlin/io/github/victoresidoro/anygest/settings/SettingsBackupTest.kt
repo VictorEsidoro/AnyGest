@@ -17,6 +17,7 @@
 
 package io.github.victoresidoro.anygest.settings
 
+import io.github.victoresidoro.anygest.gesture.EdgeAnimation
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.HapticStrength
 import io.github.victoresidoro.anygest.gesture.SidePosition
@@ -44,7 +45,7 @@ class SettingsBackupTest {
             hapticStrength = HapticStrength.Strong,
             hapticConfirmEnabled = true,
             landscapeConfirmEnabled = false,
-            dropAnimationEnabled = true,
+            edgeAnimation = EdgeAnimation.Lens,
             sideLengthPercent = 60,
             sidePosition = SidePosition.Bottom,
             circleToSearchEnabled = true,
