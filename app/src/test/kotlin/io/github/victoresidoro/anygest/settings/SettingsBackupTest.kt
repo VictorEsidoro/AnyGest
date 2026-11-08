@@ -44,6 +44,7 @@ class SettingsBackupTest {
             hapticStrength = HapticStrength.Strong,
             hapticConfirmEnabled = true,
             landscapeConfirmEnabled = false,
+            dropAnimationEnabled = true,
             sideLengthPercent = 60,
             sidePosition = SidePosition.Bottom,
             circleToSearchEnabled = true,

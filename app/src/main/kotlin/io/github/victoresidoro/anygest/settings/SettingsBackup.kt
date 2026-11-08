@@ -58,6 +58,7 @@ object SettingsBackup {
         properties["haptic_strength"] = configuration.hapticStrength.name
         properties["haptic_confirm_enabled"] = configuration.hapticConfirmEnabled.toString()
         properties["landscape_confirm_enabled"] = configuration.landscapeConfirmEnabled.toString()
+        properties["drop_animation_enabled"] = configuration.dropAnimationEnabled.toString()
         properties["side_length_percent"] = configuration.sideLengthPercent.toString()
         properties["side_position"] = configuration.sidePosition.name
         properties["circle_to_search_enabled"] = configuration.circleToSearchEnabled.toString()
@@ -131,6 +132,7 @@ object SettingsBackup {
         }
         read("haptic_confirm_enabled", boolean) { c, v -> c.copy(hapticConfirmEnabled = v) }
         read("landscape_confirm_enabled", boolean) { c, v -> c.copy(landscapeConfirmEnabled = v) }
+        read("drop_animation_enabled", boolean) { c, v -> c.copy(dropAnimationEnabled = v) }
         read("side_length_percent", { raw -> raw.toIntOrNull()?.takeIf { it in SettingsLimits.SIDE_LENGTH_PERCENT } }) { c, v ->
             c.copy(sideLengthPercent = v)
         }

@@ -71,6 +71,8 @@ internal class EdgeTouchOverlay(
 
     private val bellies = mutableMapOf<ScreenEdge, BackBellyOverlay>()
 
+    private val drops = mutableMapOf<ScreenEdge, FluidBubbleOverlay>()
+
     /**
      * While a stream is held the strips are inert (not touchable, alpha 0). If the UP or CANCEL
      * that ends it never reaches a strip, they would stay inert and the gestures would be dead
@@ -107,7 +109,11 @@ internal class EdgeTouchOverlay(
         }
 
         for (edge in edges) {
-            if (edge != ScreenEdge.BOTTOM) {
+            if (configuration.dropAnimationEnabled) {
+                drops[edge] = FluidBubbleOverlay(context, windowManager, edge, geometry).also {
+                    it.install()
+                }
+            } else if (edge != ScreenEdge.BOTTOM) {
                 bellies[edge] = BackBellyOverlay(context, windowManager, edge, geometry).also {
                     it.install()
                 }
@@ -129,6 +135,8 @@ internal class EdgeTouchOverlay(
         strips.clear()
         bellies.values.forEach(BackBellyOverlay::remove)
         bellies.clear()
+        drops.values.forEach(FluidBubbleOverlay::remove)
+        drops.clear()
         // Detaching kills any in-flight stream, so its UP never arrives to release the
         // hold; without this reset, freshly installed strips start out inert.
         hold.reset()
@@ -166,6 +174,7 @@ internal class EdgeTouchOverlay(
             hapticStrength = configuration.hapticStrength,
             hapticConfirm = configuration.hapticConfirmEnabled,
             belly = bellies[edge],
+            drop = drops[edge],
             onStreamStart = { onStreamStart(edge) },
             onActivity = ::onActivity,
             admit = { action -> admit(action, edge) },
@@ -238,6 +247,7 @@ internal class EdgeTouchOverlay(
 
     private fun onStreamStart(edge: ScreenEdge): Long {
         bellies.values.forEach(BackBellyOverlay::hide)
+        drops.values.forEach(FluidBubbleOverlay::hide)
         confirmation.onDown(edge, SystemClock.uptimeMillis())
         syncPill()
         val stream = hold.start(SystemClock.uptimeMillis())
@@ -328,6 +338,7 @@ internal class EdgeTouchOverlay(
             return
         }
         bellies.values.forEach(BackBellyOverlay::hide)
+        drops.values.forEach(FluidBubbleOverlay::hide)
         report("strips were stuck inert, released after ${STUCK_STREAM_MS}ms without a touch")
         applyInteractivity()
     }
@@ -365,6 +376,7 @@ internal class EdgeTouchOverlay(
         private val hapticStrength: HapticStrength,
         private val hapticConfirm: Boolean,
         private val belly: BackBellyOverlay?,
+        private val drop: FluidBubbleOverlay?,
         private val onStreamStart: () -> Long,
         private val onActivity: (Long) -> Unit,
         private val admit: (GestureAction) -> Boolean,
@@ -431,7 +443,10 @@ internal class EdgeTouchOverlay(
                         false
                     } else {
                         if (samples.size < MAX_SAMPLES) samples += sample
-                        track(tracker.onUp(sample), sample, replayable = true)
+                        track(tracker.onUp(sample), sample, replayable = true).also {
+                            // A drop still up with no verdict (pulled back inside, then let go).
+                            drop?.release()
+                        }
                     }
                     samples.clear()
                     if (!releaseDeferred) onStreamEnd(stream)
@@ -522,11 +537,13 @@ internal class EdgeTouchOverlay(
         // The belly moves first. A replay must never land under a visible window.
         private fun track(action: TrackerAction, sample: TouchSample, replayable: Boolean): Boolean {
             belly?.follow(action, samples.firstOrNull()?.yPx ?: sample.yPx, inwardPx(sample))
+            drop?.follow(action, sample.xPx, sample.yPx)
             return handle(action, replayable)
         }
 
         private fun collapseBelly() {
             belly?.collapse()
+            drop?.release()
         }
 
         private fun inwardPx(sample: TouchSample): Float {

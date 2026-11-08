@@ -890,6 +890,11 @@ private fun GestureSettings(
     ) { updated -> onUpdate { it.copy(maximumArmDurationMs = updated.toLong()) } }
 
     ToggleRow(
+        label = stringResource(R.string.label_drop_animation),
+        checked = configuration.dropAnimationEnabled,
+    ) { updated -> onUpdate { it.copy(dropAnimationEnabled = updated) } }
+
+    ToggleRow(
         label = stringResource(R.string.label_landscape_confirm),
         checked = configuration.landscapeConfirmEnabled,
     ) { updated -> onUpdate { it.copy(landscapeConfirmEnabled = updated) } }
