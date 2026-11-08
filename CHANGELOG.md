@@ -4,6 +4,20 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.1.1
+
+### Changed
+
+- Less battery while apps are on the exception list: AnyGest used to re-read the last 30 seconds of app-switch events every 1.5 seconds, and, during a pause, everything since the pause began every second. It now remembers where it stopped and reads only what is new. Same result, far less work.
+- While gestures are paused for an app, the watcher no longer wakes up with the screen off. It sleeps, and checks once as soon as the screen turns on.
+
+### Português
+
+#### Alterado
+
+- Menos bateria com apps na lista de exceções: o AnyGest relia os últimos 30 segundos de trocas de app a cada 1,5 s e, durante uma pausa, tudo desde o início da pausa a cada segundo. Agora ele lembra onde parou e lê só o que é novo. Mesmo resultado, bem menos trabalho.
+- Com os gestos pausados para um app, o vigia não acorda mais com a tela apagada. Ele dorme e confere uma vez assim que a tela acende.
+
 ## 4.1.0
 
 ### Added

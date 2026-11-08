@@ -94,6 +94,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
      * app is also read from the usage events, a little late but from nothing the app controls.
      */
     private var polling = false
+    private var foreground: ForegroundApp.Tracker? = null
     private val poll = Runnable { pollForeground() }
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -262,17 +263,19 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private fun startPolling() {
         if (polling) return
         polling = true
+        foreground = ForegroundApp.Tracker(this)
         handler.postDelayed(poll, POLL_MS)
     }
 
     private fun stopPolling() {
         polling = false
+        foreground = null
         handler.removeCallbacks(poll)
     }
 
     private fun pollForeground() {
         if (!polling) return
-        val front = ForegroundApp.current(this, POLL_WINDOW_MS)
+        val front = foreground?.current(POLL_WINDOW_MS)
         if (front != null && shouldPauseFor(front)) {
             SetupStore(this).note("poll saw $front in front")
             stopPolling()

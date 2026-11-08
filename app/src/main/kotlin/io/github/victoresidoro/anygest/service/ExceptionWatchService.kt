@@ -22,13 +22,16 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
+import android.content.BroadcastReceiver
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import io.github.victoresidoro.anygest.R
 import io.github.victoresidoro.anygest.diagnostics.FailureLog
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
@@ -62,12 +65,24 @@ class ExceptionWatchService : Service() {
     private var apps: Set<String> = emptySet()
     private var startedAt = 0L
     private var stopped = false
+    private val foreground by lazy { ForegroundApp.Tracker(applicationContext) }
 
     private val poll = object : Runnable {
         override fun run() {
             if (stopped) return
             tick()
-            if (!stopped) handler.postDelayed(this, if (screenOn()) FAST_MS else SLOW_MS)
+            if (!stopped && screenOn()) handler.postDelayed(this, FAST_MS)
+        }
+    }
+
+    /**
+     * Nobody switches apps with the screen off, so the polling sleeps then and checks once,
+     * right away, when the screen comes back.
+     */
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            handler.removeCallbacks(poll)
+            if (intent.action == Intent.ACTION_SCREEN_ON && !stopped) handler.post(poll)
         }
     }
 
@@ -76,6 +91,15 @@ class ExceptionWatchService : Service() {
     override fun onCreate() {
         super.onCreate()
         running = true
+        ContextCompat.registerReceiver(
+            this,
+            screenReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -84,13 +108,14 @@ class ExceptionWatchService : Service() {
         scope.launch {
             apps = GestureSettingsRepository(applicationContext).read().pauseApps
             handler.removeCallbacks(poll)
-            handler.postDelayed(poll, FAST_MS)
+            if (screenOn()) handler.postDelayed(poll, FAST_MS)
         }
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
         stopped = true
+        runCatching { unregisterReceiver(screenReceiver) }
         handler.removeCallbacksAndMessages(null)
         scope.cancel()
         running = false
@@ -116,7 +141,7 @@ class ExceptionWatchService : Service() {
         val window = System.currentTimeMillis() - startedAt + LOOKBACK_MS
         // Only events from the pause onwards count: the newest older one names the app the
         // user came from, and reading it as "left" would end the pause a second after it began.
-        val front = ForegroundApp.current(this, window, notBeforeMs = startedAt - EVENT_GRACE_MS)
+        val front = foreground.current(window, notBeforeMs = startedAt - EVENT_GRACE_MS)
         if (PausePolicy.frontIsOutside(front, apps)) {
             store.note("watcher: left for $front, switching the service back on")
             finish(restore = true)
@@ -164,7 +189,6 @@ class ExceptionWatchService : Service() {
         private const val CHANNEL_ID = "pause"
         private const val NOTIFICATION_ID = 3
         private const val FAST_MS = 1_000L
-        private const val SLOW_MS = 5_000L
         private const val LOOKBACK_MS = 30_000L
 
         /** The "resumed" event of the app itself lands just before its window event. */

@@ -49,4 +49,39 @@ internal object ForegroundApp {
         }
         return latest
     }
+
+    /**
+     * Same answer as [current], for callers that ask over and over. It remembers where the
+     * last query ended and only reads what came after (with [OVERLAP_MS] to spare, since usage
+     * events arrive late), instead of reading the whole window again every time.
+     */
+    class Tracker(private val context: Context) {
+        private var cursor = 0L
+        private var latest: String? = null
+        private var latestAt = 0L
+
+        /** @param windowMs how far back an event may be and still count as "in front". */
+        fun current(windowMs: Long, notBeforeMs: Long = 0L): String? {
+            val usage = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+                ?: return null
+            val now = System.currentTimeMillis()
+            val from = if (cursor == 0L) now - windowMs else maxOf(now - windowMs, cursor - OVERLAP_MS)
+            val events = runCatching { usage.queryEvents(from, now) }.getOrNull() ?: return null
+            val event = UsageEvents.Event()
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED &&
+                    event.timeStamp >= latestAt
+                ) {
+                    latest = event.packageName ?: latest
+                    latestAt = event.timeStamp
+                }
+            }
+            cursor = now
+            return latest.takeIf { latestAt >= notBeforeMs && latestAt >= now - windowMs }
+        }
+    }
+
+    private const val OVERLAP_MS = 10_000L
 }
+
