@@ -330,9 +330,20 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             )
             return
         }
-        if (GesturePower.barManaged(this)) SecureSettingsAccess.setBarHidden(this, false)
+        if (GesturePower.barManaged(this)) {
+            val before = barState()
+            val written = SecureSettingsAccess.setBarHidden(this, false)
+            store.note("pause: bar shown (written=$written), $before -> ${barState()}")
+        } else {
+            store.note("pause: the bar is not managed, left as it is (${barState()})")
+        }
         disableSelf()
     }
+
+    /** The two settings that decide what the bottom of the screen shows, for the pause notes. */
+    private fun barState(): String =
+        "bar hidden=${SecureSettingsAccess.barHidden(this)}, " +
+            "gesture mode=${SecureSettingsAccess.gestureModeOn(this)}"
 
     private fun ensureBarHidden() {
         val store = SetupStore(this)
