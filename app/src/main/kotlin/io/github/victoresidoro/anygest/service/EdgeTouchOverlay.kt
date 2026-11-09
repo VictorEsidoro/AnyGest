@@ -97,6 +97,7 @@ internal class EdgeTouchOverlay(
 
     fun install(configuration: GestureConfiguration, geometry: ScreenGeometry) {
         remove()
+        landscape = geometry.landscape
         confirmation.configure(configuration.landscapeConfirmEnabled, geometry.landscape)
         if (configuration.landscapeConfirmEnabled && geometry.landscape) {
             pill = ConfirmPillOverlay(context, windowManager, geometry).also { it.install() }
@@ -182,6 +183,7 @@ internal class EdgeTouchOverlay(
             onFire = { stream, action -> if (hold.isCurrent(stream)) onFire(action, edge) },
             onUnused = { stream, samples -> onUnused(edge, stream, samples) },
             onStreamEnd = { stream -> endStream(edge, stream) },
+            onTrace = { lastTouch = it },
         )
         val params = paramsFor(edge, configuration, geometry)
         runCatching {
@@ -344,8 +346,15 @@ internal class EdgeTouchOverlay(
         bellies.values.forEach(BackBellyOverlay::hide)
         drops.values.forEach(EdgeIndicatorOverlay::hide)
         report("strips were stuck inert, released after ${quietMs}ms without a touch (replay: $replaying)")
+        // What the strip saw last and what was in front, to tell a lost UP from a taken-over touch.
+        val front = ForegroundApp.current(context, FOREGROUND_LOOKBACK_MS)
+        report("stuck: last touch $lastTouch; landscape=$landscape; front=$front")
         applyInteractivity()
     }
+
+    /** The newest touch event any strip saw, kept only to explain a stuck stream. */
+    private var lastTouch = "none"
+    private var landscape = false
 
     private fun report(message: String) {
         Log.w(TAG, message)
@@ -387,12 +396,14 @@ internal class EdgeTouchOverlay(
         private val onFire: (Long, GestureAction) -> Unit,
         private val onUnused: (Long, List<TouchSample>) -> Unit,
         private val onStreamEnd: (Long) -> Unit,
+        private val onTrace: (String) -> Unit,
     ) : View(context) {
 
         private var stream = 0L
 
         private val samples = ArrayList<TouchSample>(64)
         private var abandoned = false
+        private var moves = 0
 
         // One gesture, one buzz: an edge that ticked when its swipe armed stays quiet when
         // the gesture fires on release, like the system Back gesture.
@@ -413,6 +424,14 @@ internal class EdgeTouchOverlay(
             // rawX/rawY are display coordinates, which is what the replay path expects.
             val sample = TouchSample(event.rawX, event.rawY, event.eventTime)
             if (event.actionMasked != MotionEvent.ACTION_DOWN) onActivity(stream)
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) moves = 0
+            if (event.actionMasked == MotionEvent.ACTION_MOVE) moves++
+            onTrace(
+                "$edge ${MotionEvent.actionToString(event.actionMasked)} at " +
+                    "${sample.xPx.toInt()},${sample.yPx.toInt()} after " +
+                    "${event.eventTime - event.downTime}ms, moves=$moves, " +
+                    "pointers=${event.pointerCount}, abandoned=$abandoned",
+            )
             return when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     samples.clear()
@@ -594,6 +613,8 @@ internal class EdgeTouchOverlay(
          * dead for seconds.
          */
         const val STUCK_STREAM_MS = 2_000L
+
+        private const val FOREGROUND_LOOKBACK_MS = 30_000L
 
         /** A replay sends the strips no events and can last this long, so it gets longer. */
         const val REPLAY_STUCK_STREAM_MS = AnyGestAccessibilityService.LONGEST_REPLAY_HOLD_MS + 1_000L
