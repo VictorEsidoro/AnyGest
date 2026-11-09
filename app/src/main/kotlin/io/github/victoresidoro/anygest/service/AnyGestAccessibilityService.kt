@@ -332,7 +332,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         }
         if (GesturePower.barManaged(this)) {
             val before = barState()
-            val written = SecureSettingsAccess.setBarHidden(this, false)
+            val written = SecureSettingsAccess.showBar(this)
             store.note("pause: bar shown (written=$written), $before -> ${barState()}")
         } else {
             store.note("pause: the bar is not managed, left as it is (${barState()})")
@@ -384,7 +384,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             AlertNotifier.gesturesStopped(this)
             // The bar was hidden for these gestures; without them nothing would be left to
             // navigate with.
-            if (GesturePower.barManaged(this)) SecureSettingsAccess.setBarHidden(this, false)
+            if (GesturePower.barManaged(this)) SecureSettingsAccess.showBar(this)
         }
         GestureTileService.requestRefresh(this)
         return super.onUnbind(intent)

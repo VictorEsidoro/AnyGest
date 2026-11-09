@@ -85,7 +85,7 @@ class OpenWithoutGesturesActivity : ComponentActivity() {
             store.note("shortcut: the system refused the watcher, opening $packageName as it is")
             return false
         }
-        if (GesturePower.barManaged(this)) SecureSettingsAccess.setBarHidden(this, false)
+        if (GesturePower.barManaged(this)) SecureSettingsAccess.showBar(this)
         SecureSettingsAccess.setServiceEnabled(this, false)
         return true
     }

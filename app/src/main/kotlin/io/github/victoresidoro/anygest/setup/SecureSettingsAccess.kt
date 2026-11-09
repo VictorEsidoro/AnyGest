@@ -43,6 +43,7 @@ internal object SecureSettingsAccess {
     private const val FORCE_FSG_NAV_BAR = "force_fsg_nav_bar"
     private const val NAVIGATION_MODE = "navigation_mode"
     private const val GESTURE_MODE = 2
+    private const val BUTTON_MODE = 0
 
     fun canWrite(context: Context): Boolean =
         context.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED
@@ -67,6 +68,21 @@ internal object SecureSettingsAccess {
         Settings.Secure.putInt(context.contentResolver, NAVIGATION_MODE, GESTURE_MODE) &&
             gestureModeOn(context) == true
     }.getOrDefault(false)
+
+    /**
+     * Brings the button bar back for real. With gesture navigation on, showing the bar
+     * (clearing the hide key) is not enough: the system keeps the gestures and no buttons
+     * appear, which left the phone with neither AnyGest's gestures nor a bar. Switching to
+     * the button bar mode as well fixes that; when the gestures start again they put
+     * gesture navigation back by themselves. Returns whether the key was written.
+     */
+    fun showBar(context: Context): Boolean {
+        val written = setBarHidden(context, false)
+        if (written && gestureModeOn(context) == true) {
+            runCatching { Settings.Secure.putInt(context.contentResolver, NAVIGATION_MODE, BUTTON_MODE) }
+        }
+        return written
+    }
 
     fun setBarHidden(context: Context, hidden: Boolean): Boolean {
         if (!canWrite(context) || !NavigationModeReader.isHyperOsDevice()) return false

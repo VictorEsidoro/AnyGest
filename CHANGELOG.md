@@ -4,6 +4,28 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.4.1
+
+### Fixed
+
+- Pausing for an app on the exceptions list (or switching the gestures off) cleared the "hide the bar" setting but left gesture navigation on, so the button bar never came back. It now switches to the button bar too, and the gestures put gesture navigation back when they return.
+
+### Changed
+
+- In Diagnostics the Copy log, Refresh and View source buttons are now at the top, above the details.
+- The pause notes say what the bar and the navigation mode were when a pause began.
+
+### Português
+
+#### Corrigido
+
+- Pausar para um app da lista de exceções (ou desligar os gestos) tirava o "esconder a barra", mas deixava a navegação por gestos ligada, e a barra de botões nunca voltava. Agora ela também muda para a barra de botões, e os gestos recolocam a navegação por gestos quando voltam.
+
+#### Alterado
+
+- Em Diagnóstico, os botões Copiar log, Atualizar e Ver código-fonte ficam no topo, acima dos detalhes.
+- As anotações de pausa dizem como estavam a barra e o modo de navegação quando a pausa começou.
+
 ## 4.4.0
 
 ### Fixed

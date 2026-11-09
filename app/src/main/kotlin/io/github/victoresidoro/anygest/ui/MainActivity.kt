@@ -1446,6 +1446,7 @@ private fun HapticStrengthChoice(selected: HapticStrength, onChoose: (HapticStre
 
 @Composable
 private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) {
+    DiagnosticActions(diagnostics, onRefresh)
     val none = stringResource(R.string.diag_none)
     val rows = listOf(
         stringResource(R.string.diag_android_version) to
@@ -1516,6 +1517,10 @@ private fun DiagnosticsContent(diagnostics: Diagnostics, onRefresh: () -> Unit) 
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 8.dp),
     )
+}
+
+@Composable
+private fun DiagnosticActions(diagnostics: Diagnostics, onRefresh: () -> Unit) {
     val context = LocalContext.current
     val sourceUrl = stringResource(R.string.url_source)
     Row(verticalAlignment = Alignment.CenterVertically) {

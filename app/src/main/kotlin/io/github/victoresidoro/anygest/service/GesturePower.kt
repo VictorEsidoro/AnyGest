@@ -67,7 +67,7 @@ internal object GesturePower {
         // and the bar may still be hidden, so show it before anything else.
         val intentional = store.pausedForApp != null
         if (!intentional && barManaged(context) && SecureSettingsAccess.barHidden(context) == true) {
-            SecureSettingsAccess.setBarHidden(context, false)
+            SecureSettingsAccess.showBar(context)
             store.note("service was off with the bar hidden, bar shown")
         }
         // A live watcher is still waiting for the user to leave the app, so this is no fault.
@@ -99,7 +99,7 @@ internal object GesturePower {
     /** The off switch: shows the button bar first, because without gestures or bar nothing navigates. */
     fun switchOff(context: Context) {
         SetupStore(context).userPaused = true
-        if (barManaged(context)) SecureSettingsAccess.setBarHidden(context, false)
+        if (barManaged(context)) SecureSettingsAccess.showBar(context)
         SecureSettingsAccess.setServiceEnabled(context, false)
     }
 
