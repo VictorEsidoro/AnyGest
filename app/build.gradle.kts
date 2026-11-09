@@ -35,7 +35,7 @@ android {
         minSdk = 30
         targetSdk = 37
         versionCode = 50
-        versionName = "4.4.1-test.2"
+        versionName = "4.4.1"
     }
 
     // android.keystore and .env are both gitignored. Missing either degrades to an
