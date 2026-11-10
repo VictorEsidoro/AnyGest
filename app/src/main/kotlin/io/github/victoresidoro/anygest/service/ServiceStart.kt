@@ -1,0 +1,33 @@
+// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+//
+// This file is part of AnyGest, based on HyperGesture.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+package io.github.victoresidoro.anygest.service
+
+/** Why the accessibility service is starting, in the words the pause notes use. */
+internal object ServiceStart {
+
+    /**
+     * [wasUp] is the flag a clean unbind clears, so finding it still set means the process
+     * died without a callback. Installing an update does exactly that, and is told apart by
+     * the package's update time having moved since the last start.
+     */
+    fun note(wasUp: Boolean, lastUpdateSeen: Long, updatedAt: Long): String = when {
+        !wasUp -> "service connected"
+        updatedAt != 0L && updatedAt != lastUpdateSeen -> "service started after an app update"
+        else -> "service started after an unclean stop (process killed?)"
+    }
+}

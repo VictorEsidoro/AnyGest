@@ -4,6 +4,26 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.4.2
+
+### Changed
+
+- The service log tells an app update apart from the system killing the app: "service started after an app update" instead of the "unclean stop" line every time a new version was installed.
+- When gesture navigation is put back, the log says whether the button bar was AnyGest's own doing (a pause) or the system's, and for the system's it names the app that was in front.
+- When the edge strips are released by the safety check, the log adds the last touch seen, the screen orientation and the app in front.
+- The log keeps 30 lines instead of 20.
+- README: the edge animation, the landscape double swipe, the side edges, Pause 10 min and Copy log are now described.
+
+### Português
+
+#### Alterado
+
+- O registro do serviço separa uma atualização do app de o sistema ter encerrado o app: "service started after an app update" no lugar da linha de "unclean stop" a cada versão nova instalada.
+- Quando a navegação por gestos é recolocada, o registro diz se a barra de botões tinha sido mostrada pelo próprio AnyGest (uma pausa) ou pelo sistema, e no segundo caso informa o app que estava na frente.
+- Quando as faixas das bordas são liberadas pela trava de segurança, o registro traz o último toque visto, a orientação da tela e o app na frente.
+- O registro guarda 30 linhas em vez de 20.
+- README: a animação nas bordas, o deslize duplo em paisagem, as bordas laterais, o Pausar 10 min e o Copiar log agora estão descritos.
+
 ## 4.4.1
 
 ### Fixed

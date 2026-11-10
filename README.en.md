@@ -60,6 +60,16 @@ Also:
 - **Second Control Center shortcut, for navigation**: if the button bar ever comes back on its
   own, opens HyperOS's navigation-mode screen in one tap. It can't switch the mode itself —
   that is restricted to the system — it just saves the hunt.
+- **Animation on the edges** *(optional, off by default)*: a shape that follows your finger and
+  shows the gesture is about to fire — **Lens**, **Lens with arrow**, or a subtle light or dark
+  **dot** hugging the edge.
+- **Swipe up twice to leave a landscape app**: with the screen in landscape, the first swipe
+  only shows a hint and the second one acts, so a game or a video does not close by accident.
+- **Side edges made to measure**: length and position (top, centre or bottom), so the back
+  gesture does not fight what the app keeps at its side.
+- **Extra click when the gesture fires**, on top of the buzz when it arms.
+- **Pause 10 min** straight from the notification, with the gestures coming back by themselves.
+- **Copy log** in Diagnostics: one tap copies the service state to paste into a problem report.
 - **Credits** inside the app, and releases published here with the `.apk` attached directly, no
   zip.
 
@@ -254,8 +264,8 @@ The home screen fits on one screen: a **search box** at the top, then **First st
 | **AnyGest in Recents** | Shows or hides the AnyGest card in Recents, so clearing Recents does not end it by accident. With **Keep gestures alive** on, the app is protected even while it shows there. |
 | **Keep gestures alive** | Optional, off by default. Runs AnyGest as a foreground service, which HyperOS does not end when you swipe the card away in Recents. Android requires a notification for it: it is silent and has no status bar icon, and in ADB mode it has Pause, Pause 10 min (switches back on by itself) and Switch on buttons. To hide it use **Hide notification** on the card: only it goes away and the app keeps running; turning off *all* AnyGest notifications also works, but it silences the stopped-gestures alerts too. |
 | **App language** | Automatic, Português (Brasil) or English (Android 13 or newer). |
-| **Gesture settings** | Widths, distances, times and vibration (light, normal or strong). Also exports and imports the settings to a file, to keep or move to another phone. Collapsed by default so a stray tap changes nothing. |
-| **Diagnostics** | Device details and the last error. Useful for reporting problems — nothing leaves the phone. |
+| **Gesture settings** | Widths, distances, times and vibration (light, normal or strong, with an optional extra click on firing), the length and position of the side edges, the **Animation on the edges** and **Swipe up twice to leave a landscape app**. **Reset to defaults** puts back only these settings and leaves the rest of the app alone. Also exports and imports the settings to a file, to keep or move to another phone. Collapsed by default so a stray tap changes nothing. |
+| **Diagnostics** | Device details, the last error and the record of what the service did (pauses, restarts, releases). The **Copy log** button, at the top, copies it all to paste into a problem report — nothing leaves the phone unless you paste it. |
 | **Credits** | Who made the app and where each part comes from. |
 | **The shortcut itself** (in the Control Center) | Outside the app: shows whether gestures are running and opens Accessibility if not. With ADB mode it switches the gestures on and off. |
 
@@ -296,13 +306,14 @@ The home screen fits on one screen: a **search box** at the top, then **First st
 | Gestures stop on their own / Accessibility turns off | Check the battery, autostart and Lock in Recents items in First steps. If you see "This service is malfunctioning", turn AnyGest off and on again in Accessibility. |
 | Gestures stop for a moment and, in ADB mode, the button bar stays hidden | You probably **swiped the AnyGest card up in Recents**, which ends the app. After that nothing in the app can run, and Android may not restart the service by itself. Avoid swiping that card, hide AnyGest from Recents with the **AnyGest in Recents** card, or turn on **Keep gestures alive**, which prevents it from ending. If the gestures do not come back, open the app or pull down the tile panel: with ADB mode the bar returns and the gestures are switched back on. Diagnostics shows in its log what happened. |
 | I want to be told when the gestures stop or the bar comes back | Turn on the **Alerts** card in the app (it starts off). Android 13+ asks for the notification permission right then. The alert only takes you to the screen that fixes it; actually turning things back on is still a tap from you. |
-| An app closes saying an accessibility service is on | Set up **ADB mode** (Step 6) and add the app to the **Exception apps** list: AnyGest switches itself off while it is open and returns when you leave. It is experimental and works around that app's check on purpose; read the warning in the card and that app's own terms before using it. |
+| An app closes saying an accessibility service is on | Set up **ADB mode** (Step 6) and add the app to the **Exception apps** list: AnyGest switches itself off while it is open, the button bar shows up so you can navigate, and everything returns when you leave. It is experimental and works around that app's check on purpose; read the warning in the card and that app's own terms before using it. |
 | Gestures stopped and the button bar is hidden | Swipe down from the top to open the Control Center and tap the AnyGest shortcut: it opens Accessibility so you can turn it back on. With **ADB mode** and **alerts** on, the gestures-stopped notification has a **Switch back on** button that does it directly. |
 | The button bar came back on its own, but gestures are still on | HyperOS switched the navigation mode by itself (common with third-party launchers). With **ADB mode** and *Keep the button bar hidden* on, AnyGest puts gestures back by itself (to change the mode by hand, turn that switch off first). Without ADB mode, tap the second Control Center shortcut (navigation) to jump straight to that screen and pick gesture navigation again. |
 | Circle to Search doesn't open | Check that Google is the **digital assistant app**. The reason appears under **Diagnostics → Last failure**. |
 | Each gesture seems to fire twice | The old HyperGesture is probably still installed and turned on. Uninstall it: AnyGest is a separate app and does not replace it by itself. |
 | A long press on the edge opens Circle to Search by accident | It only counts in the middle, over the handle. If it still gets in the way, turn off **Use the system touch and hold delay** and raise the manual time. |
 | Taps near the bottom edge feel slightly slow | Expected: the app has to briefly hold each edge touch to see whether it becomes a gesture. Lowering the **Edge activation width** shrinks the affected area. |
+| A landscape app (game, video) closes on an accidental swipe | Turn on **Swipe up twice to leave a landscape app** in **Gesture settings**: in landscape, the first swipe only warns. |
 | A gesture fires by accident or won't fire | Adjust that edge's swipe distance in **Gesture settings**. |
 
 ---

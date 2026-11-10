@@ -102,7 +102,22 @@ internal class SetupStore(context: Context) {
         get() = preferences.getBoolean(KEY_SERVICE_UP, false)
         set(value) = preferences.edit { putBoolean(KEY_SERVICE_UP, value) }
 
-    /** Whether AnyGest's own screen shows up in Recents, where a swipe would end the app. */
+    /**
+     * When the installed package was last updated, as seen at the previous service start.
+     * Installing an update kills the process too, and that is not a fault to report.
+     */
+    var lastUpdateSeen: Long
+        get() = preferences.getLong(KEY_LAST_UPDATE_SEEN, 0L)
+        set(value) = preferences.edit { putLong(KEY_LAST_UPDATE_SEEN, value) }
+
+    /**
+     * Set when AnyGest itself switched the system to the button bar (a pause, the off
+     * switch), so putting gesture navigation back is not blamed on the system.
+     */
+    var buttonsByAnyGest: Boolean
+        get() = preferences.getBoolean(KEY_BUTTONS_BY_ANYGEST, false)
+        set(value) = preferences.edit { putBoolean(KEY_BUTTONS_BY_ANYGEST, value) }
+
     /** When the "pause for 10 minutes" countdown ends (epoch ms); 0 when none runs. */
     var timedPauseEndsAt: Long
         get() = preferences.getLong(KEY_TIMED_PAUSE, 0L)
@@ -130,10 +145,12 @@ internal class SetupStore(context: Context) {
     private companion object {
         const val FILE = "setup"
         const val KEY_PAUSE_NOTES = "pause_notes"
-        const val MAX_NOTES = 20
+        const val MAX_NOTES = 30
         const val KEY_PAUSED_FOR_APP = "paused_for_app"
         const val KEY_USER_PAUSED = "user_paused"
         const val KEY_SERVICE_UP = "service_up"
+        const val KEY_LAST_UPDATE_SEEN = "last_update_seen"
+        const val KEY_BUTTONS_BY_ANYGEST = "buttons_by_anygest"
         const val KEY_SHOW_IN_RECENTS = "show_in_recents"
         const val KEY_KEEP_ALIVE = "keep_alive"
         const val KEY_TIMED_PAUSE = "timed_pause_ends_at"

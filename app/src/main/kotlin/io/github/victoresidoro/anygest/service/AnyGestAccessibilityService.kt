@@ -153,8 +153,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         super.onServiceConnected()
         instance = this
         SetupStore(this).let { store ->
-            if (store.serviceUp) store.note("service started after an unclean stop (process killed?)")
-            else store.note("service connected")
+            val updatedAt = runCatching {
+                packageManager.getPackageInfo(packageName, 0).lastUpdateTime
+            }.getOrDefault(0L)
+            store.note(ServiceStart.note(store.serviceUp, store.lastUpdateSeen, updatedAt))
+            store.lastUpdateSeen = updatedAt
             store.serviceUp = true
         }
         RecoveryJob.schedule(this)
@@ -364,11 +367,22 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val store = SetupStore(this)
         if (store.pausedForApp != null || store.userPaused) return false
         if (!GesturePower.barManaged(this)) return false
-        if (SecureSettingsAccess.gestureModeOn(this) != false) return false
+        if (SecureSettingsAccess.gestureModeOn(this) != false) {
+            // Already on gestures (the user or the system put them back): nothing of ours is left.
+            if (store.buttonsByAnyGest) store.buttonsByAnyGest = false
+            return false
+        }
+        // The button bar AnyGest itself brought back for a pause is not the system's doing.
+        val ours = store.buttonsByAnyGest
+        store.buttonsByAnyGest = false
         val restored = SecureSettingsAccess.setGestureMode(this)
         store.note(
-            if (restored) "navigation mode was reset by the system, gestures put back"
-            else "could not put gesture navigation back",
+            when {
+                !restored -> "could not put gesture navigation back"
+                ours -> "gesture navigation put back after AnyGest's own button bar"
+                else -> "navigation mode was reset by the system, gestures put back " +
+                    "(front: ${ForegroundApp.current(this, RESET_LOOKBACK_MS)})"
+            },
         )
         return restored
     }
@@ -582,6 +596,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         private const val WINDOW_SETTLE_MS = 65L
 
         private const val FINISH_GRACE_MS = 1_000L
+
+        /** How far back to look for the app in front when the system resets the navigation. */
+        private const val RESET_LOOKBACK_MS = 60_000L
 
         /** The longest a replay keeps the strips held after the finger is gone. */
         internal const val LONGEST_REPLAY_HOLD_MS = MAX_REPLAY_MS + WINDOW_SETTLE_MS + FINISH_GRACE_MS

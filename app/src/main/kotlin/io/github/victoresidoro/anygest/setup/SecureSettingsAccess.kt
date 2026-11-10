@@ -79,7 +79,10 @@ internal object SecureSettingsAccess {
     fun showBar(context: Context): Boolean {
         val written = setBarHidden(context, false)
         if (written && gestureModeOn(context) == true) {
-            runCatching { Settings.Secure.putInt(context.contentResolver, NAVIGATION_MODE, BUTTON_MODE) }
+            val switched = runCatching {
+                Settings.Secure.putInt(context.contentResolver, NAVIGATION_MODE, BUTTON_MODE)
+            }.getOrDefault(false)
+            if (switched) SetupStore(context).buttonsByAnyGest = true
         }
         return written
     }
