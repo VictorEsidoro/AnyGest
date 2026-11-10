@@ -487,7 +487,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
      * its own duration already counted toward the asynchronous window update and only the
      * remainder of [WINDOW_SETTLE_MS] still has to be waited out.
      */
-    override fun replay(samples: List<TouchSample>, onDone: () -> Unit): Boolean {
+    override fun replay(samples: List<TouchSample>, minSettleMs: Long, onDone: () -> Unit): Boolean {
         if (samples.isEmpty()) return false
 
         val first = samples.first()
@@ -526,7 +526,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             return false
         }
 
-        val settleDelayMs = (WINDOW_SETTLE_MS - rawDurationMs).coerceAtLeast(0L)
+        // [minSettleMs] is for strips that were touchable until just now (a rested touch):
+        // the touch's own duration bought them no time to turn inert.
+        val settleDelayMs = (WINDOW_SETTLE_MS - rawDurationMs).coerceAtLeast(minSettleMs)
         var finished = false
         val finish = Runnable {
             if (!finished) {
@@ -593,7 +595,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
          * Grace for the non-touchable + alpha-0 update to reach the input pipeline, so the
          * injected touch is not discarded as obscured.
          */
-        private const val WINDOW_SETTLE_MS = 65L
+        internal const val WINDOW_SETTLE_MS = 65L
 
         private const val FINISH_GRACE_MS = 1_000L
 

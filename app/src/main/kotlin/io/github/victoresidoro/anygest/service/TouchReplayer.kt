@@ -27,5 +27,5 @@ import io.github.victoresidoro.anygest.gesture.TouchSample
 internal fun interface TouchReplayer {
 
     /** [samples] are display coordinates, oldest first. */
-    fun replay(samples: List<TouchSample>, onDone: () -> Unit): Boolean
+    fun replay(samples: List<TouchSample>, minSettleMs: Long, onDone: () -> Unit): Boolean
 }

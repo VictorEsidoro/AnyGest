@@ -80,7 +80,7 @@ internal class EdgeTouchOverlay(
      * while the service still looks healthy, so a stream that goes quiet for too long is
      * released. Tokens keep a late release of an old stream from touching a new one.
      */
-    private val hold = StreamHold(STUCK_STREAM_MS, REPLAY_STUCK_STREAM_MS)
+    private val hold = StreamHold(STUCK_STREAM_MS, REPLAY_STUCK_STREAM_MS, RESTING_TOUCH_MS)
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -184,6 +184,7 @@ internal class EdgeTouchOverlay(
             onUnused = { stream, samples -> onUnused(edge, stream, samples) },
             onStreamEnd = { stream -> endStream(edge, stream) },
             onTrace = { lastTouch = it },
+            onEngaged = hold::engage,
         )
         val params = paramsFor(edge, configuration, geometry)
         runCatching {
@@ -312,14 +313,21 @@ internal class EdgeTouchOverlay(
         if (!hold.isCurrent(stream)) return
         confirmation.onReplayed(edge)
         syncPill(immediate = true)
-        if (!hold.mayReplay(stream)) {
+        // A replay sends no touch events to the strips, so it counts as activity itself.
+        val settleMs = hold.resumeForReplay(
+            stream,
+            SystemClock.uptimeMillis(),
+            AnyGestAccessibilityService.WINDOW_SETTLE_MS,
+            MAX_RESTED_REPLAY_MS,
+        )
+        if (settleMs == null) {
             releaseStream(stream)
             return
         }
-        // A replay sends no touch events to the strips, so it counts as activity itself.
-        hold.touch(stream, SystemClock.uptimeMillis())
+        // A rested stream was just held again, so the strips have to turn inert now.
+        if (settleMs > 0L) applyInteractivity()
         scheduleStuckCheck()
-        val dispatched = replayer.replay(samples) { releaseStream(stream) }
+        val dispatched = replayer.replay(samples, settleMs) { releaseStream(stream) }
         if (!dispatched) releaseStream(stream)
     }
 
@@ -343,6 +351,16 @@ internal class EdgeTouchOverlay(
             scheduleStuckCheck()
             return
         }
+        if (hold.rested) {
+            // Nothing was showing for a touch that never armed, and nothing is wrong.
+            Log.d(TAG, "resting touch, strips given back after ${quietMs}ms ($lastTouch)")
+            if (now - lastRestingNoteMs >= RESTING_NOTE_GAP_MS) {
+                lastRestingNoteMs = now
+                SetupStore(context).note("resting touch, strips given back after ${quietMs}ms: $lastTouch")
+            }
+            applyInteractivity()
+            return
+        }
         bellies.values.forEach(BackBellyOverlay::hide)
         drops.values.forEach(EdgeIndicatorOverlay::hide)
         report("strips were stuck inert, released after ${quietMs}ms without a touch (replay: $replaying)")
@@ -354,6 +372,7 @@ internal class EdgeTouchOverlay(
 
     /** The newest touch event any strip saw, kept only to explain a stuck stream. */
     private var lastTouch = "none"
+    private var lastRestingNoteMs = -RESTING_NOTE_GAP_MS
     private var landscape = false
 
     private fun report(message: String) {
@@ -397,6 +416,7 @@ internal class EdgeTouchOverlay(
         private val onUnused: (Long, List<TouchSample>) -> Unit,
         private val onStreamEnd: (Long) -> Unit,
         private val onTrace: (String) -> Unit,
+        private val onEngaged: (Long) -> Unit,
     ) : View(context) {
 
         private var stream = 0L
@@ -498,10 +518,12 @@ internal class EdgeTouchOverlay(
             when (action) {
                 is TrackerAction.None -> Unit
                 is TrackerAction.ScheduleLongPress -> {
+                    onEngaged(stream)
                     removeCallbacks(longPressRunnable)
                     postDelayed(longPressRunnable, action.delayMs)
                 }
                 is TrackerAction.Armed -> {
+                    onEngaged(stream)
                     // A swipe is under way, so this touch can no longer be a long press.
                     removeCallbacks(longPressRunnable)
                     Log.d(TAG, "$edge armed (hold=${action.scheduleHoldMs})")
@@ -613,6 +635,19 @@ internal class EdgeTouchOverlay(
          * dead for seconds.
          */
         const val STUCK_STREAM_MS = 2_000L
+
+        /**
+         * A touch that sends nothing for this long and never armed is a finger or palm
+         * resting on the edge while the phone is held. The other strips must not stay dead
+         * for it, so they are given back this soon.
+         */
+        const val RESTING_TOUCH_MS = 500L
+
+        /** A rested touch released within this long was a press for the app, and is replayed. */
+        const val MAX_RESTED_REPLAY_MS = 2_000L
+
+        /** At most one note per this long about resting touches, which can be frequent. */
+        private const val RESTING_NOTE_GAP_MS = 5 * 60_000L
 
         private const val FOREGROUND_LOOKBACK_MS = 30_000L
 

@@ -6,6 +6,10 @@ Versões em português logo abaixo de cada versão.
 
 ## 4.4.2
 
+### Fixed
+
+- A finger or palm resting on an edge while holding the phone (watching a video, scrolling with the other hand) left every edge without gestures for up to 2 seconds. A touch that stays still and never becomes a gesture now gives the other edges back after half a second, and no longer takes them again if it twitches. A press released within 2 seconds is still passed on to the app underneath.
+
 ### Changed
 
 - The service log tells an app update apart from the system killing the app: "service started after an app update" instead of the "unclean stop" line every time a new version was installed.
@@ -15,6 +19,10 @@ Versões em português logo abaixo de cada versão.
 - README: the edge animation, the landscape double swipe, the side edges, Pause 10 min and Copy log are now described.
 
 ### Português
+
+#### Corrigido
+
+- Um dedo ou a palma apoiados numa borda ao segurar o celular (vendo um vídeo, rolando com a outra mão) deixavam todas as bordas sem gestos por até 2 segundos. Um toque que fica parado e não vira gesto agora devolve as outras bordas depois de meio segundo, e não as toma de novo se tremer. Um toque solto em até 2 segundos continua sendo repassado ao app de baixo.
 
 #### Alterado
 
