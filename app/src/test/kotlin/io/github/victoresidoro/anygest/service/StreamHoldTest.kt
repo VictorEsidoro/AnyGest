@@ -55,9 +55,10 @@ class StreamHoldTest {
     }
 
     @Test
-    fun `a touch after an expiry holds again and forbids a replay`() {
+    fun `an armed touch after an expiry holds again and forbids a replay`() {
         val hold = StreamHold(5_000)
         val stream = hold.start(0)
+        hold.engage(stream)
         assertTrue(hold.expire(5_000))
         assertTrue(hold.activity(stream, 6_000))
         assertTrue(hold.held)
