@@ -8,7 +8,7 @@ Versões em português logo abaixo de cada versão.
 
 ### Fixed
 
-- A finger or palm resting on an edge while holding the phone (watching a video, scrolling with the other hand) left every edge without gestures for up to 2 seconds. A touch that stays still and never becomes a gesture now gives the other edges back after half a second, and no longer takes them again if it twitches. A press released within 2 seconds is still passed on to the app underneath.
+- An attempt to fix the intermittent "no edge responds for a few seconds" problem, which could not be reproduced. The suspected cause, not yet confirmed: a finger or palm resting on an edge while holding the phone (watching a video, scrolling with the other hand) left every edge without gestures for up to 2 seconds. A touch that stays still and never becomes a gesture now gives the other edges back after half a second, and no longer takes them again if it twitches. A press released within 2 seconds is still passed on to the app underneath.
 
 ### Changed
 
@@ -22,7 +22,7 @@ Versões em português logo abaixo de cada versão.
 
 #### Corrigido
 
-- Um dedo ou a palma apoiados numa borda ao segurar o celular (vendo um vídeo, rolando com a outra mão) deixavam todas as bordas sem gestos por até 2 segundos. Um toque que fica parado e não vira gesto agora devolve as outras bordas depois de meio segundo, e não as toma de novo se tremer. Um toque solto em até 2 segundos continua sendo repassado ao app de baixo.
+- Tentativa de corrigir o problema intermitente de "nenhuma borda responde por alguns segundos", que não foi possível reproduzir. A causa suspeita, ainda não confirmada: um dedo ou a palma apoiados numa borda ao segurar o celular (vendo um vídeo, rolando com a outra mão) deixavam todas as bordas sem gestos por até 2 segundos. Um toque que fica parado e não vira gesto agora devolve as outras bordas depois de meio segundo, e não as toma de novo se tremer. Um toque solto em até 2 segundos continua sendo repassado ao app de baixo.
 
 #### Alterado
 
