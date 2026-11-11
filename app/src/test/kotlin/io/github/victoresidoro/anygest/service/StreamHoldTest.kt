@@ -167,4 +167,49 @@ class StreamHoldTest {
         assertNull(hold.resumeForReplay(old, 800, settleMs = 65, maxRestedTouchMs = 2_000))
         assertEquals(0L, hold.resumeForReplay(fresh, 800, settleMs = 65, maxRestedTouchMs = 2_000))
     }
+
+    @Test
+    fun `a pending long press protects the strips only for its wait plus the rest limit`() {
+        val hold = resting()
+        val stream = hold.start(0)
+        hold.awaitLongPress(stream, 450)
+        assertEquals(950L, hold.deadlineMs)
+        assertFalse(hold.expire(949))
+        assertTrue(hold.expire(950))
+        assertTrue(hold.rested)
+    }
+
+    @Test
+    fun `a touch that lost its release after waiting for a long press is a resting touch`() {
+        val hold = resting()
+        val stream = hold.start(0)
+        hold.awaitLongPress(stream, 500)
+        assertTrue(hold.expire(1_000))
+        assertTrue(hold.rested)
+        assertFalse(hold.activity(stream, 1_100))
+    }
+
+    @Test
+    fun `a long press that fired keeps the quiet limit`() {
+        val hold = resting()
+        val stream = hold.start(0)
+        hold.awaitLongPress(stream, 450)
+        hold.engage(stream)
+        assertEquals(2_000L, hold.deadlineMs)
+        assertFalse(hold.expire(1_999))
+        assertFalse(hold.rested)
+    }
+
+    @Test
+    fun `a long press wait of an old touch does not carry over to the next`() {
+        val hold = resting()
+        val old = hold.start(0)
+        hold.awaitLongPress(old, 450)
+        val fresh = hold.start(100)
+        assertNull(hold.longPressWaitMs)
+        assertEquals(600L, hold.deadlineMs)
+        hold.awaitLongPress(old, 450)
+        assertNull(hold.longPressWaitMs)
+        assertTrue(hold.isCurrent(fresh))
+    }
 }

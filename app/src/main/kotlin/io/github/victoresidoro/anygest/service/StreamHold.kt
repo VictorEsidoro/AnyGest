@@ -37,6 +37,14 @@ internal class StreamHold(
     private var engaged = false
 
     /**
+     * How long the touch waits to become a long press, while it still may. The long press fires
+     * at that time or never, so it protects the strips for that long plus [restLimitMs]: a
+     * finger that stays still past it, or one whose release was lost, is a resting touch too.
+     */
+    var longPressWaitMs: Long? = null
+        private set
+
+    /**
      * The stream was given back while resting. It is not held again by its later events:
      * holding only serves a replay, so a resting grip that twitches must not turn every
      * strip inert again. [resumeForReplay] takes it back if its release is to be replayed.
@@ -66,7 +74,7 @@ internal class StreamHold(
             val limit = when {
                 replaying -> replayLimitMs
                 engaged -> quietLimitMs
-                else -> restLimitMs
+                else -> restLimitMs + (longPressWaitMs ?: 0L)
             }
             return lastActivityMs + limit
         }
@@ -77,6 +85,7 @@ internal class StreamHold(
         reheld = false
         replaying = false
         engaged = false
+        longPressWaitMs = null
         rested = false
         startMs = nowMs
         lastActivityMs = nowMs
@@ -101,9 +110,17 @@ internal class StreamHold(
         return true
     }
 
-    /** The touch of [streamToken] armed a gesture or is waiting to become a long press. */
+    /** The touch of [streamToken] armed a swipe or fired a gesture, so it is no resting touch. */
     fun engage(streamToken: Long) {
         if (isCurrent(streamToken)) engaged = true
+    }
+
+    /**
+     * The touch of [streamToken] is over the handle and fires a long press after [waitMs] if
+     * it stays put. Past that it is a resting touch like any other, even when no release came.
+     */
+    fun awaitLongPress(streamToken: Long, waitMs: Long) {
+        if (isCurrent(streamToken)) longPressWaitMs = waitMs
     }
 
     /**

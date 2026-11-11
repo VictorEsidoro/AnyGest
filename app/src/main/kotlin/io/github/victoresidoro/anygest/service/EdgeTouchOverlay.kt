@@ -185,6 +185,7 @@ internal class EdgeTouchOverlay(
             onStreamEnd = { stream -> endStream(edge, stream) },
             onTrace = { lastTouch = it },
             onEngaged = hold::engage,
+            onLongPressPending = hold::awaitLongPress,
         )
         val params = paramsFor(edge, configuration, geometry)
         runCatching {
@@ -353,10 +354,11 @@ internal class EdgeTouchOverlay(
         }
         if (hold.rested) {
             // Nothing was showing for a touch that never armed, and nothing is wrong.
-            Log.d(TAG, "resting touch, strips given back after ${quietMs}ms ($lastTouch)")
+            val longPress = hold.longPressWaitMs?.let { " (long press waited ${it}ms, nothing fired)" } ?: ""
+            Log.d(TAG, "resting touch, strips given back after ${quietMs}ms$longPress ($lastTouch)")
             if (now - lastRestingNoteMs >= RESTING_NOTE_GAP_MS) {
                 lastRestingNoteMs = now
-                SetupStore(context).note("resting touch, strips given back after ${quietMs}ms: $lastTouch")
+                SetupStore(context).note("resting touch, strips given back after ${quietMs}ms$longPress: $lastTouch")
             }
             applyInteractivity()
             return
@@ -417,6 +419,7 @@ internal class EdgeTouchOverlay(
         private val onStreamEnd: (Long) -> Unit,
         private val onTrace: (String) -> Unit,
         private val onEngaged: (Long) -> Unit,
+        private val onLongPressPending: (Long, Long) -> Unit,
     ) : View(context) {
 
         private var stream = 0L
@@ -518,7 +521,7 @@ internal class EdgeTouchOverlay(
             when (action) {
                 is TrackerAction.None -> Unit
                 is TrackerAction.ScheduleLongPress -> {
-                    onEngaged(stream)
+                    onLongPressPending(stream, action.delayMs)
                     removeCallbacks(longPressRunnable)
                     postDelayed(longPressRunnable, action.delayMs)
                 }
@@ -536,6 +539,8 @@ internal class EdgeTouchOverlay(
                     postDelayed(holdRunnable, action.delayMs)
                 }
                 is TrackerAction.Fire -> {
+                    // A fired gesture is no resting touch, whatever came before it.
+                    onEngaged(stream)
                     cancelHold()
                     // Held back behind the landscape pill: nothing fires, and the buzz is a
                     // lighter one, since nothing happened yet.

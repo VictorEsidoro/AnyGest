@@ -4,6 +4,26 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.4.3
+
+### Fixed
+
+- The edges stayed without gestures for 2 seconds after a touch on the middle of the bottom edge (the handle) that sent nothing more. The log of a real case showed it: a touch down on the handle, no movement, no release, and Circle to Search never opened. A touch waiting to become a long press now protects the strips only for the long-press time plus half a second; after that it counts as a resting touch and gives the edges back, whether the finger stayed still or its release was lost. A long press that does fire keeps working as before.
+
+### Changed
+
+- The "resting touch" log line says when a long press was being waited for and nothing fired.
+
+### Português
+
+#### Corrigido
+
+- As bordas ficavam sem gestos por 2 segundos depois de um toque no meio da borda de baixo (a alça) que não mandava mais nada. O registro de um caso real mostrou: um toque que desceu na alça, sem movimento, sem soltar, e o Circule para pesquisar não abriu. Um toque que espera virar toque longo agora protege as faixas só pelo tempo do toque longo mais meio segundo; depois disso conta como toque em repouso e devolve as bordas, tenha o dedo ficado parado ou se perdido o evento de soltar. Um toque longo que dispara continua funcionando como antes.
+
+#### Alterado
+
+- A linha "resting touch" do registro diz quando um toque longo estava sendo esperado e nada disparou.
+
 ## 4.4.2
 
 ### Fixed
