@@ -9,12 +9,16 @@ Versões em português logo abaixo de cada versão.
 ### Changed
 
 - The pause notes now say which launcher answers Home when the system resets the navigation mode, and note installs, updates and removals of other apps and changes of default apps, each with the launcher at that moment. HyperOS can send Home to its own launcher while a third-party one is the default, and a launcher such as Nova may warn about it; the notes show what happened just before.
+- Every line of the pause notes now carries the date (`MM-dd HH:mm:ss`), and the notes keep 60 lines instead of 30: a bad incident writes about 15 lines in a second, and the start of one was cut off the copied log.
+- When the accessibility list changes with the service off, the note says whether the accessibility switch is on, whether AnyGest is still listed and which other services are, to show what else may have rewritten it.
 
 ### Português
 
 #### Alterado
 
 - O registro das pausas agora diz qual launcher atende o Início quando o sistema redefine o modo de navegação, e anota instalações, atualizações e remoções de outros apps e mudanças de apps padrão, cada uma com o launcher naquele momento. O HyperOS pode mandar o Início para o launcher dele mesmo com um de terceiros como padrão, e um launcher como o Nova pode avisar disso; o registro mostra o que aconteceu um pouco antes.
+- Cada linha do registro das pausas agora traz a data (`MM-dd HH:mm:ss`), e o registro guarda 60 linhas em vez de 30: um incidente ruim escreve umas 15 linhas em um segundo, e o começo de um foi cortado do log copiado.
+- Quando a lista de acessibilidade muda com o serviço desligado, a anotação diz se a chave de acessibilidade está ligada, se o AnyGest ainda está na lista e quais outros serviços estão, para mostrar o que mais pode ter reescrito a lista.
 
 ## 4.4.3
 

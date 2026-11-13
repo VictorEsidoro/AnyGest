@@ -40,7 +40,13 @@ class RecoveryJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         val store = SetupStore(this)
         if (!DiagnosticsCollector.isAccessibilityServiceEnabled(this)) {
-            store.note("job: the accessibility list changed with the service off")
+            val raw = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            val flag = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, -1)
+                .takeIf { it >= 0 }
+            store.note(
+                "job: the accessibility list changed with the service off (" +
+                    AccessibilityListState.describe(raw, flag, packageName) + ")",
+            )
         }
         GesturePower.restoreIfNeeded(this)
         // A content trigger fires once; the next change needs a fresh schedule.

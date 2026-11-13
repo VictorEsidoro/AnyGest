@@ -89,7 +89,7 @@ internal class SetupStore(context: Context) {
         }
 
     fun note(text: String) {
-        val stamp = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
+        val stamp = SimpleDateFormat("MM-dd HH:mm:ss", Locale.US).format(Date())
         val older = pauseNotes?.lines().orEmpty()
         pauseNotes = (listOf("$stamp $text") + older).take(MAX_NOTES).joinToString("\n")
     }
@@ -145,7 +145,8 @@ internal class SetupStore(context: Context) {
     private companion object {
         const val FILE = "setup"
         const val KEY_PAUSE_NOTES = "pause_notes"
-        const val MAX_NOTES = 30
+        // A bad incident writes 15 lines in a second; 30 cut its start off the copied log.
+        const val MAX_NOTES = 60
         const val KEY_PAUSED_FOR_APP = "paused_for_app"
         const val KEY_USER_PAUSED = "user_paused"
         const val KEY_SERVICE_UP = "service_up"
