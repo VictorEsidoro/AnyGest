@@ -4,6 +4,18 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 4.4.4
+
+### Changed
+
+- The pause notes now say which launcher answers Home when the system resets the navigation mode, and note installs, updates and removals of other apps and changes of default apps, each with the launcher at that moment. HyperOS can send Home to its own launcher while a third-party one is the default, and a launcher such as Nova may warn about it; the notes show what happened just before.
+
+### Português
+
+#### Alterado
+
+- O registro das pausas agora diz qual launcher atende o Início quando o sistema redefine o modo de navegação, e anota instalações, atualizações e remoções de outros apps e mudanças de apps padrão, cada uma com o launcher naquele momento. O HyperOS pode mandar o Início para o launcher dele mesmo com um de terceiros como padrão, e um launcher como o Nova pode avisar disso; o registro mostra o que aconteceu um pouco antes.
+
 ## 4.4.3
 
 ### Fixed

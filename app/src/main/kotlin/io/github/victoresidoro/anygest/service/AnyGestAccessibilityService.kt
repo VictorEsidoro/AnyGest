@@ -171,6 +171,27 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         GestureTileService.requestRefresh(this)
     }
 
+    // Only a note: it shows whether a reset or a launcher warning follows an install or a change of default.
+    private val packageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+            val event = when (intent.action) {
+                Intent.ACTION_PACKAGE_ADDED -> if (replacing) null else PackageEvent.Installed
+                Intent.ACTION_PACKAGE_REPLACED -> PackageEvent.Updated
+                Intent.ACTION_PACKAGE_REMOVED -> if (replacing) null else PackageEvent.Removed
+                else -> null
+            } ?: return
+            LauncherWatch.packageNote(
+                event, intent.data?.schemeSpecificPart, packageName, LauncherWatch.homeLauncher(context),
+            )?.let { SetupStore(context).note(it) }
+        }
+    }
+    private val defaultsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            SetupStore(context).note(LauncherWatch.defaultsNote(LauncherWatch.homeLauncher(context)))
+        }
+    }
+
     private fun onNavigationModeChanged() {
         val current = NavigationModeReader.read(this)
         if (initialChecked && current != NavigationMode.GESTURAL && keepGestureMode()) {
@@ -209,6 +230,23 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_SCREEN_OFF)
             },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        ContextCompat.registerReceiver(
+            this,
+            packageReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                addAction(Intent.ACTION_PACKAGE_REPLACED)
+                addAction(Intent.ACTION_PACKAGE_REMOVED)
+                addDataScheme("package")
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        ContextCompat.registerReceiver(
+            this,
+            defaultsReceiver,
+            IntentFilter("android.intent.action.ACTION_PREFERRED_ACTIVITY_CHANGED"),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
 
@@ -381,7 +419,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 !restored -> "could not put gesture navigation back"
                 ours -> "gesture navigation put back after AnyGest's own button bar"
                 else -> "navigation mode was reset by the system, gestures put back " +
-                    "(front: ${ForegroundApp.current(this, RESET_LOOKBACK_MS)})"
+                    "(front: ${ForegroundApp.current(this, RESET_LOOKBACK_MS)}, " +
+                    "home launcher: ${LauncherWatch.homeLauncher(this)})"
             },
         )
         return restored
@@ -469,6 +508,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         runCatching { contentResolver.unregisterContentObserver(barObserver) }
         stopPolling()
         runCatching { unregisterReceiver(screenReceiver) }
+        runCatching { unregisterReceiver(packageReceiver) }
+        runCatching { unregisterReceiver(defaultsReceiver) }
         initialChecked = false
         overlay?.remove()
         overlay = null
