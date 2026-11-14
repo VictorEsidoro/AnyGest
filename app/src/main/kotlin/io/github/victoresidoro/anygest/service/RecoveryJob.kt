@@ -39,7 +39,8 @@ class RecoveryJob : JobService() {
 
     override fun onStartJob(params: JobParameters?): Boolean {
         val store = SetupStore(this)
-        if (!DiagnosticsCollector.isAccessibilityServiceEnabled(this)) {
+        // An exception-app pause switches the service off on purpose; that is not a fault.
+        if (!DiagnosticsCollector.isAccessibilityServiceEnabled(this) && store.pausedForApp == null) {
             val raw = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
             val flag = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, -1)
                 .takeIf { it >= 0 }

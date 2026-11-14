@@ -11,6 +11,7 @@ Versões em português logo abaixo de cada versão.
 - When the system resets the navigation mode, the pause note now says which launcher answers Home and which apps were installed, updated or removed in the last 30 minutes (the newest three, then how many more). A change of default apps is noted on its own. HyperOS can send Home to its own launcher while a third-party one is the default, and a launcher such as Nova may warn about it; the note shows what happened just before. App changes are not logged one by one: the Play Store updates dozens of apps in a minute and that would push everything else out of the log.
 - Every line of the pause notes now carries the date (`MM-dd HH:mm:ss`), and the notes keep 60 lines instead of 30: a bad incident writes about 15 lines in a second, and the start of one was cut off the copied log.
 - When the accessibility list changes with the service off, the note says whether the accessibility switch is on, whether AnyGest is still listed and which other services are, to show what else may have rewritten it.
+- That note is no longer written while AnyGest is paused for an exception app, since the service is off on purpose then.
 
 ### Português
 
@@ -19,6 +20,7 @@ Versões em português logo abaixo de cada versão.
 - Quando o sistema redefine o modo de navegação, a anotação agora diz qual launcher atende o Início e quais apps foram instalados, atualizados ou removidos nos últimos 30 minutos (os três mais recentes e quantos mais houve). Uma mudança de apps padrão é anotada à parte. O HyperOS pode mandar o Início para o launcher dele mesmo com um de terceiros como padrão, e um launcher como o Nova pode avisar disso; a anotação mostra o que aconteceu um pouco antes. As mudanças de apps não são registradas uma a uma: a Play Store atualiza dezenas de apps em um minuto e isso empurraria o resto para fora do registro.
 - Cada linha do registro das pausas agora traz a data (`MM-dd HH:mm:ss`), e o registro guarda 60 linhas em vez de 30: um incidente ruim escreve umas 15 linhas em um segundo, e o começo de um foi cortado do log copiado.
 - Quando a lista de acessibilidade muda com o serviço desligado, a anotação diz se a chave de acessibilidade está ligada, se o AnyGest ainda está na lista e quais outros serviços estão, para mostrar o que mais pode ter reescrito a lista.
+- Essa anotação deixa de ser escrita enquanto o AnyGest está pausado por um app de exceção, já que o serviço está desligado de propósito nesse caso.
 
 ## 4.4.3
 
