@@ -18,38 +18,52 @@
 package io.github.victoresidoro.anygest.service
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class LauncherWatchTest {
 
     private val own = "io.github.victoresidoro.anygest"
+    private val minute = 60_000L
 
     @Test
-    fun `an installed app is noted with the launcher that answers Home`() {
+    fun `a quiet phone has no recent app changes`() {
+        assertEquals("none", RecentPackageChanges().describe(10 * minute))
+    }
+
+    @Test
+    fun `the newest change comes first with its age and kind`() {
+        val recent = RecentPackageChanges()
+        recent.add(PackageEvent.Installed, "com.a", own, 0)
+        recent.add(PackageEvent.Updated, "com.b", own, 2 * minute)
+        assertEquals("com.b updated 3m ago, com.a installed 5m ago", recent.describe(5 * minute))
+    }
+
+    @Test
+    fun `a batch of updates is summed up instead of listed`() {
+        val recent = RecentPackageChanges()
+        repeat(25) { recent.add(PackageEvent.Updated, "com.app$it", own, it * 1_000L) }
         assertEquals(
-            "app installed: com.example.app (home launcher: com.teslacoilsw.launcher)",
-            LauncherWatch.packageNote(PackageEvent.Installed, "com.example.app", own, "com.teslacoilsw.launcher"),
+            "com.app24 updated 0m ago, com.app23 updated 0m ago, com.app22 updated 0m ago (+22 more)",
+            recent.describe(25_000L),
         )
     }
 
     @Test
-    fun `updates and removals are told apart`() {
-        assertEquals(
-            "app updated: a.b (home launcher: x)",
-            LauncherWatch.packageNote(PackageEvent.Updated, "a.b", own, "x"),
-        )
-        assertEquals(
-            "app removed: a.b (home launcher: x)",
-            LauncherWatch.packageNote(PackageEvent.Removed, "a.b", own, "x"),
-        )
+    fun `changes older than the window are left out`() {
+        val recent = RecentPackageChanges()
+        recent.add(PackageEvent.Removed, "com.old", own, 0)
+        recent.add(PackageEvent.Removed, "com.new", own, 40 * minute)
+        assertEquals("com.new removed 0m ago", recent.describe(40 * minute))
+        assertEquals("none", recent.describe(80 * minute))
     }
 
     @Test
-    fun `AnyGest itself and nameless events say nothing`() {
-        assertNull(LauncherWatch.packageNote(PackageEvent.Updated, own, own, "x"))
-        assertNull(LauncherWatch.packageNote(PackageEvent.Installed, null, own, "x"))
-        assertNull(LauncherWatch.packageNote(PackageEvent.Installed, " ", own, "x"))
+    fun `AnyGest itself and nameless events are not kept`() {
+        val recent = RecentPackageChanges()
+        recent.add(PackageEvent.Updated, own, own, 0)
+        recent.add(PackageEvent.Installed, null, own, 0)
+        recent.add(PackageEvent.Installed, " ", own, 0)
+        assertEquals("none", recent.describe(0))
     }
 
     @Test

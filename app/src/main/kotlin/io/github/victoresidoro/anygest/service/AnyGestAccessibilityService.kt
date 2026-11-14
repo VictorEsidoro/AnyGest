@@ -33,6 +33,7 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.Display
@@ -171,7 +172,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         GestureTileService.requestRefresh(this)
     }
 
-    // Only a note: it shows whether a reset or a launcher warning follows an install or a change of default.
+    // Kept for the reset note, not logged one by one: the Play Store updates dozens of apps at once.
+    private val recentPackageChanges = RecentPackageChanges()
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
@@ -181,9 +183,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 Intent.ACTION_PACKAGE_REMOVED -> if (replacing) null else PackageEvent.Removed
                 else -> null
             } ?: return
-            LauncherWatch.packageNote(
-                event, intent.data?.schemeSpecificPart, packageName, LauncherWatch.homeLauncher(context),
-            )?.let { SetupStore(context).note(it) }
+            recentPackageChanges.add(
+                event, intent.data?.schemeSpecificPart, packageName, SystemClock.elapsedRealtime(),
+            )
         }
     }
     private val defaultsReceiver = object : BroadcastReceiver() {
@@ -420,7 +422,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 ours -> "gesture navigation put back after AnyGest's own button bar"
                 else -> "navigation mode was reset by the system, gestures put back " +
                     "(front: ${ForegroundApp.current(this, RESET_LOOKBACK_MS)}, " +
-                    "home launcher: ${LauncherWatch.homeLauncher(this)})"
+                    "home launcher: ${LauncherWatch.homeLauncher(this)}, " +
+                    "app changes: ${recentPackageChanges.describe(SystemClock.elapsedRealtime())})"
             },
         )
         return restored
