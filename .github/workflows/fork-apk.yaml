@@ -1,4 +1,5 @@
-# Builds this fork's signed release APK; on the release branch, publishes it as a GitHub Release.
+# Builds this fork's signed release APK; on the release branch, publishes it as a GitHub Release,
+# and on dev/** branches attaches it to the rolling "test" pre-release for a direct download.
 # Fork-only helper: upstream's own CI runs on main/release branches and is untouched.
 #
 # Signing uses the same repository secrets as upstream's release workflow:
@@ -11,7 +12,8 @@ on:
   push:
     branches:
       - "circle-to-search"
-      # Work in progress: tested and built into a downloadable APK, never published.
+      # Work in progress: tested, built into an APK and attached to the rolling "test"
+      # pre-release, never published as a version.
       - "dev/**"
   workflow_dispatch:
 
@@ -65,6 +67,8 @@ jobs:
   release-apk:
     name: Signed release APK
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Run docker/setup-buildx-action
@@ -122,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     # The APK is built alongside the checks to save time; publishing still needs both to pass.
     needs: [checks, release-apk]
-    # Only the release branch publishes; dev/** builds stop at the workflow artifact.
+    # Only the release branch publishes a version; dev/** builds go to the "test" pre-release.
     if: github.ref == 'refs/heads/circle-to-search'
     permissions:
       contents: write
@@ -174,3 +178,41 @@ jobs:
             AnyGest-${{ steps.release.outputs.version }}.apk
             anygest.apk
           make_latest: true
+
+  # A direct, login-free download link for test builds: artifacts need a GitHub sign-in and
+  # come zipped. One rolling pre-release called "test", rebuilt on every dev/** push, so the
+  # link never changes: .../releases/download/test/anygest-test.apk. It is marked as a
+  # pre-release, so it is never the "latest" release, and its title says which build it is.
+  # Delete the "test" release to take the APK down; the next dev/** push makes it again.
+  publish-test:
+    name: Publish test pre-release
+    runs-on: ubuntu-latest
+    needs: [checks, release-apk]
+    if: startsWith(github.ref, 'refs/heads/dev/')
+    # Two pushes in a row would otherwise delete and recreate the release at the same time.
+    concurrency:
+      group: test-release
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.release-apk.outputs.version }}
+      BRANCH: ${{ github.ref_name }}
+    steps:
+      - name: Download the release APK
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: anygest-${{ needs.release-apk.outputs.version }}
+      - name: Replace the test pre-release
+        run: |
+          mv "anygest-${VERSION}.apk" anygest-test.apk
+          # The old release and tag go first, so the tag moves to this commit.
+          gh release delete test --yes --cleanup-tag 2>/dev/null || true
+          gh api -X DELETE "repos/${GH_REPO}/git/refs/tags/test" 2>/dev/null || true
+          gh release create test anygest-test.apk \
+            --prerelease \
+            --target "${GITHUB_SHA}" \
+            --title "AnyGest ${VERSION} (test build)" \
+            --notes "Test build of ${VERSION} from branch ${BRANCH} (commit ${GITHUB_SHA:0:7}). Not a release: it is replaced by the next test build and can be deleted at any time."
