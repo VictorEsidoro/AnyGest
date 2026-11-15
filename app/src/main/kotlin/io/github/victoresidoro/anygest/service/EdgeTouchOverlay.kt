@@ -186,6 +186,7 @@ internal class EdgeTouchOverlay(
             onTrace = { lastTouch = it },
             onEngaged = hold::engage,
             onLongPressPending = hold::awaitLongPress,
+            onDelivered = ::checkDelivery,
         )
         val params = paramsFor(edge, configuration, geometry)
         runCatching {
@@ -374,6 +375,13 @@ internal class EdgeTouchOverlay(
 
     /** The newest touch event any strip saw, kept only to explain a stuck stream. */
     private var lastTouch = "none"
+    private val lateTouches = LateTouchWatch()
+
+    /** A touch that arrives long after it happened: the process or the system was busy. */
+    private fun checkDelivery(eventTimeMs: Long) {
+        val now = SystemClock.uptimeMillis()
+        lateTouches.check(now - eventTimeMs, now)?.let(::report)
+    }
     private var lastRestingNoteMs = -RESTING_NOTE_GAP_MS
     private var landscape = false
 
@@ -420,6 +428,7 @@ internal class EdgeTouchOverlay(
         private val onTrace: (String) -> Unit,
         private val onEngaged: (Long) -> Unit,
         private val onLongPressPending: (Long, Long) -> Unit,
+        private val onDelivered: (Long) -> Unit,
     ) : View(context) {
 
         private var stream = 0L
@@ -444,6 +453,7 @@ internal class EdgeTouchOverlay(
         // Nothing here to click: a real tap is replayed to the app underneath instead.
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
+            onDelivered(event.eventTime)
             // rawX/rawY are display coordinates, which is what the replay path expects.
             val sample = TouchSample(event.rawX, event.rawY, event.eventTime)
             if (event.actionMasked != MotionEvent.ACTION_DOWN) onActivity(stream)

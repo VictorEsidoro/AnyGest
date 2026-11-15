@@ -13,6 +13,9 @@ Versões em português logo abaixo de cada versão.
 - When the accessibility list changes with the service off, the note says whether the accessibility switch is on, whether AnyGest is still listed and which other services are, to show what else may have rewritten it.
 - That note is no longer written while AnyGest is paused for an exception app, since the service is off on purpose then.
 - The copied log names the launcher that answers Home at that moment and the other launchers installed, so a launcher's "default launcher reset" warning can be checked against what the system says.
+- With the screen on, the notes say when AnyGest itself did not run for 5 seconds or more, which tells a frozen process from a frozen system.
+- A touch that reaches a strip 300 ms or more after it happened is noted (once per 10 seconds), with how late it was.
+- After a stop without a callback, the notes also give the reason Android recorded for the last process exit (low memory, a signal, an ANR, the freezer).
 
 ### Português
 
@@ -23,6 +26,9 @@ Versões em português logo abaixo de cada versão.
 - Quando a lista de acessibilidade muda com o serviço desligado, a anotação diz se a chave de acessibilidade está ligada, se o AnyGest ainda está na lista e quais outros serviços estão, para mostrar o que mais pode ter reescrito a lista.
 - Essa anotação deixa de ser escrita enquanto o AnyGest está pausado por um app de exceção, já que o serviço está desligado de propósito nesse caso.
 - O log copiado diz qual launcher responde ao Início naquele momento e quais outros estão instalados, para conferir o aviso de "redefinição do launcher padrão" de um launcher com o que o sistema diz.
+- Com a tela ligada, as anotações dizem quando o próprio AnyGest ficou 5 segundos ou mais sem rodar, o que distingue um processo congelado de um sistema congelado.
+- Um toque que chega a uma faixa 300 ms ou mais depois de acontecer é anotado (uma vez a cada 10 segundos), com o atraso.
+- Depois de uma parada sem aviso, as anotações trazem também o motivo que o Android registrou para a última saída do processo (pouca memória, sinal, ANR, congelador).
 
 ## 4.4.3
 

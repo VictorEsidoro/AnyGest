@@ -100,12 +100,21 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private var polling = false
     private var foreground: ForegroundApp.Tracker? = null
     private val poll = Runnable { pollForeground() }
+    private val stallWatch = StallWatch()
+    private val stallTick = object : Runnable {
+        override fun run() {
+            stallWatch.tick(SystemClock.elapsedRealtime())?.let { SetupStore(this@AnyGestAccessibilityService).note(it) }
+            handler.postDelayed(this, STALL_TICK_MS)
+        }
+    }
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
                 stopPolling()
+                stopStallWatch()
                 return
             }
+            startStallWatch()
             updatePolling()
             // The moment someone is about to use the gestures: strips that went missing or
             // stuck while the screen was off are put right before the first swipe.
@@ -158,6 +167,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 packageManager.getPackageInfo(packageName, 0).lastUpdateTime
             }.getOrDefault(0L)
             store.note(ServiceStart.note(store.serviceUp, store.lastUpdateSeen, updatedAt))
+            if (store.serviceUp) ExitReasons.last(this)?.let(store::note)
             store.lastUpdateSeen = updatedAt
             store.serviceUp = true
         }
@@ -298,6 +308,18 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         }
         serviceInfo = info
         updatePolling()
+        if (getSystemService(PowerManager::class.java)?.isInteractive != false) startStallWatch()
+    }
+
+    private fun startStallWatch() {
+        handler.removeCallbacks(stallTick)
+        stallWatch.start(SystemClock.elapsedRealtime())
+        handler.postDelayed(stallTick, STALL_TICK_MS)
+    }
+
+    private fun stopStallWatch() {
+        handler.removeCallbacks(stallTick)
+        stallWatch.stop()
     }
 
     private fun updatePolling() {
@@ -510,6 +532,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         runCatching { contentResolver.unregisterContentObserver(navigationObserver) }
         runCatching { contentResolver.unregisterContentObserver(barObserver) }
         stopPolling()
+        stopStallWatch()
         runCatching { unregisterReceiver(screenReceiver) }
         runCatching { unregisterReceiver(packageReceiver) }
         runCatching { unregisterReceiver(defaultsReceiver) }
@@ -651,6 +674,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
         /** How often the foreground app is read while the screen is on and the list is in use. */
         private const val POLL_MS = 1_500L
+        private const val STALL_TICK_MS = 2_000L
 
         /** Wide enough to catch an app that opened a few seconds ago, whose event came late. */
         private const val POLL_WINDOW_MS = 30_000L
