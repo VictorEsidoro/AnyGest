@@ -42,7 +42,19 @@ class DiagnosticReportTest {
         lastRecordedFailure = failure,
         pauseNotes = notes,
         appVersionName = "4.3.0",
+        homeLauncher = "com.teslacoilsw.launcher",
+        homeCandidates = "com.teslacoilsw.launcher, com.mi.android.globallauncher",
     )
+
+    @Test
+    fun `the report names the launcher that answers Home and the other candidates`() {
+        val report = DiagnosticReport.format(diagnostics())
+
+        assertTrue(
+            "- Home launcher: com.teslacoilsw.launcher " +
+                "(candidates: com.teslacoilsw.launcher, com.mi.android.globallauncher)" in report,
+        )
+    }
 
     @Test
     fun `the report names the version, the device and the service state`() {

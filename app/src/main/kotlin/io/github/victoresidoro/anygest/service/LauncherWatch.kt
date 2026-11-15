@@ -38,6 +38,15 @@ internal object LauncherWatch {
             ?.activityInfo?.packageName
     }.getOrNull()?.let { if (it == "android") "chooser" else it } ?: "unknown"
 
+    /** Every launcher that could answer Home, to compare with the one that does. */
+    fun homeCandidates(context: Context): String = runCatching {
+        val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        context.packageManager.queryIntentActivities(home, PackageManager.MATCH_DEFAULT_ONLY)
+            .mapNotNull { it.activityInfo?.packageName }
+            .distinct()
+            .joinToString(", ")
+    }.getOrNull()?.ifBlank { null } ?: "unknown"
+
     fun defaultsNote(home: String): String = "default apps changed (home launcher: $home)"
 }
 

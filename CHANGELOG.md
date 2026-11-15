@@ -12,6 +12,7 @@ Versões em português logo abaixo de cada versão.
 - Every line of the pause notes now carries the date (`MM-dd HH:mm:ss`), and the notes keep 60 lines instead of 30: a bad incident writes about 15 lines in a second, and the start of one was cut off the copied log.
 - When the accessibility list changes with the service off, the note says whether the accessibility switch is on, whether AnyGest is still listed and which other services are, to show what else may have rewritten it.
 - That note is no longer written while AnyGest is paused for an exception app, since the service is off on purpose then.
+- The copied log names the launcher that answers Home at that moment and the other launchers installed, so a launcher's "default launcher reset" warning can be checked against what the system says.
 
 ### Português
 
@@ -21,6 +22,7 @@ Versões em português logo abaixo de cada versão.
 - Cada linha do registro das pausas agora traz a data (`MM-dd HH:mm:ss`), e o registro guarda 60 linhas em vez de 30: um incidente ruim escreve umas 15 linhas em um segundo, e o começo de um foi cortado do log copiado.
 - Quando a lista de acessibilidade muda com o serviço desligado, a anotação diz se a chave de acessibilidade está ligada, se o AnyGest ainda está na lista e quais outros serviços estão, para mostrar o que mais pode ter reescrito a lista.
 - Essa anotação deixa de ser escrita enquanto o AnyGest está pausado por um app de exceção, já que o serviço está desligado de propósito nesse caso.
+- O log copiado diz qual launcher responde ao Início naquele momento e quais outros estão instalados, para conferir o aviso de "redefinição do launcher padrão" de um launcher com o que o sistema diz.
 
 ## 4.4.3
 

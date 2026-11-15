@@ -26,6 +26,7 @@ import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.service.AppSwitcher
 import io.github.victoresidoro.anygest.service.GestureActionPerformer
+import io.github.victoresidoro.anygest.service.LauncherWatch
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupStore
@@ -53,6 +54,9 @@ data class Diagnostics(
     /** The last pause decisions, newest first; null before any. */
     val pauseNotes: String?,
     val appVersionName: String,
+    /** The package that answers Home right now, to compare with what a launcher warns about. */
+    val homeLauncher: String = "unknown",
+    val homeCandidates: String = "unknown",
 )
 
 object DiagnosticsCollector {
@@ -78,6 +82,8 @@ object DiagnosticsCollector {
             lastRecordedFailure = FailureLog.read(context),
             pauseNotes = SetupStore(context).pauseNotes,
             appVersionName = appVersionName(context),
+            homeLauncher = LauncherWatch.homeLauncher(context),
+            homeCandidates = LauncherWatch.homeCandidates(context),
         )
     }
 
