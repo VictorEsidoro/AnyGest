@@ -16,6 +16,7 @@ Versões em português logo abaixo de cada versão.
 - With the screen on, the notes say when AnyGest itself did not run for 5 seconds or more, which tells a frozen process from a frozen system.
 - A touch that reaches a strip 300 ms or more after it happened is noted (once per 10 seconds), with how late it was.
 - After a stop without a callback, the notes also give the reason Android recorded for the last process exit (low memory, a signal, an ANR, the freezer).
+- Routine lines are gone from the notes (service connected after a pause, destroyed, unbound for a pause, window events, poll) and the notes keep 100 lines instead of 60, so a day of pauses no longer pushes a stall or a reset out of the copied log.
 
 ### Português
 
@@ -29,6 +30,7 @@ Versões em português logo abaixo de cada versão.
 - Com a tela ligada, as anotações dizem quando o próprio AnyGest ficou 5 segundos ou mais sem rodar, o que distingue um processo congelado de um sistema congelado.
 - Um toque que chega a uma faixa 300 ms ou mais depois de acontecer é anotado (uma vez a cada 10 segundos), com o atraso.
 - Depois de uma parada sem aviso, as anotações trazem também o motivo que o Android registrou para a última saída do processo (pouca memória, sinal, ANR, congelador).
+- As linhas de rotina saíram das anotações (serviço conectado depois de uma pausa, destruído, desligado por uma pausa, eventos de janela, poll) e elas guardam 100 linhas em vez de 60, para que um dia de pausas não empurre uma travada ou um reset para fora do log copiado.
 
 ## 4.4.3
 

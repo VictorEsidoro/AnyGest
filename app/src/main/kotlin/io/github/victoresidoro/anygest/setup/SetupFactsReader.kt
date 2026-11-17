@@ -146,7 +146,8 @@ internal class SetupStore(context: Context) {
         const val FILE = "setup"
         const val KEY_PAUSE_NOTES = "pause_notes"
         // A bad incident writes 15 lines in a second; 30 cut its start off the copied log.
-        const val MAX_NOTES = 60
+        // Routine pauses write about four lines each, so 100 lines last days, not hours.
+        const val MAX_NOTES = 100
         const val KEY_PAUSED_FOR_APP = "paused_for_app"
         const val KEY_USER_PAUSED = "user_paused"
         const val KEY_SERVICE_UP = "service_up"

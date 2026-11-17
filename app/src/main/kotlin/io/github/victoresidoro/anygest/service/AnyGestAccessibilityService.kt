@@ -166,7 +166,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             val updatedAt = runCatching {
                 packageManager.getPackageInfo(packageName, 0).lastUpdateTime
             }.getOrDefault(0L)
-            store.note(ServiceStart.note(store.serviceUp, store.lastUpdateSeen, updatedAt))
+            // A plain start is routine (every pause ends in one); only an update or a stop
+            // without a callback says something.
+            if (store.serviceUp) {
+                store.note(ServiceStart.note(true, store.lastUpdateSeen, updatedAt))
+            }
             if (store.serviceUp) ExitReasons.last(this)?.let(store::note)
             store.lastUpdateSeen = updatedAt
             store.serviceUp = true
@@ -297,7 +301,6 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val subscription = packages.sorted().joinToString(",").ifEmpty { "none" }
         if (subscription != lastSubscription) {
             lastSubscription = subscription
-            SetupStore(this).note("window events for: $subscription")
         }
         if (packages.isEmpty()) {
             info.eventTypes = 0
@@ -348,7 +351,6 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         if (!polling) return
         val front = foreground?.current(POLL_WINDOW_MS)
         if (front != null && shouldPauseFor(front)) {
-            SetupStore(this).note("poll saw $front in front")
             stopPolling()
             pauseFor(front)
             return
@@ -456,7 +458,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         KeepAliveService.refresh(this)
         val store = SetupStore(this)
         store.serviceUp = false
-        store.note("service unbound (appPause=${store.pausedForApp}, userPause=${store.userPaused})")
+        // A pause already wrote its own line; an unbind nobody chose is the one worth a note.
+        if (store.pausedForApp == null) store.note("service unbound (userPause=${store.userPaused})")
         // A pause or the tile's off switch is a choice; anything else is a stop to report.
         if (store.pausedForApp == null && !store.userPaused) {
             AlertNotifier.gesturesStopped(this)
@@ -469,7 +472,6 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     override fun onDestroy() {
-        SetupStore(this).note("service destroyed")
         teardown()
         super.onDestroy()
     }
