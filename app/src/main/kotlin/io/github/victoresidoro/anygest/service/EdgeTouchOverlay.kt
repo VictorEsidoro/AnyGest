@@ -95,7 +95,8 @@ internal class EdgeTouchOverlay(
 
     private val pillExpiry = Runnable(::onPillTimeout)
 
-    fun install(configuration: GestureConfiguration, geometry: ScreenGeometry) {
+    /** Returns how many strips the window manager accepted. */
+    fun install(configuration: GestureConfiguration, geometry: ScreenGeometry): Int {
         remove()
         landscape = geometry.landscape
         confirmation.configure(configuration.landscapeConfirmEnabled, geometry.landscape)
@@ -123,6 +124,26 @@ internal class EdgeTouchOverlay(
             addStrip(edge, configuration, geometry)
         }
         applyInteractivity()
+        installedAtMs = SystemClock.elapsedRealtime()
+        return strips.size
+    }
+
+    private var installedAtMs = 0L
+
+    /** True while a touch holds the strips inert: reinstalling then would cut that touch off. */
+    fun streamHeld(): Boolean = hold.held
+
+    /** Strips present and attached, without the side effects of [healthy]. */
+    fun intact(): Boolean = strips.isNotEmpty() && strips.values.all { it.isAttachedToWindow }
+
+    /** What is installed, for the copied log: edge, size in pixels and age of the install. */
+    fun describe(nowMs: Long = SystemClock.elapsedRealtime()): String {
+        if (strips.isEmpty()) return "none attached"
+        val sizes = strips.entries.sortedBy { it.key.ordinal }.joinToString(", ") { (edge, view) ->
+            val params = view.layoutParams
+            "${edge.name.lowercase()} ${params?.width}x${params?.height}px"
+        }
+        return "$sizes (installed ${(nowMs - installedAtMs) / 1000}s ago)"
     }
 
     fun remove() {

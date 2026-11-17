@@ -200,6 +200,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             recentPackageChanges.add(
                 event, intent.data?.schemeSpecificPart, packageName, SystemClock.elapsedRealtime(),
             )
+            // Whether an app has a launcher entry is remembered; it can have changed.
+            intent.data?.schemeSpecificPart?.let(AppSwitcher::packageChanged)
         }
     }
     private val defaultsReceiver = object : BroadcastReceiver() {
@@ -209,6 +211,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     private fun onNavigationModeChanged() {
+        startSettle()
         val current = NavigationModeReader.read(this)
         if (initialChecked && current != NavigationMode.GESTURAL && keepGestureMode()) {
             // Put back at once, so there is nothing to alert about.
@@ -278,6 +281,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             settings.configuration.collect { updated ->
                 configuration = updated.copy(platform = platformDefaults())
                 installOverlay()
+                if (!initialChecked) startSettle()
                 applyEventSubscription()
                 if (!initialChecked) {
                     initialChecked = true
@@ -510,10 +514,66 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         )
     }
 
+    /**
+     * Puts the strips up, unless nothing would change: the same configuration and geometry
+     * with the strips still attached is left alone, since rebuilding them cuts off a touch in
+     * progress. A touch in progress also delays a real rebuild for a moment, and an install
+     * that attaches no strip is tried again with growing waits.
+     */
     private fun installOverlay() {
+        val current = overlay ?: return
+        handler.removeCallbacks(installAgain)
         val geometry = ScreenGeometry.current(this, windowManager)
+        if (installedConfiguration == configuration && lastGeometry == geometry && current.intact()) return
+        if (current.streamHeld() && installDeferrals < MAX_INSTALL_DEFERRALS) {
+            installDeferrals++
+            handler.postDelayed(installAgain, INSTALL_DEFER_MS)
+            return
+        }
+        installDeferrals = 0
         lastGeometry = geometry
-        overlay?.install(configuration, geometry)
+        val attached = current.install(configuration, geometry)
+        if (attached > 0) {
+            installedConfiguration = configuration
+            installFailures = 0
+            return
+        }
+        installedConfiguration = null
+        if (installFailures == 0) {
+            SetupStore(this).note("no strip could be attached, trying again")
+        }
+        if (installFailures < MAX_INSTALL_RETRIES) {
+            handler.postDelayed(installAgain, INSTALL_RETRY_MS shl installFailures)
+            installFailures++
+        }
+    }
+
+    private var installedConfiguration: GestureConfiguration? = null
+    private var installDeferrals = 0
+    private var installFailures = 0
+    private val installAgain = Runnable { installOverlay() }
+
+    private val settle = GeometrySettle()
+    private val settleStep = Runnable { settleOnce() }
+
+    /** Called when the system may be about to change the bar inset: re-reads until it holds still. */
+    private fun startSettle() {
+        if (overlay == null) return
+        handler.removeCallbacks(settleStep)
+        handler.postDelayed(settleStep, settle.begin())
+    }
+
+    private fun settleOnce() {
+        if (overlay == null) return
+        val read = ScreenGeometry.current(this, windowManager)
+        val installed = lastGeometry
+        if (installed != null && read != installed) {
+            installed.describeChangeTo(read)?.let {
+                SetupStore(this).note("strips remeasured after the system settled ($it)")
+            }
+            installOverlay()
+        }
+        settle.next(read)?.let { handler.postDelayed(settleStep, it) }
     }
 
     /**
@@ -524,6 +584,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         if (overlay == null) return
         if (ScreenGeometry.current(this, windowManager) == lastGeometry) return
         installOverlay()
+        // A change usually comes in steps, the bar inset last.
+        startSettle()
     }
 
     private fun teardown() {
@@ -539,6 +601,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         runCatching { unregisterReceiver(packageReceiver) }
         runCatching { unregisterReceiver(defaultsReceiver) }
         initialChecked = false
+        installedConfiguration = null
+        installDeferrals = 0
+        installFailures = 0
         overlay?.remove()
         overlay = null
         handler.removeCallbacksAndMessages(null)
@@ -677,6 +742,10 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         /** How often the foreground app is read while the screen is on and the list is in use. */
         private const val POLL_MS = 1_500L
         private const val STALL_TICK_MS = 2_000L
+        private const val INSTALL_DEFER_MS = 100L
+        private const val MAX_INSTALL_DEFERRALS = 10
+        private const val INSTALL_RETRY_MS = 250L
+        private const val MAX_INSTALL_RETRIES = 6
 
         /** Wide enough to catch an app that opened a few seconds ago, whose event came late. */
         private const val POLL_WINDOW_MS = 30_000L
@@ -688,6 +757,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         private var instance: AnyGestAccessibilityService? = null
 
         fun isRunning(): Boolean = instance != null
+
+        /** The strips as installed, for the copied log; says so when the service is not running. */
+        fun stripSummary(): String = instance?.overlay?.describe() ?: "service not running"
 
         /** After the one-time grant or a change to the pause list, without waiting for a restart. */
         fun refreshSubscription() {

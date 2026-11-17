@@ -57,6 +57,8 @@ data class Diagnostics(
     /** The package that answers Home right now, to compare with what a launcher warns about. */
     val homeLauncher: String = "unknown",
     val homeCandidates: String = "unknown",
+    /** The strips as installed: edge, pixel size and age, or why there are none. */
+    val strips: String = "unknown",
 )
 
 object DiagnosticsCollector {
@@ -84,6 +86,7 @@ object DiagnosticsCollector {
             appVersionName = appVersionName(context),
             homeLauncher = LauncherWatch.homeLauncher(context),
             homeCandidates = LauncherWatch.homeCandidates(context),
+            strips = AnyGestAccessibilityService.stripSummary(),
         )
     }
 

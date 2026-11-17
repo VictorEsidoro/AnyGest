@@ -17,6 +17,10 @@ Versões em português logo abaixo de cada versão.
 - A touch that reaches a strip 300 ms or more after it happened is noted (once per 10 seconds), with how late it was.
 - After a stop without a callback, the notes also give the reason Android recorded for the last process exit (low memory, a signal, an ANR, the freezer).
 - Routine lines are gone from the notes (service connected after a pause, destroyed, unbound for a pause, window events, poll) and the notes keep 100 lines instead of 60, so a day of pauses no longer pushes a stall or a reset out of the copied log.
+- The strips are measured again for up to 1.5 seconds after the system changes the navigation mode (and after a rotation), until two reads agree, because the bar inset can land after the signal that announces it. A change is noted with the numbers.
+- Strips are no longer rebuilt when neither the settings nor the screen geometry changed, and a rebuild waits for a touch in progress to end instead of cutting it off.
+- When no strip can be attached, the install is retried with growing waits and noted once. The copied log gets a `Strips:` line with each strip's size and age.
+- Previous/next app no longer reads six hours of usage events on every step: the order is kept and updated with the events since the last step, launcher lookups are remembered until the app changes, apps that were in front for less than a second (share sheet, permission dialogs) are skipped, and the first step from the home screen goes to the newest app. The reason a step did nothing is written to the notes once.
 
 ### Português
 
@@ -31,6 +35,10 @@ Versões em português logo abaixo de cada versão.
 - Um toque que chega a uma faixa 300 ms ou mais depois de acontecer é anotado (uma vez a cada 10 segundos), com o atraso.
 - Depois de uma parada sem aviso, as anotações trazem também o motivo que o Android registrou para a última saída do processo (pouca memória, sinal, ANR, congelador).
 - As linhas de rotina saíram das anotações (serviço conectado depois de uma pausa, destruído, desligado por uma pausa, eventos de janela, poll) e elas guardam 100 linhas em vez de 60, para que um dia de pausas não empurre uma travada ou um reset para fora do log copiado.
+- As faixas são medidas de novo por até 1,5 segundo depois que o sistema muda o modo de navegação (e depois de uma rotação), até duas leituras concordarem, porque a altura da barra pode chegar depois do sinal que a anuncia. A mudança é anotada com os números.
+- As faixas não são mais refeitas quando nem as configurações nem a geometria da tela mudaram, e uma reconstrução espera um toque em andamento terminar em vez de cortá-lo.
+- Quando nenhuma faixa consegue ser colocada, a instalação é repetida com esperas crescentes e anotada uma vez. O log copiado ganha uma linha `Strips:` com o tamanho e a idade de cada faixa.
+- App anterior/seguinte não lê mais seis horas de eventos de uso a cada passo: a ordem é mantida e atualizada com os eventos desde o último passo, a consulta de launcher é lembrada até o app mudar, apps que ficaram menos de um segundo na frente (compartilhar, diálogos de permissão) são pulados, e o primeiro passo a partir da tela inicial vai para o app mais recente. O motivo de um passo não ter feito nada vai para as anotações uma vez.
 
 ## 4.4.3
 

@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import android.util.Log
+import io.github.victoresidoro.anygest.setup.SetupStore
 
 /**
  * Walks the apps the user came from, which Android exposes to nobody: there is no global
@@ -32,8 +33,8 @@ import android.util.Log
  * holds a visible accessibility overlay. Measured on HyperOS as
  * `BAL_ALLOW_NON_APP_VISIBLE_WINDOW`, so the edge strips are what make this legal.
  *
- * Needs the usage access the user grants in Settings, and reports [lastFailure] when it is
- * missing so the diagnostics panel can say so rather than the gesture looking broken.
+ * Needs the usage access the user grants in Settings, and says so in [lastFailure] and in
+ * the notes when it is missing, so the gesture does not just look broken.
  */
 class AppSwitcher(private val context: Context) {
 
@@ -49,82 +50,113 @@ class AppSwitcher(private val context: Context) {
         val now = SystemClock.elapsedRealtime()
         // A pause long enough means the user went somewhere by hand, so the walk restarts.
         if (walk.isEmpty() || now - lastStepAt > CHAIN_WINDOW_MS) {
-            walk = recentApps()
-            position = 0
+            val order = recentOrder()
+            walk = order.apps
+            // The app in front is not in the list when it cannot be launched (the home
+            // screen), and the first step back is then to the newest app in it.
+            position = if (order.startsWithCurrent) 0 else -1
         }
         if (walk.isEmpty()) {
-            val message = "app switch: no usage events, so usage access is probably not granted"
-            lastFailure = message
-            Log.w(TAG, message)
-            return false
+            return fail("app switch: no usage events, so usage access is probably not granted")
         }
 
         val next = position + if (toPrevious) 1 else -1
         if (next !in walk.indices) {
-            lastFailure = "app switch: nothing ${if (toPrevious) "older" else "newer"} than this"
-            return false
+            return fail("app switch: nothing ${if (toPrevious) "older" else "newer"} than this")
         }
 
         val target = walk[next]
         val intent = context.packageManager.getLaunchIntentForPackage(target)
-        if (intent == null) {
-            val message = "app switch: $target has no launcher entry"
-            lastFailure = message
-            Log.w(TAG, message)
-            return false
-        }
+            ?: return fail("app switch: $target has no launcher entry")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         return runCatching { context.startActivity(intent) }
             .onFailure { throwable ->
-                lastFailure = "app switch: starting $target threw ${throwable.javaClass.name}"
-                Log.w(TAG, "startActivity($target) threw", throwable)
+                fail("app switch: starting $target threw ${throwable.javaClass.name}", throwable)
             }
             .onSuccess {
                 position = next
                 lastStepAt = now
                 lastFailure = null
+                lastNoted = null
             }
             .isSuccess
     }
 
+    /** Records why a step did nothing; the notes get each distinct reason once, not once per swipe. */
+    private fun fail(message: String, cause: Throwable? = null): Boolean {
+        lastFailure = message
+        Log.w(TAG, message, cause)
+        if (message != lastNoted) {
+            lastNoted = message
+            SetupStore(context).note(message)
+        }
+        return false
+    }
+
     /**
-     * Apps by when each was last in front, newest first, every package once. Our own package
-     * is dropped, and so is anything with no launcher entry: the home screen resumes between
-     * every pair of apps and advertises CATEGORY_HOME rather than CATEGORY_LAUNCHER, so
-     * leaving it in makes a step land on a package that cannot be started.
+     * Brings the tracker up to date with the usage events since the last step, which is a few
+     * events and not the whole trail. The first read looks back [FIRST_WINDOW_MS]; if that
+     * finds nothing to step back to (an hour in one app), it is redone once over [TRAIL_WINDOW_MS].
      */
-    private fun recentApps(): List<String> {
+    private fun recentOrder(): RecentApps.Order {
         val usage = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
-            ?: return emptyList()
+            ?: return RecentApps.Order(emptyList(), false)
         val now = System.currentTimeMillis()
-        val events = runCatching { usage.queryEvents(now - TRAIL_WINDOW_MS, now) }.getOrNull()
-            ?: return emptyList()
-        val newestFirst = ArrayDeque<String>()
-        val seen = mutableSetOf<String>()
-        val resumed = mutableListOf<String>()
+        val known = sharedTracker
+        // A clock set back would leave the tracker asking for events from the future.
+        val apps = if (known == null || known.lastEventMs > now) newTracker() else known
+        val from = if (apps.lastEventMs == 0L) now - FIRST_WINDOW_MS else apps.lastEventMs + 1
+        feed(usage, apps, from, now)
+        val order = apps.order(::launchable)
+        if (order.apps.size >= 2 || widened) return order
+        widened = true
+        val wide = newTracker()
+        feed(usage, wide, now - TRAIL_WINDOW_MS, now)
+        return wide.order(::launchable)
+    }
+
+    private fun newTracker(): RecentApps =
+        RecentApps(context.packageName).also { sharedTracker = it }
+
+    private fun feed(usage: UsageStatsManager, tracker: RecentApps, from: Long, to: Long) {
+        val events = runCatching { usage.queryEvents(from, to) }.getOrNull() ?: return
         val event = UsageEvents.Event()
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-            if (event.eventType != UsageEvents.Event.ACTIVITY_RESUMED) continue
-            resumed.add(event.packageName ?: continue)
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                tracker.resumed(RecentApps.Resumed(event.packageName ?: continue, event.timeStamp))
+            } else {
+                tracker.seen(event.timeStamp)
+            }
         }
-        // Walked backwards so the first sighting of a package is its most recent one.
-        for (packageName in resumed.asReversed()) {
-            if (packageName == context.packageName) continue
-            if (!seen.add(packageName)) continue
-            if (context.packageManager.getLaunchIntentForPackage(packageName) == null) continue
-            newestFirst.addLast(packageName)
-        }
-        return newestFirst.toList()
     }
+
+    /** Asking the package manager is the costly part, so the answer is kept until the app changes. */
+    private fun launchable(packageName: String): Boolean =
+        launchableCache.getOrPut(packageName) {
+            context.packageManager.getLaunchIntentForPackage(packageName) != null
+        }
 
     companion object {
         private const val TAG = "AnyGest"
+        private const val FIRST_WINDOW_MS = 30L * 60L * 1000L
         private const val TRAIL_WINDOW_MS = 6L * 60L * 60L * 1000L
 
         /** How long a chain of swipes keeps walking one order before it restarts. */
         private const val CHAIN_WINDOW_MS = 5_000L
+
+        // Kept for the life of the process: the service restarts at every pause, and the
+        // events in between are read incrementally, so nothing has to be read twice.
+        private var sharedTracker: RecentApps? = null
+        private var widened = false
+        private val launchableCache = HashMap<String, Boolean>()
+        private var lastNoted: String? = null
+
+        /** An app was installed, updated or removed: what is known about its launcher entry may be stale. */
+        fun packageChanged(packageName: String) {
+            launchableCache.remove(packageName)
+        }
 
         @Volatile
         var lastFailure: String? = null

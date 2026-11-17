@@ -44,7 +44,17 @@ class DiagnosticReportTest {
         appVersionName = "4.3.0",
         homeLauncher = "com.teslacoilsw.launcher",
         homeCandidates = "com.teslacoilsw.launcher, com.mi.android.globallauncher",
+        strips = "left 55x1900px, right 55x1900px, bottom 1098x137px (installed 52s ago)",
     )
+
+    @Test
+    fun `the report says which strips are installed and how big`() {
+        val report = DiagnosticReport.format(diagnostics())
+
+        assertTrue(
+            "- Strips: left 55x1900px, right 55x1900px, bottom 1098x137px (installed 52s ago)" in report,
+        )
+    }
 
     @Test
     fun `the report names the launcher that answers Home and the other candidates`() {
