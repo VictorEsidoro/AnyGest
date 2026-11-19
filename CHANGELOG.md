@@ -21,6 +21,8 @@ Versões em português logo abaixo de cada versão.
 - Strips are no longer rebuilt when neither the settings nor the screen geometry changed, and a rebuild waits for a touch in progress to end instead of cutting it off.
 - When no strip can be attached, the install is retried with growing waits and noted once. The copied log gets a `Strips:` line with each strip's size and age.
 - Previous/next app no longer reads six hours of usage events on every step: the order is kept and updated with the events since the last step, launcher lookups are remembered until the app changes, apps that were in front for less than a second (share sheet, permission dialogs) are skipped, and the first step from the home screen goes to the newest app. The reason a step did nothing is written to the notes once.
+- A press on the gesture handle that creeps upward is no longer taken for a swipe. Moving 10 dp up after a quarter of a second used to arm Home and, after 100 ms still, Recents, in place of Circle to Search. A move that starts within 250 ms, or goes beyond 30 dp at any speed, is still a swipe; a slow creep inside that keeps the long press alive and is not released as Home.
+- The notes for a service that stopped (unbound, job, restore) now say what the phone was doing: screen on or off and for how long, charger, doze, battery saver and how long the process had been alive. Waking the screen after 5 minutes or more off is noted on its own line.
 
 ### Português
 
@@ -39,6 +41,8 @@ Versões em português logo abaixo de cada versão.
 - As faixas não são mais refeitas quando nem as configurações nem a geometria da tela mudaram, e uma reconstrução espera um toque em andamento terminar em vez de cortá-lo.
 - Quando nenhuma faixa consegue ser colocada, a instalação é repetida com esperas crescentes e anotada uma vez. O log copiado ganha uma linha `Strips:` com o tamanho e a idade de cada faixa.
 - App anterior/seguinte não lê mais seis horas de eventos de uso a cada passo: a ordem é mantida e atualizada com os eventos desde o último passo, a consulta de launcher é lembrada até o app mudar, apps que ficaram menos de um segundo na frente (compartilhar, diálogos de permissão) são pulados, e o primeiro passo a partir da tela inicial vai para o app mais recente. O motivo de um passo não ter feito nada vai para as anotações uma vez.
+- Um toque na alça do gesto que escorrega para cima deixa de ser confundido com um deslize. Subir 10 dp depois de um quarto de segundo armava o Início e, após 100 ms parado, o Recentes, no lugar do Circle to Search. Um movimento que começa em até 250 ms, ou passa de 30 dp em qualquer velocidade, continua sendo deslize; um escorregão lento dentro disso mantém o toque longo e não é solto como Início.
+- As anotações de um serviço que parou (desvinculado, job, restauração) agora dizem o que o telefone fazia: tela ligada ou apagada e por quanto tempo, carregador, doze, economia de bateria e há quanto tempo o processo estava vivo. Acordar a tela depois de 5 minutos ou mais apagada é anotado em uma linha própria.
 
 ## 4.4.3
 

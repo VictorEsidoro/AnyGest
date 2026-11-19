@@ -46,7 +46,8 @@ class RecoveryJob : JobService() {
                 .takeIf { it >= 0 }
             store.note(
                 "job: the accessibility list changed with the service off (" +
-                    AccessibilityListState.describe(raw, flag, packageName) + ")",
+                    AccessibilityListState.describe(raw, flag, packageName) + "; " +
+                    PowerContext.describe(this) + ")",
             )
         }
         GesturePower.restoreIfNeeded(this)

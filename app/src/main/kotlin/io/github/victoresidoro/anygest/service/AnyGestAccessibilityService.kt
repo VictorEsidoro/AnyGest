@@ -110,9 +110,16 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                PowerContext.screenWentOff(SystemClock.elapsedRealtime())
                 stopPolling()
                 stopStallWatch()
                 return
+            }
+            // A long sleep is the setting of the freezes seen on waking, so it is worth a line.
+            PowerContext.screenWentOn(SystemClock.elapsedRealtime())?.takeIf { it >= LONG_SLEEP_MS }?.let {
+                SetupStore(this@AnyGestAccessibilityService).note(
+                    "screen on after ${PowerContext.duration(it)} off (${PowerContext.describe(this@AnyGestAccessibilityService)})",
+                )
             }
             startStallWatch()
             updatePolling()
@@ -463,7 +470,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val store = SetupStore(this)
         store.serviceUp = false
         // A pause already wrote its own line; an unbind nobody chose is the one worth a note.
-        if (store.pausedForApp == null) store.note("service unbound (userPause=${store.userPaused})")
+        if (store.pausedForApp == null) store.note("service unbound (userPause=${store.userPaused}; ${PowerContext.describe(this)})")
         // A pause or the tile's off switch is a choice; anything else is a stop to report.
         if (store.pausedForApp == null && !store.userPaused) {
             AlertNotifier.gesturesStopped(this)
@@ -742,6 +749,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         /** How often the foreground app is read while the screen is on and the list is in use. */
         private const val POLL_MS = 1_500L
         private const val STALL_TICK_MS = 2_000L
+        private const val LONG_SLEEP_MS = 5 * 60_000L
         private const val INSTALL_DEFER_MS = 100L
         private const val MAX_INSTALL_DEFERRALS = 10
         private const val INSTALL_RETRY_MS = 250L

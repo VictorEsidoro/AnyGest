@@ -73,7 +73,7 @@ internal object GesturePower {
         // A live watcher is still waiting for the user to leave the app, so this is no fault.
         if (store.pausedForApp != null && ExceptionWatchService.running) return
         store.pausedForApp = null
-        store.note("restore: switching the service back on")
+        store.note("restore: switching the service back on (${PowerContext.describe(context)})")
         markStarting()
         SecureSettingsAccess.setServiceEnabled(context, true)
     }

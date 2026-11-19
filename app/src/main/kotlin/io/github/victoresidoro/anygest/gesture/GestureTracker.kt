@@ -117,7 +117,9 @@ class GestureTracker(
 
     fun onMove(sample: TouchSample): TrackerAction {
         val origin = tracked ?: return TrackerAction.None
-        if (longPressPending && strayedBeyondSlop(origin, sample)) longPressPending = false
+        if (longPressPending && strayedBeyondSlop(origin, sample) && !isPressDrift(origin, sample)) {
+            longPressPending = false
+        }
         val state = arm
         return if (state == null) whileArming(origin, sample) else whileArmed(origin, state, sample)
     }
@@ -127,6 +129,8 @@ class GestureTracker(
             tracked = null
             return TrackerAction.Unused(RejectionReason.TOO_SLOW_TO_ARM)
         }
+        // A thumb that rolls upward while pressing is a long press, not the start of a swipe.
+        if (isPressDrift(origin, sample)) return TrackerAction.None
         sidewaysAction(origin, sample)?.let { return armSideways(it) }
         if (!hasArmed(origin, sample)) return TrackerAction.None
 
@@ -198,6 +202,7 @@ class GestureTracker(
     fun onUp(sample: TouchSample): TrackerAction {
         val origin = tracked
         val state = arm
+        val drifted = origin != null && isPressDrift(origin, sample)
         tracked = null
         longPressPending = false
 
@@ -213,6 +218,7 @@ class GestureTracker(
         // A stream can arrive as DOWN then UP with no MOVE between - event batching under
         // load does this, and a slow emulator does it reliably. The release is still a
         // swipe if it clears the threshold on its own, so judge it by the same rule.
+        if (drifted) return TrackerAction.Unused(rejectionFor(origin, sample))
         if (sample.timestampMs - origin.timestampMs <= configuration.maximumArmDurationMs) {
             val late = sidewaysAction(origin, sample)
             if (late != null) return TrackerAction.Fire(late, edge)
@@ -238,6 +244,21 @@ class GestureTracker(
         val dx = sample.xPx - reference.xPx
         val dy = sample.yPx - reference.yPx
         return dx * dx + dy * dy > longPressSlopPx * longPressSlopPx
+    }
+
+    /**
+     * A press on the handle that moved only slowly and not far. A deliberate swipe covers the
+     * first few millimetres at once, whereas a pressing thumb creeps. Without this, a creep of
+     * 10dp armed Home and, 100ms later, Recents, in place of the long press the user meant.
+     * Past [PRESS_DRIFT_FACTOR] times the swipe distance it is a swipe whatever its speed.
+     */
+    private fun isPressDrift(origin: TouchSample, sample: TouchSample): Boolean {
+        if (!longPressPending) return false
+        if (sample.timestampMs - origin.timestampMs < QUICK_SWIPE_MS) return false
+        val dx = sample.xPx - origin.xPx
+        val dy = sample.yPx - origin.yPx
+        val ceilingPx = maxOf(longPressSlopPx, minimumDistancePx * PRESS_DRIFT_FACTOR)
+        return dx * dx + dy * dy <= ceilingPx * ceilingPx
     }
 
     private fun overHandle(sample: TouchSample): Boolean {
@@ -294,5 +315,11 @@ class GestureTracker(
                 RejectionReason.TOO_SLOW_TO_ARM
             else -> RejectionReason.INSUFFICIENT_MOVEMENT
         }
+    }
+
+    private companion object {
+        /** A move that starts after this long is a creeping press, not the start of a swipe. */
+        const val QUICK_SWIPE_MS = 250L
+        const val PRESS_DRIFT_FACTOR = 3f
     }
 }

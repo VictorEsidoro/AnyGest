@@ -201,4 +201,63 @@ class CircleToSearchGestureTest {
         assertEquals(TrackerAction.None, t.onMove(sample(558f, 2413f, 100L)))
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
     }
+
+    // 10dp = 27.5px is the bottom swipe distance; 3x that, 82.5px, is where a slow move is a swipe.
+
+    @Test
+    fun `a thumb creeping up while pressing neither arms Recents nor Home`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        assertEquals(TrackerAction.None, t.onMove(sample(540f, 2365f, 300L)))
+        assertEquals(TrackerAction.None, t.onHoldElapsed())
+    }
+
+    @Test
+    fun `a press that crept up still fires Circle to Search`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        t.onMove(sample(540f, 2365f, 300L))
+        assertEquals(fired, t.onLongPressElapsed())
+    }
+
+    @Test
+    fun `releasing a creeping press does not fire Home`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        t.onMove(sample(540f, 2365f, 300L))
+        assertTrue(t.onUp(sample(540f, 2365f, 330L)) is TrackerAction.Unused)
+    }
+
+    @Test
+    fun `a slow move past three swipe distances is still a swipe`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        assertTrue(t.onMove(sample(540f, 2295f, 300L)) is TrackerAction.Armed)
+        assertEquals(TrackerAction.None, t.onLongPressElapsed())
+    }
+
+    @Test
+    fun `a quick move of the same distance is a swipe`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        assertTrue(t.onMove(sample(540f, 2365f, 120L)) is TrackerAction.Armed)
+    }
+
+    @Test
+    fun `a stray in the first quarter second ends the long press for good`() {
+        val t = tracker()
+        t.onDown(sample(540f, 2395f, 0L))
+        // Past the slop at once, so it is a swipe attempt; a slow second move cannot revive it.
+        t.onMove(sample(565f, 2395f, 100L))
+        t.onMove(sample(565f, 2395f, 320L))
+        assertEquals(TrackerAction.None, t.onLongPressElapsed())
+    }
+
+    @Test
+    fun `a press beside the handle keeps the usual swipe rules`() {
+        val t = tracker(handleCenterXPx = 540f)
+        t.onDown(sample(900f, 2395f, 0L))
+        assertTrue(t.onMove(sample(900f, 2365f, 300L)) is TrackerAction.Armed)
+    }
 }
+
