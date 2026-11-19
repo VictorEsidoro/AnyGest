@@ -557,11 +557,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         if (attached > 0) {
             installedConfiguration = configuration
             installFailures = 0
-            connectionLoss.reset()
+            resetTokens.reset()
             return
         }
         installedConfiguration = null
-        if (connectionLoss.installed(attached, current.tokenRefusals, current.otherRefusals)) {
+        if (resetTokens.installed(attached, current.tokenRefusals, current.otherRefusals)) {
             connectionLost()
             return
         }
@@ -574,7 +574,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         }
     }
 
-    private val connectionLoss = ConnectionLoss()
+    private val resetTokens = ResetTokenWatch()
 
     /**
      * The system reset this service's connection without unbinding it, so no strip can ever be
@@ -585,7 +585,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val store = SetupStore(this)
         handler.removeCallbacks(installAgain)
         store.note("connection lost: every strip was refused with a reset window token (${PowerContext.describe(this)})")
-        connectionLoss.reset()
+        resetTokens.reset()
         if (SecureSettingsAccess.canWrite(this) && store.autoRestore && !store.userPaused) {
             store.note("restarting the service to get a new connection")
             val app = applicationContext

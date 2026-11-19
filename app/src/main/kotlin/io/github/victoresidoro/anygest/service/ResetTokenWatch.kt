@@ -26,7 +26,7 @@ package io.github.victoresidoro.anygest.service
  * attach nothing and fail only for that reason are a lost connection; any other failure, or
  * an install that attached something, starts the count again.
  */
-internal class ConnectionLoss(private val threshold: Int = REFUSED_INSTALLS) {
+internal class ResetTokenWatch(private val threshold: Int = REFUSED_INSTALLS) {
 
     private var streak = 0
 

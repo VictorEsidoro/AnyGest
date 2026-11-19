@@ -240,7 +240,7 @@ internal class EdgeTouchOverlay(
                 }
             }
         }.onFailure {
-            if (ConnectionLoss.isResetToken(it)) tokenRefusals++ else otherRefusals++
+            if (ResetTokenWatch.isResetToken(it)) tokenRefusals++ else otherRefusals++
             Log.e(TAG, "Could not add $edge strip", it)
         }
     }

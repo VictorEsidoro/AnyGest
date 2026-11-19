@@ -22,11 +22,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ConnectionLossTest {
+class ResetTokenWatchTest {
 
     @Test
     fun `three installs refused only for the reset token read as a lost connection`() {
-        val loss = ConnectionLoss()
+        val loss = ResetTokenWatch()
         assertFalse(loss.installed(0, 3, 0))
         assertFalse(loss.installed(0, 3, 0))
         assertTrue(loss.installed(0, 3, 0))
@@ -34,7 +34,7 @@ class ConnectionLossTest {
 
     @Test
     fun `another kind of failure starts the count again`() {
-        val loss = ConnectionLoss()
+        val loss = ResetTokenWatch()
         loss.installed(0, 3, 0)
         loss.installed(0, 3, 0)
         assertFalse(loss.installed(0, 2, 1))
@@ -43,7 +43,7 @@ class ConnectionLossTest {
 
     @Test
     fun `an install that attached a strip starts the count again`() {
-        val loss = ConnectionLoss()
+        val loss = ResetTokenWatch()
         loss.installed(0, 3, 0)
         loss.installed(0, 3, 0)
         assertFalse(loss.installed(1, 2, 0))
@@ -52,13 +52,13 @@ class ConnectionLossTest {
 
     @Test
     fun `an install with no refusal at all is not a loss`() {
-        val loss = ConnectionLoss(threshold = 1)
+        val loss = ResetTokenWatch(threshold = 1)
         assertFalse(loss.installed(0, 0, 0))
     }
 
     @Test
     fun `reset clears the streak`() {
-        val loss = ConnectionLoss()
+        val loss = ResetTokenWatch()
         loss.installed(0, 3, 0)
         loss.installed(0, 3, 0)
         loss.reset()
@@ -67,8 +67,8 @@ class ConnectionLossTest {
 
     @Test
     fun `only the reset-token message counts`() {
-        assertTrue(ConnectionLoss.isResetToken(RuntimeException("token null is not valid; is your activity running?")))
-        assertFalse(ConnectionLoss.isResetToken(RuntimeException("something else")))
-        assertFalse(ConnectionLoss.isResetToken(RuntimeException()))
+        assertTrue(ResetTokenWatch.isResetToken(RuntimeException("token null is not valid; is your activity running?")))
+        assertFalse(ResetTokenWatch.isResetToken(RuntimeException("something else")))
+        assertFalse(ResetTokenWatch.isResetToken(RuntimeException()))
     }
 }
