@@ -98,6 +98,8 @@ internal class EdgeTouchOverlay(
     /** Returns how many strips the window manager accepted. */
     fun install(configuration: GestureConfiguration, geometry: ScreenGeometry): Int {
         remove()
+        tokenRefusals = 0
+        otherRefusals = 0
         landscape = geometry.landscape
         confirmation.configure(configuration.landscapeConfirmEnabled, geometry.landscape)
         if (configuration.landscapeConfirmEnabled && geometry.landscape) {
@@ -130,6 +132,21 @@ internal class EdgeTouchOverlay(
 
     private var installedAtMs = 0L
 
+    /** Strips the window manager refused in the last [install], by whether the cause was a reset window token. */
+    var tokenRefusals = 0
+        private set
+    var otherRefusals = 0
+        private set
+
+    /** False from screen off until the lock screen is gone: the strips take no touch then. */
+    private var armed = true
+
+    fun setArmed(value: Boolean) {
+        if (armed == value) return
+        armed = value
+        applyInteractivity()
+    }
+
     /** True while a touch holds the strips inert: reinstalling then would cut that touch off. */
     fun streamHeld(): Boolean = hold.held
 
@@ -143,7 +160,8 @@ internal class EdgeTouchOverlay(
             val params = view.layoutParams
             "${edge.name.lowercase()} ${params?.width}x${params?.height}px"
         }
-        return "$sizes (installed ${(nowMs - installedAtMs) / 1000}s ago)"
+        val lock = if (armed) "" else ", off over the lock screen"
+        return "$sizes (installed ${(nowMs - installedAtMs) / 1000}s ago$lock)"
     }
 
     fun remove() {
@@ -221,7 +239,10 @@ internal class EdgeTouchOverlay(
                         listOf(Rect(0, 0, view.width, view.height))
                 }
             }
-        }.onFailure { Log.e(TAG, "Could not add $edge strip", it) }
+        }.onFailure {
+            if (ConnectionLoss.isResetToken(it)) tokenRefusals++ else otherRefusals++
+            Log.e(TAG, "Could not add $edge strip", it)
+        }
     }
 
     private fun paramsFor(
@@ -413,7 +434,7 @@ internal class EdgeTouchOverlay(
 
     /** See the class comment for why this is alpha 0 as well as non-touchable. */
     private fun applyInteractivity() {
-        val interactive = !hold.held
+        val interactive = !hold.held && armed
         strips.values.forEach { view ->
             val params = view.layoutParams as? WindowManager.LayoutParams ?: return@forEach
             val flags = if (interactive) {

@@ -22,6 +22,7 @@ package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -113,8 +114,14 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 PowerContext.screenWentOff(SystemClock.elapsedRealtime())
                 stopPolling()
                 stopStallWatch()
+                disarmForLockScreen()
                 return
             }
+            if (intent.action == Intent.ACTION_USER_PRESENT) {
+                checkLock()
+                return
+            }
+            startLockWatch()
             // A long sleep is the setting of the freezes seen on waking, so it is worth a line.
             PowerContext.screenWentOn(SystemClock.elapsedRealtime())?.takeIf { it >= LONG_SLEEP_MS }?.let {
                 SetupStore(this@AnyGestAccessibilityService).note(
@@ -246,6 +253,12 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             replayer = this,
             onGestureAction = ::onGestureAction,
         )
+        // A new connection builds a new overlay, which starts armed.
+        if (getSystemService(PowerManager::class.java)?.isInteractive != false) {
+            startLockWatch()
+        } else {
+            overlay?.setArmed(false)
+        }
 
         (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
             .registerDisplayListener(displayListener, handler)
@@ -255,6 +268,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_USER_PRESENT)
             },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
@@ -543,9 +557,14 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         if (attached > 0) {
             installedConfiguration = configuration
             installFailures = 0
+            connectionLoss.reset()
             return
         }
         installedConfiguration = null
+        if (connectionLoss.installed(attached, current.tokenRefusals, current.otherRefusals)) {
+            connectionLost()
+            return
+        }
         if (installFailures == 0) {
             SetupStore(this).note("no strip could be attached, trying again")
         }
@@ -553,6 +572,54 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             handler.postDelayed(installAgain, INSTALL_RETRY_MS shl installFailures)
             installFailures++
         }
+    }
+
+    private val connectionLoss = ConnectionLoss()
+
+    /**
+     * The system reset this service's connection without unbinding it, so no strip can ever be
+     * attached again. With ADB mode the service is switched off and the recovery path switches it
+     * back on, which gives it a new connection; without it the stop is reported like any other.
+     */
+    private fun connectionLost() {
+        val store = SetupStore(this)
+        handler.removeCallbacks(installAgain)
+        store.note("connection lost: every strip was refused with a reset window token (${PowerContext.describe(this)})")
+        connectionLoss.reset()
+        if (SecureSettingsAccess.canWrite(this) && store.autoRestore && !store.userPaused) {
+            store.note("restarting the service to get a new connection")
+            val app = applicationContext
+            // The job that watches the accessibility list switches it back on; this is the
+            // backstop in case that job does not run.
+            Handler(Looper.getMainLooper()).postDelayed({ GesturePower.restoreIfNeeded(app) }, RESTART_BACKSTOP_MS)
+            SecureSettingsAccess.setServiceEnabled(this, false)
+        } else {
+            store.serviceUp = false
+            AlertNotifier.gesturesStopped(this)
+            GestureTileService.requestRefresh(this)
+        }
+    }
+
+    // Lock screen: the strips take no touch from screen off until the keyguard is gone.
+    private val lockWatch = LockWatch()
+    private val lockCheck = Runnable { checkLock() }
+
+    private fun disarmForLockScreen() {
+        handler.removeCallbacks(lockCheck)
+        overlay?.setArmed(false)
+    }
+
+    private fun startLockWatch() {
+        lockWatch.begin(SystemClock.elapsedRealtime())
+        checkLock()
+    }
+
+    private fun checkLock() {
+        handler.removeCallbacks(lockCheck)
+        val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true
+        val step = lockWatch.read(locked, SystemClock.elapsedRealtime())
+        overlay?.setArmed(step.armed)
+        step.nextReadMs?.let { handler.postDelayed(lockCheck, it) }
     }
 
     private var installedConfiguration: GestureConfiguration? = null
@@ -604,6 +671,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         runCatching { contentResolver.unregisterContentObserver(barObserver) }
         stopPolling()
         stopStallWatch()
+        handler.removeCallbacks(lockCheck)
         runCatching { unregisterReceiver(screenReceiver) }
         runCatching { unregisterReceiver(packageReceiver) }
         runCatching { unregisterReceiver(defaultsReceiver) }
@@ -749,6 +817,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         /** How often the foreground app is read while the screen is on and the list is in use. */
         private const val POLL_MS = 1_500L
         private const val STALL_TICK_MS = 2_000L
+        private const val RESTART_BACKSTOP_MS = 3_000L
         private const val LONG_SLEEP_MS = 5 * 60_000L
         private const val INSTALL_DEFER_MS = 100L
         private const val MAX_INSTALL_DEFERRALS = 10
