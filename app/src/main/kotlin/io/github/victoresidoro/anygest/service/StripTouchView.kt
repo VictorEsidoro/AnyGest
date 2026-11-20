@@ -186,27 +186,27 @@ internal class StripTouchView(
     /** Returns true when the release was handed to a replay. */
     private fun react(action: TrackerAction, atRelease: Boolean): Boolean {
         when (action) {
-            TrackerAction.None, TrackerAction.Disarmed -> Unit
-            is TrackerAction.ScheduleLongPress -> {
+            TrackerAction.None, TrackerAction.Uncommitted -> Unit
+            is TrackerAction.StartLongPress -> {
                 listener.longPressPending(token, action.delayMs)
                 removeCallbacks(longPressTimer)
                 postDelayed(longPressTimer, action.delayMs)
             }
-            is TrackerAction.Armed -> {
+            is TrackerAction.Committed -> {
                 listener.touchEngaged(token)
                 // A swipe is under way: this touch is no long press any more.
                 removeCallbacks(longPressTimer)
                 // The bottom edge clicks when it fires, so a plain swipe up does not buzz on the way.
                 action.scheduleHoldMs?.let { postDelayed(holdTimer, it) } ?: click()
             }
-            is TrackerAction.RearmHold -> {
+            is TrackerAction.RestartHold -> {
                 removeCallbacks(holdTimer)
                 postDelayed(holdTimer, action.delayMs)
             }
-            is TrackerAction.Fire -> fire(action.action)
+            is TrackerAction.Perform -> fire(action.action)
             // Kept, not replayed: the app never asked for this swipe.
-            TrackerAction.Reverted -> outcome = "pulled back, nothing"
-            is TrackerAction.Unused -> {
+            TrackerAction.Cancelled -> outcome = "pulled back, nothing"
+            is TrackerAction.Passed -> {
                 stopTimers()
                 outcome = "unused (${action.reason})"
                 if (atRelease && samples.isNotEmpty()) {

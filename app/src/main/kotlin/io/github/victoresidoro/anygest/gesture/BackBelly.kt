@@ -80,16 +80,16 @@ class BackBellyState {
     /** Applies one tracker verdict, so the overlay and the tests share one reading of it. */
     fun follow(action: TrackerAction, dragDp: Float) {
         when (action) {
-            is TrackerAction.Armed -> {
+            is TrackerAction.Committed -> {
                 pulledDp = dragDp
                 arrowShown = true
             }
-            is TrackerAction.Disarmed -> {
+            is TrackerAction.Uncommitted -> {
                 // Pulled back inside the trigger: the arrow goes and the belly keeps following.
                 arrowShown = false
                 trail(dragDp)
             }
-            is TrackerAction.Fire, is TrackerAction.Reverted, is TrackerAction.Unused -> hide()
+            is TrackerAction.Perform, is TrackerAction.Cancelled, is TrackerAction.Passed -> hide()
             else -> trail(dragDp)
         }
     }

@@ -87,9 +87,9 @@ internal class EdgeIndicatorOverlay(
     /** Applies one tracker verdict, with the finger at raw [x],[y]. */
     fun follow(action: TrackerAction, x: Float, y: Float) {
         when (action) {
-            is TrackerAction.Armed -> show(x, y)
-            is TrackerAction.Fire, is TrackerAction.Reverted -> release()
-            is TrackerAction.Unused -> hide()
+            is TrackerAction.Committed -> show(x, y)
+            is TrackerAction.Perform, is TrackerAction.Cancelled -> release()
+            is TrackerAction.Passed -> hide()
             else -> if (shown) view.moveTo(along(x, y), risePx(x, y))
         }
     }

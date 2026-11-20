@@ -91,7 +91,7 @@ class GestureTracker(
         lastDown = sample
         val longPress = longPressEnabled && onHandle(sample)
         phase = Phase.Pressing(sample, longPress)
-        return if (longPress) TrackerAction.ScheduleLongPress(configuration.effectiveCircleToSearchHoldMs) else TrackerAction.None
+        return if (longPress) TrackerAction.StartLongPress(configuration.effectiveCircleToSearchHoldMs) else TrackerAction.None
     }
 
     fun onMove(sample: TouchSample): TrackerAction = when (val current = phase) {
@@ -104,7 +104,7 @@ class GestureTracker(
     fun onHoldElapsed(): TrackerAction {
         if (!holdsForRecents || phase !is Phase.Armed) return TrackerAction.None
         phase = Phase.Done
-        return TrackerAction.Fire(GestureAction.Recents, edge)
+        return TrackerAction.Perform(GestureAction.Recents, edge)
     }
 
     /** Fires for a press that is still down, has not armed and has not wandered off. */
@@ -112,7 +112,7 @@ class GestureTracker(
         val current = phase as? Phase.Pressing ?: return TrackerAction.None
         if (!current.longPress) return TrackerAction.None
         phase = Phase.Done
-        return TrackerAction.Fire(GestureAction.CircleToSearch, edge)
+        return TrackerAction.Perform(GestureAction.CircleToSearch, edge)
     }
 
     fun onUp(sample: TouchSample): TrackerAction {
@@ -120,9 +120,9 @@ class GestureTracker(
         phase = Phase.Idle
         return when (ended) {
             Phase.Done -> TrackerAction.None
-            Phase.Idle -> TrackerAction.Unused(rejection(lastDown, sample))
+            Phase.Idle -> TrackerAction.Passed(rejection(lastDown, sample))
             is Phase.Pressing -> released(ended, sample)
-            is Phase.Switching -> TrackerAction.Fire(ended.action, edge)
+            is Phase.Switching -> TrackerAction.Perform(ended.action, edge)
             is Phase.Armed -> releasedArmed(ended.down, sample)
             is Phase.Pulled -> releasedArmed(ended.down, sample)
         }
@@ -139,7 +139,7 @@ class GestureTracker(
         val longPress = current.longPress && (!beyondSlop(down, sample) || creeping(down, sample, true))
         if (sample.timestampMs - down.timestampMs > configuration.maximumArmDurationMs) {
             phase = Phase.Idle
-            return TrackerAction.Unused(RejectionReason.TOO_SLOW_TO_ARM)
+            return TrackerAction.Passed(RejectionReason.TOO_SLOW_TO_ARM)
         }
         phase = Phase.Pressing(down, longPress)
         if (creeping(down, sample, longPress)) return TrackerAction.None
@@ -152,29 +152,29 @@ class GestureTracker(
         if (!bottom) {
             if (pastDistance(down, sample)) return TrackerAction.None
             phase = Phase.Pulled(down)
-            return TrackerAction.Disarmed
+            return TrackerAction.Uncommitted
         }
         // Arming upward first and then going along the edge is still a switch.
         switchTarget(down, sample)?.let { return switchTo(down, it) }
         if (!moved(current.still, sample)) return TrackerAction.None
         // The hold may happen anywhere along the swipe: movement restarts it.
         phase = Phase.Armed(down, sample)
-        return TrackerAction.RearmHold(configuration.recentsHoldMs)
+        return TrackerAction.RestartHold(configuration.recentsHoldMs)
     }
 
     private fun arm(down: TouchSample, sample: TouchSample): TrackerAction {
         phase = Phase.Armed(down, sample)
-        return TrackerAction.Armed(if (holdsForRecents) configuration.recentsHoldMs else null)
+        return TrackerAction.Committed(if (holdsForRecents) configuration.recentsHoldMs else null)
     }
 
     private fun switchTo(down: TouchSample, action: GestureAction): TrackerAction {
         phase = Phase.Switching(down, action)
-        return TrackerAction.Armed(scheduleHoldMs = null)
+        return TrackerAction.Committed(scheduleHoldMs = null)
     }
 
     /** Back is judged where the finger lets go; Home fires wherever it does. */
     private fun releasedArmed(down: TouchSample, sample: TouchSample): TrackerAction =
-        if (!bottom && !pastDistance(down, sample)) TrackerAction.Reverted else TrackerAction.Fire(tapAction, edge)
+        if (!bottom && !pastDistance(down, sample)) TrackerAction.Cancelled else TrackerAction.Perform(tapAction, edge)
 
     /**
      * A release that never armed. Under load a whole swipe can arrive as DOWN then UP with no
@@ -184,10 +184,10 @@ class GestureTracker(
         val down = current.down
         val inTime = sample.timestampMs - down.timestampMs <= configuration.maximumArmDurationMs
         if (inTime && !creeping(down, sample, current.longPress)) {
-            switchTarget(down, sample)?.let { return TrackerAction.Fire(it, edge) }
-            if (swipe(down, sample)) return TrackerAction.Fire(tapAction, edge)
+            switchTarget(down, sample)?.let { return TrackerAction.Perform(it, edge) }
+            if (swipe(down, sample)) return TrackerAction.Perform(tapAction, edge)
         }
-        return TrackerAction.Unused(rejection(down, sample))
+        return TrackerAction.Passed(rejection(down, sample))
     }
 
     /** Inward travel: positive away from the edge. */

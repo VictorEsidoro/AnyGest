@@ -38,34 +38,34 @@ import io.github.victoresidoro.anygest.setup.SetupStore
  */
 class AppSwitcher(private val context: Context) {
 
-    // The order this walk started from, newest first, and where in it the last step landed.
+    // The order this trail started from, newest first, and where in it the last step landed.
     // Kept rather than re-read because usage events lag by seconds: right after a launch the
-    // event stream still names the previous app, so re-reading would keep resetting the walk
+    // event stream still names the previous app, so re-reading would keep resetting the trail
     // to the newest entry and the gesture would bounce between two apps.
-    private var walk: List<String> = emptyList()
-    private var position = 0
-    private var lastStepAt = 0L
+    private var trail: List<String> = emptyList()
+    private var cursor = 0
+    private var lastHopAt = 0L
 
     fun step(toPrevious: Boolean): Boolean {
         val now = SystemClock.elapsedRealtime()
-        // A pause long enough means the user went somewhere by hand, so the walk restarts.
-        if (walk.isEmpty() || now - lastStepAt > CHAIN_WINDOW_MS) {
+        // A pause long enough means the user went somewhere by hand, so the trail restarts.
+        if (trail.isEmpty() || now - lastHopAt > CHAIN_MS) {
             val order = recentOrder()
-            walk = order.apps
+            trail = order.apps
             // The app in front is not in the list when it cannot be launched (the home
             // screen), and the first step back is then to the newest app in it.
-            position = if (order.startsWithCurrent) 0 else -1
+            cursor = if (order.startsWithCurrent) 0 else -1
         }
-        if (walk.isEmpty()) {
+        if (trail.isEmpty()) {
             return fail("app switch: no usage events, so usage access is probably not granted")
         }
 
-        val next = position + if (toPrevious) 1 else -1
-        if (next !in walk.indices) {
+        val next = cursor + if (toPrevious) 1 else -1
+        if (next !in trail.indices) {
             return fail("app switch: nothing ${if (toPrevious) "older" else "newer"} than this")
         }
 
-        val target = walk[next]
+        val target = trail[next]
         val intent = context.packageManager.getLaunchIntentForPackage(target)
             ?: return fail("app switch: $target has no launcher entry")
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -75,8 +75,8 @@ class AppSwitcher(private val context: Context) {
                 fail("app switch: starting $target threw ${throwable.javaClass.name}", throwable)
             }
             .onSuccess {
-                position = next
-                lastStepAt = now
+                cursor = next
+                lastHopAt = now
                 lastFailure = null
                 lastNoted = null
             }
@@ -144,7 +144,7 @@ class AppSwitcher(private val context: Context) {
         private const val TRAIL_WINDOW_MS = 6L * 60L * 60L * 1000L
 
         /** How long a chain of swipes keeps walking one order before it restarts. */
-        private const val CHAIN_WINDOW_MS = 5_000L
+        private const val CHAIN_MS = 5_000L
 
         // Kept for the life of the process: the service restarts at every pause, and the
         // events in between are read incrementally, so nothing has to be read twice.

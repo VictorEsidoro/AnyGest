@@ -106,7 +106,7 @@ class BackBellyTest {
         val swipe = Swipe()
         val scales = listOf(180f, 120f, 60f, 3f).map { x -> swipe.moveTo(x); swipe.belly.scale }
         assertTrue(scales.zipWithNext().all { (before, after) -> after < before })
-        assertEquals(TrackerAction.Reverted, swipe.lift(3f))
+        assertEquals(TrackerAction.Cancelled, swipe.lift(3f))
         assertFalse(swipe.belly.visible)
         assertFalse(swipe.belly.arrowShown)
         assertEquals(0f, swipe.belly.scale, 0f)

@@ -30,9 +30,9 @@ import io.github.victoresidoro.anygest.gesture.RejectionReason.WRONG_DIRECTION
 import io.github.victoresidoro.anygest.gesture.ScreenEdge.BOTTOM
 import io.github.victoresidoro.anygest.gesture.ScreenEdge.LEFT
 import io.github.victoresidoro.anygest.gesture.ScreenEdge.RIGHT
-import io.github.victoresidoro.anygest.gesture.TrackerAction.Disarmed
+import io.github.victoresidoro.anygest.gesture.TrackerAction.Cancelled
 import io.github.victoresidoro.anygest.gesture.TrackerAction.None
-import io.github.victoresidoro.anygest.gesture.TrackerAction.Reverted
+import io.github.victoresidoro.anygest.gesture.TrackerAction.Uncommitted
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -55,12 +55,12 @@ class EdgeSwipeTest {
         fun up(x: Float, y: Float, at: Long) = tracker.onUp(TouchSample(x, y, at))
         fun holdElapses() = tracker.onHoldElapsed()
         fun cancel() = tracker.onCancel()
-        fun fired(action: GestureAction) = TrackerAction.Fire(action, edge)
+        fun fired(action: GestureAction) = TrackerAction.Perform(action, edge)
     }
 
-    private val armedNoHold = TrackerAction.Armed(scheduleHoldMs = null)
-    private val armedForRecents = TrackerAction.Armed(scheduleHoldMs = 100L)
-    private fun unused(reason: RejectionReason) = TrackerAction.Unused(reason)
+    private val armedNoHold = TrackerAction.Committed(scheduleHoldMs = null)
+    private val armedForRecents = TrackerAction.Committed(scheduleHoldMs = 100L)
+    private fun unused(reason: RejectionReason) = TrackerAction.Passed(reason)
     private fun switching() = GestureConfiguration(appSwitchEnabled = true)
 
     // Back on the side edges
@@ -97,7 +97,7 @@ class EdgeSwipeTest {
         f.down(4f, 1000f)
         f.move(204f, 1000f, 50L)
         // 60 px of travel is under the 72 px distance.
-        assertEquals(Disarmed, f.move(64f, 1000f, 120L))
+        assertEquals(Uncommitted, f.move(64f, 1000f, 120L))
         assertEquals(None, f.move(10f, 1000f, 150L))
         assertEquals(armedNoHold, f.move(204f, 1000f, 250L))
         assertEquals(f.fired(Back), f.up(204f, 1000f, 270L))
@@ -108,13 +108,13 @@ class EdgeSwipeTest {
         val disarmedFirst = Finger(RIGHT)
         disarmedFirst.down(1076f, 1000f)
         disarmedFirst.move(876f, 1000f, 50L)
-        assertEquals(Disarmed, disarmedFirst.move(1070f, 1000f, 150L))
-        assertEquals(Reverted, disarmedFirst.up(1070f, 1000f, 170L))
+        assertEquals(Uncommitted, disarmedFirst.move(1070f, 1000f, 150L))
+        assertEquals(Cancelled, disarmedFirst.up(1070f, 1000f, 170L))
 
         val batched = Finger(LEFT)
         batched.down(4f, 1000f)
         batched.move(204f, 1000f, 50L)
-        assertEquals(Reverted, batched.up(4f, 1000f, 150L))
+        assertEquals(Cancelled, batched.up(4f, 1000f, 150L))
     }
 
     @Test
@@ -132,7 +132,7 @@ class EdgeSwipeTest {
         val f = Finger(LEFT, GestureConfiguration(sideMinimumSwipeDistanceDp = 50f))
         f.down(4f, 1000f)
         assertEquals(armedNoHold, f.move(204f, 1000f, 50L))
-        assertEquals(Reverted, f.up(124f, 1000f, 100L))
+        assertEquals(Cancelled, f.up(124f, 1000f, 100L))
     }
 
     // Home and Recents on the bottom edge
@@ -162,8 +162,8 @@ class EdgeSwipeTest {
         f.down(540f, 2394f)
         f.move(540f, 2304f, 40L)
         assertEquals(None, f.move(550f, 2296f, 60L))
-        assertEquals(TrackerAction.RearmHold(100L), f.move(540f, 2260f, 90L))
-        assertEquals(TrackerAction.RearmHold(100L), f.move(620f, 2260f, 120L))
+        assertEquals(TrackerAction.RestartHold(100L), f.move(540f, 2260f, 90L))
+        assertEquals(TrackerAction.RestartHold(100L), f.move(620f, 2260f, 120L))
         assertEquals(f.fired(Recents), f.holdElapses())
     }
 
@@ -172,7 +172,7 @@ class EdgeSwipeTest {
         val f = Finger(BOTTOM)
         f.down(540f, 2394f)
         f.move(540f, 2304f, 40L)
-        assertEquals(TrackerAction.RearmHold(100L), f.move(540f, 2200f, 6_000L))
+        assertEquals(TrackerAction.RestartHold(100L), f.move(540f, 2200f, 6_000L))
         assertEquals(f.fired(Recents), f.holdElapses())
     }
 
@@ -180,7 +180,7 @@ class EdgeSwipeTest {
     fun `the Recents hold is the configured one`() {
         val f = Finger(BOTTOM, GestureConfiguration(recentsHoldMs = 250L))
         f.down(540f, 2394f)
-        assertEquals(TrackerAction.Armed(250L), f.move(540f, 2304f, 40L))
+        assertEquals(TrackerAction.Committed(250L), f.move(540f, 2304f, 40L))
     }
 
     @Test
@@ -399,7 +399,7 @@ class EdgeSwipeTest {
         val f = Finger(BOTTOM, switching())
         f.down(540f, 2394f)
         f.move(540f, 2294f, 50L)
-        assertEquals(TrackerAction.RearmHold(100L), f.move(580f, 2194f, 90L))
+        assertEquals(TrackerAction.RestartHold(100L), f.move(580f, 2194f, 90L))
         assertEquals(f.fired(Recents), f.holdElapses())
     }
 

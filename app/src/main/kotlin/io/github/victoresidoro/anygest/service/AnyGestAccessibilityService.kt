@@ -70,14 +70,14 @@ import kotlinx.coroutines.launch
 class AnyGestAccessibilityService : AccessibilityService() {
 
     /** An uncaught throw in [scope] (DataStore on an unreadable file) would kill the process. */
-    private val coroutineFailures = CoroutineExceptionHandler { _, throwable ->
+    private val failureHandler = CoroutineExceptionHandler { _, throwable ->
         FailureLog.record(this, "settings collector", throwable)
     }
 
     // Rebuilt in setUp: teardown cancels it, and a connection made again on the same instance
     // would otherwise collect its settings in a dead scope.
     private var scope = newScope()
-    private val handler = Handler(Looper.getMainLooper())
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private lateinit var performer: GestureActionPerformer
     private var host: StripHost? = null
@@ -87,17 +87,17 @@ class AnyGestAccessibilityService : AccessibilityService() {
     private var notes: DeviceNotes? = null
 
     /** False until the first settings have decided whether to pause straight away. */
-    private var started = false
+    private var running = false
 
     private val stallWatch = StallWatch()
     private val stallTick = object : Runnable {
         override fun run() {
             stallWatch.tick(SystemClock.elapsedRealtime())?.let { SetupStore(this@AnyGestAccessibilityService).note(it) }
-            handler.postDelayed(this, STALL_TICK_MS)
+            mainHandler.postDelayed(this, STALL_TICK_MS)
         }
     }
 
-    private val screenReceiver = object : BroadcastReceiver() {
+    private val powerReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 Intent.ACTION_SCREEN_OFF -> screenOff()
@@ -111,7 +111,7 @@ class AnyGestAccessibilityService : AccessibilityService() {
     }
 
     // A rotation reaches the display after the configuration change, so that alone would race it.
-    private val displayListener = object : DisplayManager.DisplayListener {
+    private val rotationListener = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) = Unit
         override fun onDisplayRemoved(displayId: Int) = Unit
         override fun onDisplayChanged(displayId: Int) {
@@ -155,21 +155,21 @@ class AnyGestAccessibilityService : AccessibilityService() {
         val stripHost = StripHost(
             context = this,
             windowManager = getSystemService(WindowManager::class.java),
-            handler = handler,
-            replayer = GestureReplayer(this, handler),
+            mainHandler = mainHandler,
+            replayer = GestureReplayer(this, mainHandler),
             onGestureAction = ::onGestureAction,
         )
         host = stripHost
-        lockGate = LockGate(this, handler, stripHost::setArmed).also { it.start(screenIsOn()) }
+        lockGate = LockGate(this, mainHandler, stripHost::setArmed).also { it.start(screenIsOn()) }
         val deviceNotes = DeviceNotes(this)
         notes = deviceNotes
-        pause = PauseController(this, handler, onSubscribed = { if (screenIsOn()) startStallWatch() })
-        keeper = NavigationKeeper(this, handler, onModeChanging = stripHost::startSettle, appChanges = deviceNotes::appChanges)
+        pause = PauseController(this, mainHandler, onSubscribed = { if (screenIsOn()) startStallWatch() })
+        keeper = NavigationKeeper(this, mainHandler, onModeChanging = stripHost::startSettle, appChanges = deviceNotes::appChanges)
 
-        getSystemService(DisplayManager::class.java).registerDisplayListener(displayListener, handler)
+        getSystemService(DisplayManager::class.java).registerDisplayListener(rotationListener, mainHandler)
         ContextCompat.registerReceiver(
             this,
-            screenReceiver,
+            powerReceiver,
             IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_SCREEN_OFF)
@@ -185,10 +185,10 @@ class AnyGestAccessibilityService : AccessibilityService() {
             settings.configuration.collect { updated ->
                 val configuration = updated.copy(platform = platformDefaults())
                 stripHost.configure(configuration)
-                if (!started) stripHost.startSettle()
+                if (!running) stripHost.startSettle()
                 pause?.configure(configuration)
-                if (!started) {
-                    started = true
+                if (!running) {
+                    running = true
                     keeper?.active = true
                     // Starting while a listed app is in front must not flash the service at it,
                     // so that comes before the bar is touched.
@@ -286,37 +286,37 @@ class AnyGestAccessibilityService : AccessibilityService() {
     private fun screenIsOn(): Boolean = getSystemService(PowerManager::class.java)?.isInteractive != false
 
     private fun startStallWatch() {
-        handler.removeCallbacks(stallTick)
+        mainHandler.removeCallbacks(stallTick)
         stallWatch.start(SystemClock.elapsedRealtime())
-        handler.postDelayed(stallTick, STALL_TICK_MS)
+        mainHandler.postDelayed(stallTick, STALL_TICK_MS)
     }
 
     private fun stopStallWatch() {
-        handler.removeCallbacks(stallTick)
+        mainHandler.removeCallbacks(stallTick)
         stallWatch.stop()
     }
 
     private fun teardown() {
-        runCatching { getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener) }
+        runCatching { getSystemService(DisplayManager::class.java).unregisterDisplayListener(rotationListener) }
         keeper?.stop()
         pause?.stopPolling()
         stopStallWatch()
         lockGate?.stop()
-        runCatching { unregisterReceiver(screenReceiver) }
+        runCatching { unregisterReceiver(powerReceiver) }
         notes?.stop()
-        started = false
+        running = false
         host?.stop()
         host = null
         lockGate = null
         pause = null
         keeper = null
         notes = null
-        handler.removeCallbacksAndMessages(null)
+        mainHandler.removeCallbacksAndMessages(null)
         scope.cancel()
         instance = null
     }
 
-    private fun newScope() = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + coroutineFailures)
+    private fun newScope() = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + failureHandler)
 
     companion object {
         private const val TAG = "AnyGest"

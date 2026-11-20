@@ -26,25 +26,25 @@ sealed interface TrackerAction {
     data object None : TrackerAction
 
     /** The swipe went far enough. Start the Recents timer if [scheduleHoldMs] is set. */
-    data class Armed(val scheduleHoldMs: Long?) : TrackerAction
+    data class Committed(val scheduleHoldMs: Long?) : TrackerAction
 
     /** The finger moved while armed, so the Recents timer starts over with [delayMs]. */
-    data class RearmHold(val delayMs: Long) : TrackerAction
+    data class RestartHold(val delayMs: Long) : TrackerAction
 
     /** Start the long-press timer; its end is reported through the long-press callback. */
-    data class ScheduleLongPress(val delayMs: Long) : TrackerAction
+    data class StartLongPress(val delayMs: Long) : TrackerAction
 
     /** Carry out [action] for the swipe that came from [edge]. */
-    data class Fire(val action: GestureAction, val edge: ScreenEdge) : TrackerAction
+    data class Perform(val action: GestureAction, val edge: ScreenEdge) : TrackerAction
 
     /** A Back swipe moved back inside its distance with the finger still down. */
-    data object Disarmed : TrackerAction
+    data object Uncommitted : TrackerAction
 
     /** A Back swipe lifted inside its distance: nothing fires and nothing is replayed. */
-    data object Reverted : TrackerAction
+    data object Cancelled : TrackerAction
 
     /** Not a gesture. The caller may hand the touch to the app underneath. */
-    data class Unused(val reason: RejectionReason) : TrackerAction
+    data class Passed(val reason: RejectionReason) : TrackerAction
 }
 
 /** The reason a touch did not become a gesture, as the log spells it. */

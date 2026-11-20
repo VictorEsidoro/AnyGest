@@ -67,18 +67,18 @@ internal class EdgeStrips(
     private class Strip(val view: StripTouchView, val params: WindowManager.LayoutParams)
 
     private val strips = linkedMapOf<ScreenEdge, Strip>()
-    private val bellies = mutableMapOf<ScreenEdge, BackBellyOverlay>()
+    private val bellyByEdge = mutableMapOf<ScreenEdge, BackBellyOverlay>()
     private val drops = mutableMapOf<ScreenEdge, EdgeIndicatorOverlay>()
 
     private val hold = StreamHold(STUCK_STREAM_MS, REPLAY_STUCK_STREAM_MS, RESTING_TOUCH_MS)
-    private val handler = Handler(Looper.getMainLooper())
-    private val stuckCheck = Runnable(::onStuckCheck)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val stuckWatch = Runnable(::onStuckCheck)
 
     // Kept here rather than in a strip, so a pill that is showing survives a reinstall.
-    private val confirmation = LandscapeConfirm()
+    private val confirmer = LandscapeConfirm()
     private var pill: ConfirmPillOverlay? = null
-    private var pillVisible = false
-    private val pillExpiry = Runnable(::onPillTimeout)
+    private var pillUp = false
+    private val pillTimeout = Runnable(::onPillTimeout)
 
     private var installedAtMs = 0L
     private var landscape = false
@@ -107,7 +107,7 @@ internal class EdgeStrips(
         tokenRefusals = 0
         otherRefusals = 0
         landscape = geometry.landscape
-        confirmation.configure(configuration.landscapeConfirmEnabled, geometry.landscape)
+        confirmer.configure(configuration.landscapeConfirmEnabled, geometry.landscape)
         if (configuration.landscapeConfirmEnabled && geometry.landscape) {
             pill = ConfirmPillOverlay(context, windowManager, geometry).also { it.install() }
         }
@@ -130,17 +130,17 @@ internal class EdgeStrips(
     }
 
     fun remove() {
-        handler.removeCallbacks(stuckCheck)
-        handler.removeCallbacks(pillExpiry)
+        mainHandler.removeCallbacks(stuckWatch)
+        mainHandler.removeCallbacks(pillTimeout)
         pill?.remove()
         pill = null
-        pillVisible = false
+        pillUp = false
         // Out of the map first, so their detaching is not taken for the system's doing.
         val gone = strips.values.toList()
         strips.clear()
         gone.forEach { runCatching { windowManager.removeView(it.view) } }
-        bellies.values.forEach(BackBellyOverlay::remove)
-        bellies.clear()
+        bellyByEdge.values.forEach(BackBellyOverlay::remove)
+        bellyByEdge.clear()
         drops.values.forEach(EdgeIndicatorOverlay::remove)
         drops.clear()
         // A touch in progress dies with its window and its UP never comes to let the strips go.
@@ -194,7 +194,7 @@ internal class EdgeStrips(
             drops[edge] = EdgeIndicatorOverlay(context, windowManager, edge, geometry, configuration.edgeAnimation)
                 .also { it.install() }
         } else if (edge != ScreenEdge.BOTTOM) {
-            bellies[edge] = BackBellyOverlay(context, windowManager, edge, geometry).also { it.install() }
+            bellyByEdge[edge] = BackBellyOverlay(context, windowManager, edge, geometry).also { it.install() }
         }
     }
 
@@ -207,7 +207,7 @@ internal class EdgeStrips(
             handleCenterXPx = if (edge == ScreenEdge.BOTTOM) geometry.widthPx / 2f else null,
         )
         val feel = StripFeel(configuration.hapticFeedbackEnabled, configuration.hapticStrength, configuration.hapticConfirmEnabled)
-        val view = StripTouchView(context, edge, tracker, feel, bellies[edge], drops[edge], this)
+        val view = StripTouchView(context, edge, tracker, feel, bellyByEdge[edge], drops[edge], this)
         val params = windowParams(edge, configuration, geometry)
         runCatching {
             windowManager.addView(view, params)
@@ -294,9 +294,9 @@ internal class EdgeStrips(
     // StripTouchView.Listener
 
     override fun touchStarted(edge: ScreenEdge): Long {
-        bellies.values.forEach(BackBellyOverlay::hide)
+        bellyByEdge.values.forEach(BackBellyOverlay::hide)
         drops.values.forEach(EdgeIndicatorOverlay::hide)
-        confirmation.onDown(edge, SystemClock.uptimeMillis())
+        confirmer.onDown(edge, SystemClock.uptimeMillis())
         syncPill()
         val token = hold.start(SystemClock.uptimeMillis())
         syncTouchable()
@@ -317,7 +317,7 @@ internal class EdgeStrips(
     override fun longPressPending(token: Long, waitMs: Long) = hold.awaitLongPress(token, waitMs)
 
     override fun admit(action: GestureAction, edge: ScreenEdge): Boolean {
-        val verdict = confirmation.onFire(action, edge, SystemClock.uptimeMillis())
+        val verdict = confirmer.onFire(action, edge, SystemClock.uptimeMillis())
         syncPill()
         if (verdict is ConfirmVerdict.ShowPill) Log.i(TAG, "GESTURE_CONFIRM_SHOWN $edge ${action.id}")
         return verdict is ConfirmVerdict.Perform
@@ -333,7 +333,7 @@ internal class EdgeStrips(
 
     override fun replay(token: Long, edge: ScreenEdge, samples: List<TouchSample>) {
         if (!hold.isCurrent(token)) return
-        confirmation.onReplayed(edge)
+        confirmer.onReplayed(edge)
         syncPill(immediate = true)
         // A replay sends the strips no events, so starting one counts as activity.
         val settleMs = hold.resumeForReplay(token, SystemClock.uptimeMillis(), GestureReplayer.WINDOW_SETTLE_MS, MAX_RESTED_REPLAY_MS)
@@ -348,7 +348,7 @@ internal class EdgeStrips(
     }
 
     override fun touchEnded(token: Long, edge: ScreenEdge) {
-        confirmation.onStreamEnd(edge, SystemClock.uptimeMillis())
+        confirmer.onStreamEnd(edge, SystemClock.uptimeMillis())
         syncPill()
         letGo(token)
     }
@@ -375,13 +375,13 @@ internal class EdgeStrips(
 
     private fun letGo(token: Long) {
         if (!hold.release(token)) return
-        handler.removeCallbacks(stuckCheck)
+        mainHandler.removeCallbacks(stuckWatch)
         syncTouchable()
     }
 
     private fun scheduleStuckCheck() {
-        handler.removeCallbacks(stuckCheck)
-        hold.deadlineMs?.let { handler.postAtTime(stuckCheck, it) }
+        mainHandler.removeCallbacks(stuckWatch)
+        hold.deadlineMs?.let { mainHandler.postAtTime(stuckWatch, it) }
     }
 
     private fun onStuckCheck() {
@@ -403,7 +403,7 @@ internal class EdgeStrips(
             syncTouchable()
             return
         }
-        bellies.values.forEach(BackBellyOverlay::hide)
+        bellyByEdge.values.forEach(BackBellyOverlay::hide)
         drops.values.forEach(EdgeIndicatorOverlay::hide)
         report("strips were stuck inert, released after ${quietMs}ms without a touch (replay: $replaying)")
         // What the strip saw last and what was in front: a lost UP or a touch taken over.
@@ -412,25 +412,25 @@ internal class EdgeStrips(
     }
 
     private fun onPillTimeout() {
-        confirmation.expire(SystemClock.uptimeMillis())
-        if (!confirmation.pillShown) Log.i(TAG, "GESTURE_CONFIRM_EXPIRED")
+        confirmer.expire(SystemClock.uptimeMillis())
+        if (!confirmer.pillShown) Log.i(TAG, "GESTURE_CONFIRM_EXPIRED")
         syncPill()
     }
 
-    /** Brings the pill window and its timer in line with [confirmation]. */
+    /** Brings the pill window and its timer in line with [confirmer]. */
     private fun syncPill(immediate: Boolean = false) {
-        val expiresAt = confirmation.expiresAtMs
+        val expiresAt = confirmer.expiresAtMs
         val overlay = pill
         if (expiresAt != null && overlay != null) {
-            if (!pillVisible) overlay.show()
-            pillVisible = true
-            handler.removeCallbacks(pillExpiry)
-            handler.postAtTime(pillExpiry, expiresAt)
+            if (!pillUp) overlay.show()
+            pillUp = true
+            mainHandler.removeCallbacks(pillTimeout)
+            mainHandler.postAtTime(pillTimeout, expiresAt)
             return
         }
-        handler.removeCallbacks(pillExpiry)
-        if (!pillVisible) return
-        pillVisible = false
+        mainHandler.removeCallbacks(pillTimeout)
+        if (!pillUp) return
+        pillUp = false
         if (immediate) overlay?.hide() else overlay?.fadeOut()
     }
 

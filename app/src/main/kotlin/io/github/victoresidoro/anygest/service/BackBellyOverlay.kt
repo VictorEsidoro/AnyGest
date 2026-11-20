@@ -75,7 +75,7 @@ internal class BackBellyOverlay(
         val hadArrow = state.arrowShown
         state.follow(action, dragPx / geometry.density)
         when {
-            action is TrackerAction.Unused -> hide()
+            action is TrackerAction.Passed -> hide()
             wasUp && !state.visible -> shrinkAway()
             !wasUp && state.visible -> grow(fingerY)
             hadArrow != state.arrowShown -> fadeArrow(state.arrowShown)

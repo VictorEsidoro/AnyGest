@@ -35,12 +35,12 @@ class CircleToSearchGestureTest {
         handleCenterXPx: Float? = null,
     ) = GestureTracker(edge, configuration, density, handleCenterXPx)
 
-    private val fired = TrackerAction.Fire(GestureAction.CircleToSearch, ScreenEdge.BOTTOM)
+    private val fired = TrackerAction.Perform(GestureAction.CircleToSearch, ScreenEdge.BOTTOM)
 
     @Test
     fun `a bottom DOWN waits the platform long-press timeout by default`() {
         assertEquals(
-            TrackerAction.ScheduleLongPress(400L),
+            TrackerAction.StartLongPress(400L),
             tracker().onDown(sample(540f, 2395f, 0L)),
         )
     }
@@ -89,7 +89,7 @@ class CircleToSearchGestureTest {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
         assertEquals(
-            TrackerAction.Unused(RejectionReason.NO_MOVEMENT),
+            TrackerAction.Passed(RejectionReason.NO_MOVEMENT),
             t.onUp(sample(540f, 2395f, 80L)),
         )
         // A timer that was not cancelled in time must not fire on the finished touch.
@@ -100,10 +100,10 @@ class CircleToSearchGestureTest {
     fun `an upward swipe still fires Home and blocks the long press`() {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
-        assertTrue(t.onMove(sample(540f, 2295f, 50L)) is TrackerAction.Armed)
+        assertTrue(t.onMove(sample(540f, 2295f, 50L)) is TrackerAction.Committed)
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
         assertEquals(
-            TrackerAction.Fire(GestureAction.Home, ScreenEdge.BOTTOM),
+            TrackerAction.Perform(GestureAction.Home, ScreenEdge.BOTTOM),
             t.onUp(sample(540f, 2295f, 70L)),
         )
     }
@@ -114,7 +114,7 @@ class CircleToSearchGestureTest {
         t.onDown(sample(540f, 2395f, 0L))
         t.onMove(sample(540f, 2295f, 50L))
         assertEquals(
-            TrackerAction.Fire(GestureAction.Recents, ScreenEdge.BOTTOM),
+            TrackerAction.Perform(GestureAction.Recents, ScreenEdge.BOTTOM),
             t.onHoldElapsed(),
         )
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
@@ -145,7 +145,7 @@ class CircleToSearchGestureTest {
             platform = PlatformDefaults(longPressTimeoutMs = 1000L),
         )
         assertEquals(
-            TrackerAction.ScheduleLongPress(1000L),
+            TrackerAction.StartLongPress(1000L),
             tracker(configuration = configuration).onDown(sample(540f, 2395f, 0L)),
         )
     }
@@ -158,7 +158,7 @@ class CircleToSearchGestureTest {
             circleToSearchHoldMs = 650L,
         )
         assertEquals(
-            TrackerAction.ScheduleLongPress(650L),
+            TrackerAction.StartLongPress(650L),
             tracker(configuration = configuration).onDown(sample(540f, 2395f, 0L)),
         )
     }
@@ -167,7 +167,7 @@ class CircleToSearchGestureTest {
     fun `a long press over the handle fires`() {
         val t = tracker(handleCenterXPx = 540f)
         // 140px from the centre is inside the 148.5px half handle.
-        assertTrue(t.onDown(sample(680f, 2395f, 0L)) is TrackerAction.ScheduleLongPress)
+        assertTrue(t.onDown(sample(680f, 2395f, 0L)) is TrackerAction.StartLongPress)
         assertEquals(fired, t.onLongPressElapsed())
     }
 
@@ -177,7 +177,7 @@ class CircleToSearchGestureTest {
         assertEquals(TrackerAction.None, t.onDown(sample(900f, 2395f, 0L)))
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
         assertEquals(
-            TrackerAction.Unused(RejectionReason.NO_MOVEMENT),
+            TrackerAction.Passed(RejectionReason.NO_MOVEMENT),
             t.onUp(sample(900f, 2395f, 700L)),
         )
     }
@@ -190,7 +190,7 @@ class CircleToSearchGestureTest {
         )
         // 60px from the centre: outside a 20dp handle, inside the 66px half of 48dp.
         val t = tracker(configuration = configuration, handleCenterXPx = 540f)
-        assertTrue(t.onDown(sample(600f, 2395f, 0L)) is TrackerAction.ScheduleLongPress)
+        assertTrue(t.onDown(sample(600f, 2395f, 0L)) is TrackerAction.StartLongPress)
     }
 
     @Test
@@ -225,14 +225,14 @@ class CircleToSearchGestureTest {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
         t.onMove(sample(540f, 2365f, 300L))
-        assertTrue(t.onUp(sample(540f, 2365f, 330L)) is TrackerAction.Unused)
+        assertTrue(t.onUp(sample(540f, 2365f, 330L)) is TrackerAction.Passed)
     }
 
     @Test
     fun `a slow move past three swipe distances is still a swipe`() {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
-        assertTrue(t.onMove(sample(540f, 2295f, 300L)) is TrackerAction.Armed)
+        assertTrue(t.onMove(sample(540f, 2295f, 300L)) is TrackerAction.Committed)
         assertEquals(TrackerAction.None, t.onLongPressElapsed())
     }
 
@@ -240,7 +240,7 @@ class CircleToSearchGestureTest {
     fun `a quick move of the same distance is a swipe`() {
         val t = tracker()
         t.onDown(sample(540f, 2395f, 0L))
-        assertTrue(t.onMove(sample(540f, 2365f, 120L)) is TrackerAction.Armed)
+        assertTrue(t.onMove(sample(540f, 2365f, 120L)) is TrackerAction.Committed)
     }
 
     @Test
@@ -257,7 +257,7 @@ class CircleToSearchGestureTest {
     fun `a press beside the handle keeps the usual swipe rules`() {
         val t = tracker(handleCenterXPx = 540f)
         t.onDown(sample(900f, 2395f, 0L))
-        assertTrue(t.onMove(sample(900f, 2365f, 300L)) is TrackerAction.Armed)
+        assertTrue(t.onMove(sample(900f, 2365f, 300L)) is TrackerAction.Committed)
     }
 }
 
