@@ -717,6 +717,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
      * outside that window the process is still woken only by the pause-list apps.
      */
     private fun widenEventsForTrace() {
+        if (!testBuild) return
         val info = serviceInfo ?: return
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
         info.packageNames = null
@@ -726,6 +727,12 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
 
     private val narrowEvents = Runnable { applyEventSubscription() }
+
+    /** Only a pre-release build (`-test.N`) widens the subscription: a release never does. */
+    private val testBuild by lazy {
+        runCatching { packageManager.getPackageInfo(packageName, 0).versionName.orEmpty().contains("-test") }
+            .getOrDefault(false)
+    }
 
     /** The panel's refresh rate right now, since the system lowers it on its own. */
     private fun refreshRate(): String = runCatching {

@@ -1,8 +1,7 @@
 # Builds this fork's signed release APK; on the release branch, publishes it as a GitHub Release,
 # and on dev/** branches attaches it to the rolling "test" pre-release for a direct download.
-# Fork-only helper: upstream's own CI runs on main/release branches and is untouched.
 #
-# Signing uses the same repository secrets as upstream's release workflow:
+# Signing uses these repository secrets:
 #   ANDROID_KEYSTORE_B64  the keystore, base64-encoded
 #   KEYSTORE_PASSWORD     its store and key password (alias "hypergesture", the one inside the existing keystore)
 
@@ -121,8 +120,7 @@ jobs:
 
   # Publishes a GitHub Release with the APK attached as-is (artifacts are always zipped).
   # One release per versionName: bump it to publish again. The tag is created with
-  # GITHUB_TOKEN, which by design starts no other workflow, so upstream's own tag-triggered
-  # release workflow stays idle in this fork.
+  # GITHUB_TOKEN, which by design starts no other workflow.
   publish:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
