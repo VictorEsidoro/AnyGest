@@ -18,9 +18,11 @@
 package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
+import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import io.github.victoresidoro.anygest.R
+import io.github.victoresidoro.anygest.diagnostics.Trace
 import io.github.victoresidoro.anygest.gesture.GestureAction
 
 /**
@@ -33,6 +35,13 @@ class GestureActionPerformer(private val service: AccessibilityService) {
     private val switcher = AppSwitcher(service)
 
     fun perform(action: GestureAction): Boolean {
+        val startedMs = SystemClock.uptimeMillis()
+        val performed = performUntimed(action)
+        Trace.performed(startedMs, action.id, performed)
+        return performed
+    }
+
+    private fun performUntimed(action: GestureAction): Boolean {
         val globalAction = when (action) {
             GestureAction.Back -> AccessibilityService.GLOBAL_ACTION_BACK
             GestureAction.Home -> AccessibilityService.GLOBAL_ACTION_HOME

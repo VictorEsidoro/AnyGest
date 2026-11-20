@@ -40,6 +40,8 @@ internal object DiagnosticReport {
         section("Last app switch failure", diagnostics.lastAppSwitchFailure)
         section("Last recorded failure", diagnostics.lastRecordedFailure)
         section("Pause notes", diagnostics.pauseNotes)
+        section("System snapshot", diagnostics.systemSnapshot)
+        section("Trace (oldest first)", diagnostics.trace)
     }.trimEnd()
 
     private fun StringBuilder.section(title: String, text: String?) {

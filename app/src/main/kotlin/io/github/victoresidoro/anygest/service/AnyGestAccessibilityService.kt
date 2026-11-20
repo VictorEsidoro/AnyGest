@@ -43,6 +43,7 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import io.github.victoresidoro.anygest.diagnostics.FailureLog
+import io.github.victoresidoro.anygest.diagnostics.Trace
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.PlatformDefaults
@@ -536,6 +537,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val changed = event ?: return
         if (changed.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val packageName = changed.packageName?.toString() ?: return
+        Trace.windowChanged(changed.eventTime, "$packageName/${changed.className?.toString().orEmpty()}")
         if (shouldPauseFor(packageName)) pauseFor(packageName)
     }
 
@@ -710,6 +712,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
     private fun onGestureAction(action: GestureAction, edge: ScreenEdge) {
         Log.v(TAG, "Gesture from $edge -> $action")
+        Trace.gesture(edge.name, action.id)
         performer.perform(action)
     }
 

@@ -31,6 +31,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import io.github.victoresidoro.anygest.diagnostics.Trace
 import io.github.victoresidoro.anygest.gesture.ConfirmVerdict
 import io.github.victoresidoro.anygest.gesture.EdgeAnimation
 import io.github.victoresidoro.anygest.gesture.GestureAction
@@ -509,6 +510,7 @@ internal class EdgeTouchOverlay(
             )
             return when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    Trace.touchDown()
                     samples.clear()
                     abandoned = false
                     tickedThisTouch = false

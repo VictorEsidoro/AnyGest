@@ -59,6 +59,10 @@ data class Diagnostics(
     val homeCandidates: String = "unknown",
     /** The strips as installed: edge, pixel size and age, or why there are none. */
     val strips: String = "unknown",
+    /** What the system reports about itself, one `- name: value` line each; null if not collected. */
+    val systemSnapshot: String? = null,
+    /** The last gestures with their timings, oldest first; null before any. */
+    val trace: String? = null,
 )
 
 object DiagnosticsCollector {
@@ -87,6 +91,8 @@ object DiagnosticsCollector {
             homeLauncher = LauncherWatch.homeLauncher(context),
             homeCandidates = LauncherWatch.homeCandidates(context),
             strips = AnyGestAccessibilityService.stripSummary(),
+            systemSnapshot = SystemSnapshot.collect(context),
+            trace = Trace.report(),
         )
     }
 
