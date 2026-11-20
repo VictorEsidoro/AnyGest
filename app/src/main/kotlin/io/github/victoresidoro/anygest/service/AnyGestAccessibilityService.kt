@@ -155,7 +155,7 @@ class AnyGestAccessibilityService : AccessibilityService() {
         val stripHost = StripHost(
             context = this,
             windowManager = getSystemService(WindowManager::class.java),
-            mainHandler = mainHandler,
+            handler = mainHandler,
             replayer = GestureReplayer(this, mainHandler),
             onGestureAction = ::onGestureAction,
         )
