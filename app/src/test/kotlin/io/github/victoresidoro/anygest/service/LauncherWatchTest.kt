@@ -65,9 +65,4 @@ class LauncherWatchTest {
         recent.add(PackageEvent.Installed, " ", own, 0)
         assertEquals("none", recent.describe(0))
     }
-
-    @Test
-    fun `a change of default apps names the launcher`() {
-        assertEquals("default apps changed (home launcher: chooser)", LauncherWatch.defaultsNote("chooser"))
-    }
 }

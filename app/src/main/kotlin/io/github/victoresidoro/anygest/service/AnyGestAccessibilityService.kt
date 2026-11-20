@@ -119,9 +119,11 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             }
             if (intent.action == Intent.ACTION_USER_PRESENT) {
                 checkLock()
+                noteDefaults(this@AnyGestAccessibilityService, "default apps changed without a broadcast")
                 return
             }
             startLockWatch()
+            noteDefaults(this@AnyGestAccessibilityService, "default apps changed without a broadcast")
             // A long sleep is the setting of the freezes seen on waking, so it is worth a line.
             PowerContext.screenWentOn(SystemClock.elapsedRealtime())?.takeIf { it >= LONG_SLEEP_MS }?.let {
                 SetupStore(this@AnyGestAccessibilityService).note(
@@ -220,8 +222,26 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     }
     private val defaultsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            SetupStore(context).note(LauncherWatch.defaultsNote(LauncherWatch.homeLauncher(context)))
+            noteDefaults(context, "default apps changed")
         }
+    }
+
+    private var lastDefaults: Set<String> = emptySet()
+
+    /**
+     * Notes what moved among the default apps. Called on the system's own broadcast and, to catch
+     * a change that sends none, when the screen wakes or the phone unlocks.
+     */
+    private fun noteDefaults(context: Context, what: String) {
+        val now = DefaultApps.snapshot(context)
+        val moved = DefaultApps.changes(lastDefaults, now)
+        // The first snapshot has nothing to compare with.
+        val first = lastDefaults.isEmpty()
+        lastDefaults = now
+        if (what != "default apps changed" && (moved == "none" || first)) return
+        SetupStore(context).note(
+            "$what (home launcher: ${LauncherWatch.homeLauncher(context)}; moved: ${if (first) "unknown" else moved}; ${PowerContext.describe(context)})",
+        )
     }
 
     private fun onNavigationModeChanged() {
@@ -289,6 +309,8 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             IntentFilter("android.intent.action.ACTION_PREFERRED_ACTIVITY_CHANGED"),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+
+        lastDefaults = DefaultApps.snapshot(this)
 
         lastNavigationMode = NavigationModeReader.read(this)
         contentResolver.registerContentObserver(

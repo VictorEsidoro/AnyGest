@@ -46,8 +46,6 @@ internal object LauncherWatch {
             .distinct()
             .joinToString(", ")
     }.getOrNull()?.ifBlank { null } ?: "unknown"
-
-    fun defaultsNote(home: String): String = "default apps changed (home launcher: $home)"
 }
 
 /**

@@ -36,12 +36,18 @@ internal object PowerContext {
     @Volatile
     private var screenOffAtMs: Long? = null
 
+    /** [SystemClock.elapsedRealtime] of the last screen-on this process saw, or null. */
+    @Volatile
+    private var screenOnAtMs: Long? = null
+
     fun screenWentOff(nowMs: Long) {
         screenOffAtMs = nowMs
+        screenOnAtMs = null
     }
 
     /** How long the screen had been off, or null when this process did not see it go off. */
     fun screenWentOn(nowMs: Long): Long? {
+        screenOnAtMs = nowMs
         val off = screenOffAtMs ?: return null
         screenOffAtMs = null
         return nowMs - off
@@ -52,6 +58,7 @@ internal object PowerContext {
         val parts = mutableListOf<String>()
         parts += if (power?.isInteractive == false) "screen off" else "screen on"
         screenOffAtMs?.let { parts += "off for ${duration(nowMs - it)}" }
+        screenOnAtMs?.let { parts += "on for ${duration(nowMs - it)}" }
         parts += "charger ${charger(context)}"
         parts += "idle=${power?.isDeviceIdleMode}"
         parts += "saver=${power?.isPowerSaveMode}"
