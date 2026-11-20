@@ -537,7 +537,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         val changed = event ?: return
         if (changed.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val packageName = changed.packageName?.toString() ?: return
-        Trace.windowChanged(changed.eventTime, "$packageName/${changed.className?.toString().orEmpty()}")
+        Trace.windowChanged("$packageName/${changed.className?.toString().orEmpty()}", changed.eventTime)
         if (shouldPauseFor(packageName)) pauseFor(packageName)
     }
 
@@ -710,9 +710,16 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         instance = null
     }
 
+    /** The panel's refresh rate right now, since the system lowers it on its own. */
+    private fun refreshRate(): String = runCatching {
+        val display = getSystemService(android.hardware.display.DisplayManager::class.java)
+            .getDisplay(android.view.Display.DEFAULT_DISPLAY)
+        "${display.refreshRate.toInt()} Hz"
+    }.getOrDefault("")
+
     private fun onGestureAction(action: GestureAction, edge: ScreenEdge) {
         Log.v(TAG, "Gesture from $edge -> $action")
-        Trace.gesture(edge.name, action.id)
+        Trace.gesture(edge.name, action.id, refreshRate())
         performer.perform(action)
     }
 

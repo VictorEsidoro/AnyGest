@@ -40,31 +40,47 @@ internal class TraceLog(private val capacity: Int = 80) {
     }
 
     @Synchronized
-    fun gesture(atMs: Long, edge: String, action: String) {
+    fun gesture(atMs: Long, edge: String, action: String, extra: String = "") {
         val sinceDown = if (downAtMs == NONE) "?" else "${atMs - downAtMs}"
-        add(atMs, "$edge -> $action, $sinceDown ms after touch")
+        add(atMs, "$edge -> $action, $sinceDown ms after touch" + if (extra.isEmpty()) "" else ", $extra")
     }
 
     /** [startedMs] is when the call began; the first window change after it is awaited. */
     @Synchronized
     fun performed(startedMs: Long, durationMs: Long, action: String, ok: Boolean) {
+        expire(startedMs)
         add(startedMs + durationMs, "$action call took $durationMs ms, ${if (ok) "accepted" else "refused"}")
         waiting = if (ok) Waiting(startedMs, action) else null
     }
 
-    /** Only the first window change after an action counts; anything older is ignored. */
+    /**
+     * Only the first window change after an action counts. [atMs] is when the event
+     * reached the service, not the time stamped on it: the stamp's clock is not the same
+     * on every system, so [eventSkewMs] (receipt minus stamp) is shown when it is far off.
+     */
     @Synchronized
-    fun windowChanged(atMs: Long, label: String) {
+    fun windowChanged(atMs: Long, label: String, eventSkewMs: Long = 0) {
+        expire(atMs)
         val pending = waiting ?: return
-        if (atMs < pending.startedMs) return
         waiting = null
-        if (atMs - pending.startedMs > WINDOW_WAIT_MS) return
-        add(atMs, "window -> $label, ${atMs - pending.startedMs} ms after ${pending.action} started")
+        val skew = if (Math.abs(eventSkewMs) > SKEW_NOTE_MS) ", event stamped $eventSkewMs ms before receipt" else ""
+        add(atMs, "window -> $label, ${atMs - pending.startedMs} ms after ${pending.action} started$skew")
     }
 
     /** Oldest first, each with its age at [nowMs]. */
     @Synchronized
-    fun lines(nowMs: Long): List<String> = entries.map { "-${(nowMs - it.atMs) / 1000} s  ${it.text}" }
+    fun lines(nowMs: Long): List<String> {
+        expire(nowMs)
+        return entries.map { "-${(nowMs - it.atMs) / 1000} s  ${it.text}" }
+    }
+
+    /** An action no window change answered within the wait is recorded as such. */
+    private fun expire(atMs: Long) {
+        val pending = waiting ?: return
+        if (atMs - pending.startedMs <= WINDOW_WAIT_MS) return
+        waiting = null
+        add(pending.startedMs + WINDOW_WAIT_MS, "no window change within 3 s after ${pending.action}")
+    }
 
     private fun add(atMs: Long, text: String) {
         entries.addLast(Entry(atMs, text))
@@ -73,6 +89,7 @@ internal class TraceLog(private val capacity: Int = 80) {
 
     companion object {
         const val WINDOW_WAIT_MS = 3_000L
+        private const val SKEW_NOTE_MS = 1_000L
         private const val NONE = Long.MIN_VALUE
     }
 }
@@ -83,12 +100,16 @@ internal object Trace {
 
     fun touchDown() = log.touchDown(SystemClock.uptimeMillis())
 
-    fun gesture(edge: String, action: String) = log.gesture(SystemClock.uptimeMillis(), edge, action)
+    fun gesture(edge: String, action: String, extra: String = "") =
+        log.gesture(SystemClock.uptimeMillis(), edge, action, extra)
 
     fun performed(startedMs: Long, action: String, ok: Boolean) =
         log.performed(startedMs, SystemClock.uptimeMillis() - startedMs, action, ok)
 
-    fun windowChanged(eventTimeMs: Long, label: String) = log.windowChanged(eventTimeMs, label)
+    fun windowChanged(label: String, eventTimeMs: Long) {
+        val now = SystemClock.uptimeMillis()
+        log.windowChanged(now, label, now - eventTimeMs)
+    }
 
     fun report(): String? =
         log.lines(SystemClock.uptimeMillis()).takeIf { it.isNotEmpty() }?.joinToString("\n")

@@ -43,6 +43,7 @@ internal object SystemSnapshot {
         add("build" to read { "${Build.FINGERPRINT}, patch ${Build.VERSION.SECURITY_PATCH}, incremental ${Build.VERSION.INCREMENTAL}" })
         add("targetSdk" to read { context.applicationInfo.targetSdkVersion.toString() })
         add("display" to read { display(context) })
+        add("refresh rate" to read { refresh(context) })
         add("insets" to read { insets(context) })
         add("service info" to read { serviceInfo(context) })
         add("battery optimization ignored" to read {
@@ -65,6 +66,12 @@ internal object SystemSnapshot {
         val metrics = context.getSystemService(WindowManager::class.java).currentWindowMetrics
         val bounds = metrics.bounds
         return "${bounds.width()}x${bounds.height()}px, density ${context.resources.displayMetrics.density}, ${display.refreshRate.toInt()} Hz"
+    }
+
+    private fun refresh(context: Context): String {
+        val display = context.getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY)
+        val modes = display.supportedModes.map { "${it.physicalWidth}x${it.physicalHeight}@${it.refreshRate.toInt()}" }.distinct()
+        return "now ${display.refreshRate.toInt()} Hz, mode ${display.mode.refreshRate.toInt()} Hz, modes ${modes.joinToString()}"
     }
 
     private fun insets(context: Context): String {
@@ -94,7 +101,7 @@ internal object SystemSnapshot {
 
     /** Only keys about navigation, gestures and the home screen; values cut short. */
     private fun navigationSettings(context: Context): String {
-        val wanted = Regex("nav|gesture|fsg|hide|home|recent", RegexOption.IGNORE_CASE)
+        val wanted = Regex("nav|gesture|fsg|hide|home|recent|refresh|fps|white_list", RegexOption.IGNORE_CASE)
         val found = sortedSetOf<String>()
         for ((table, uri) in listOf(
             "global" to Settings.Global.CONTENT_URI,
@@ -105,7 +112,7 @@ internal object SystemSnapshot {
                 context.contentResolver.query(uri, arrayOf("name", "value"), null, null, null)?.use { cursor ->
                     while (cursor.moveToNext()) {
                         val name = cursor.getString(0) ?: continue
-                        if (wanted.containsMatchIn(name)) found += "$table.$name=${cursor.getString(1).orEmpty().take(40)}"
+                        if (wanted.containsMatchIn(name)) found += "$table.$name=${cursor.getString(1).orEmpty().take(if (name.contains("white_list", true)) 400 else 40)}"
                     }
                 }
             }

@@ -18,6 +18,7 @@
 package io.github.victoresidoro.anygest.diagnostics
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -51,17 +52,44 @@ class TraceLogTest {
         assertEquals(2, lines.size)
         assertTrue("took 12 ms, accepted" in lines[0])
         assertTrue("window -> com.example.app/Main, 340 ms after recents started" in lines[1])
+        assertFalse("stamped" in lines[1])
     }
 
     @Test
-    fun `an event from before the call, or long after it, is not attributed to it`() {
+    fun `a stamp far from the receipt time is shown, not trusted`() {
         val log = TraceLog()
         log.performed(2_000, 5, "home", ok = true)
-        log.windowChanged(1_990, "stale")
-        log.windowChanged(2_000 + TraceLog.WINDOW_WAIT_MS + 1, "late")
-        log.windowChanged(2_100, "after the wait was dropped")
+        log.windowChanged(2_100, "x", eventSkewMs = 7_200_000)
 
-        assertEquals(1, log.lines(6_000).size)
+        assertTrue("event stamped 7200000 ms before receipt" in log.lines(2_200).last())
+    }
+
+    @Test
+    fun `an action no window change answered says so`() {
+        val log = TraceLog()
+        log.performed(2_000, 5, "home", ok = true)
+        log.windowChanged(2_000 + TraceLog.WINDOW_WAIT_MS + 1, "late")
+
+        val lines = log.lines(6_000)
+        assertEquals(2, lines.size)
+        assertTrue("no window change within 3 s after home" in lines.last())
+    }
+
+    @Test
+    fun `an unanswered action is reported when the log is read`() {
+        val log = TraceLog()
+        log.performed(2_000, 5, "back", ok = true)
+
+        assertTrue("no window change" in log.lines(10_000).last())
+    }
+
+    @Test
+    fun `extra detail follows the gesture line`() {
+        val log = TraceLog()
+        log.touchDown(100)
+        log.gesture(150, "BOTTOM", "home", "120 Hz")
+
+        assertEquals("-0 s  BOTTOM -> home, 50 ms after touch, 120 Hz", log.lines(150).single())
     }
 
     @Test
