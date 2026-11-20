@@ -1,4 +1,4 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
 // This file is part of AnyGest, based on HyperGesture.
 //
@@ -15,27 +15,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// This accessibility privilege is used for navigation only: it never reads window
-// content, text or keystrokes, and sends nothing off the device.
+// This accessibility privilege is used for navigation only: it never reads window content,
+// text or keystrokes, and sends nothing off the device.
 
 package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.GestureDescription
-import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import android.database.ContentObserver
-import android.graphics.Path
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
-import android.provider.Settings
 import android.util.Log
 import android.view.Display
 import android.view.ViewConfiguration
@@ -44,14 +39,9 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import io.github.victoresidoro.anygest.diagnostics.FailureLog
 import io.github.victoresidoro.anygest.diagnostics.Trace
-import io.github.victoresidoro.anygest.diagnostics.TraceLog
 import io.github.victoresidoro.anygest.gesture.GestureAction
-import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.PlatformDefaults
 import io.github.victoresidoro.anygest.gesture.ScreenEdge
-import io.github.victoresidoro.anygest.gesture.TouchSample
-import io.github.victoresidoro.anygest.navigation.NavigationMode
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
 import io.github.victoresidoro.anygest.setup.GestureTileService
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
@@ -63,46 +53,42 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.math.hypot
 
 /**
- * Hosts the edge strips in-process rather than in a foreground service:
- * `TYPE_ACCESSIBILITY_OVERLAY` needs no `SYSTEM_ALERT_WINDOW` permission and no ongoing
- * notification, and the framework rebinds an enabled service itself, so no watchdog.
+ * The accessibility service: it owns the parts and passes the system's events to them.
+ *
+ * - [StripHost]: the edge strips, their size and their upkeep.
+ * - [LockGate]: strips off from screen off until the lock screen is gone.
+ * - [PauseController]: stepping aside for the apps on the pause list.
+ * - [NavigationKeeper]: the system bar and gesture mode, with ADB mode.
+ * - [DeviceNotes]: app installs and default apps, for the notes.
+ * - [GestureReplayer]: touches that were no gesture, played back into the app.
+ *
+ * The strips live in this process, as accessibility overlays: no overlay permission and no
+ * ongoing notification are needed, and the system binds an enabled service again by itself.
  */
-class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
+class AnyGestAccessibilityService : AccessibilityService() {
 
-    /**
-     * An uncaught throw in [scope] - realistically DataStore on an unreadable file -
-     * kills the process and gets the service reported as malfunctioning.
-     */
+    /** An uncaught throw in [scope] (DataStore on an unreadable file) would kill the process. */
     private val coroutineFailures = CoroutineExceptionHandler { _, throwable ->
         FailureLog.record(this, "settings collector", throwable)
     }
-    // Rebuilt in setUp: teardown cancels it, and a service that is connected again on the same
-    // instance would otherwise read its settings with a scope that is already dead.
-    private var scope =
-        CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + coroutineFailures)
+
+    // Rebuilt in setUp: teardown cancels it, and a connection made again on the same instance
+    // would otherwise collect its settings in a dead scope.
+    private var scope = newScope()
     private val handler = Handler(Looper.getMainLooper())
 
-    private lateinit var settings: GestureSettingsRepository
     private lateinit var performer: GestureActionPerformer
-    private lateinit var windowManager: WindowManager
-    private var overlay: EdgeStrips? = null
-    private var configuration: GestureConfiguration = GestureConfiguration()
-    private var lastGeometry: ScreenGeometry? = null
-    private var lastNavigationMode: NavigationMode? = null
+    private var host: StripHost? = null
+    private var lockGate: LockGate? = null
+    private var pause: PauseController? = null
+    private var keeper: NavigationKeeper? = null
+    private var notes: DeviceNotes? = null
 
-    private var lastSubscription: String? = null
+    /** False until the first settings have decided whether to pause straight away. */
+    private var started = false
 
-    /**
-     * Second way to notice a listed app: some apps keep their windows out of what a service may
-     * see, so no event ever comes. While the screen is on and the list is usable, the foreground
-     * app is also read from the usage events, a little late but from nothing the app controls.
-     */
-    private var polling = false
-    private var foreground: ForegroundApp.Tracker? = null
-    private val poll = Runnable { pollForeground() }
     private val stallWatch = StallWatch()
     private val stallTick = object : Runnable {
         override fun run() {
@@ -110,86 +96,45 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             handler.postDelayed(this, STALL_TICK_MS)
         }
     }
+
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                PowerContext.screenWentOff(SystemClock.elapsedRealtime())
-                stopPolling()
-                stopStallWatch()
-                disarmForLockScreen()
-                return
-            }
-            if (intent.action == Intent.ACTION_USER_PRESENT) {
-                checkLock()
-                noteDefaults(this@AnyGestAccessibilityService, "default apps changed without a broadcast")
-                return
-            }
-            startLockWatch()
-            noteDefaults(this@AnyGestAccessibilityService, "default apps changed without a broadcast")
-            // A long sleep is the setting of the freezes seen on waking, so it is worth a line.
-            PowerContext.screenWentOn(SystemClock.elapsedRealtime())?.takeIf { it >= LONG_SLEEP_MS }?.let {
-                SetupStore(this@AnyGestAccessibilityService).note(
-                    "screen on after ${PowerContext.duration(it)} off (${PowerContext.describe(this@AnyGestAccessibilityService)})",
-                )
-            }
-            startStallWatch()
-            updatePolling()
-            // The moment someone is about to use the gestures: strips that went missing or
-            // stuck while the screen was off are put right before the first swipe.
-            val current = overlay ?: return
-            if (!current.healthy()) {
-                SetupStore(this@AnyGestAccessibilityService)
-                    .note("strips missing when the screen came on, reinstalled")
-                installOverlay()
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> screenOff()
+                Intent.ACTION_USER_PRESENT -> {
+                    lockGate?.unlocked()
+                    notes?.defaultsMaybeChanged()
+                }
+                else -> screenOn()
             }
         }
     }
 
-    /** False until the first settings emission has decided whether to pause straight away. */
-    private var initialChecked = false
-
-    /** The system flipping back to the button bar is only visible by watching the setting. */
-    private val navigationObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(selfChange: Boolean) = onNavigationModeChanged()
-    }
-
-    /** HyperOS may put the button bar back by itself; with ADB mode that is undone at once. */
-    private val barObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(selfChange: Boolean) {
-            if (initialChecked) ensureBarHidden()
-        }
-    }
-
-    /**
-     * Rotation reaches the display *after* the configuration change lands, so
-     * [onConfigurationChanged] alone would race it.
-     */
+    // A rotation reaches the display after the configuration change, so that alone would race it.
     private val displayListener = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) = Unit
         override fun onDisplayRemoved(displayId: Int) = Unit
         override fun onDisplayChanged(displayId: Int) {
-            if (displayId == Display.DEFAULT_DISPLAY) reinstallIfGeometryChanged()
+            if (displayId == Display.DEFAULT_DISPLAY) host?.displayChanged()
         }
     }
 
     /**
-     * An uncaught throw in setup makes Android mark the service "malfunctioning" and
-     * refuse to re-bind it until the user toggles it by hand; degraded but bound is
-     * better, and the Diagnostics section shows what failed.
+     * An uncaught throw here gets the service marked "malfunctioning" and not bound again
+     * until the user switches it by hand; degraded but bound is better, and Diagnostics says
+     * what failed.
      */
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
         SetupStore(this).let { store ->
-            val updatedAt = runCatching {
-                packageManager.getPackageInfo(packageName, 0).lastUpdateTime
-            }.getOrDefault(0L)
-            // A plain start is routine (every pause ends in one); only an update or a stop
-            // without a callback says something.
+            val updatedAt = runCatching { packageManager.getPackageInfo(packageName, 0).lastUpdateTime }.getOrDefault(0L)
+            // A plain start is routine (every pause ends in one); an update or a stop without a
+            // callback is worth a line.
             if (store.serviceUp) {
                 store.note(ServiceStart.note(true, store.lastUpdateSeen, updatedAt))
+                ExitReasons.last(this)?.let(store::note)
             }
-            if (store.serviceUp) ExitReasons.last(this)?.let(store::note)
             store.lastUpdateSeen = updatedAt
             store.serviceUp = true
         }
@@ -204,87 +149,24 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         GestureTileService.requestRefresh(this)
     }
 
-    // Kept for the reset note, not logged one by one: the Play Store updates dozens of apps at once.
-    private val recentPackageChanges = RecentPackageChanges()
-    private val packageReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
-            val event = when (intent.action) {
-                Intent.ACTION_PACKAGE_ADDED -> if (replacing) null else PackageEvent.Installed
-                Intent.ACTION_PACKAGE_REPLACED -> PackageEvent.Updated
-                Intent.ACTION_PACKAGE_REMOVED -> if (replacing) null else PackageEvent.Removed
-                else -> null
-            } ?: return
-            recentPackageChanges.add(
-                event, intent.data?.schemeSpecificPart, packageName, SystemClock.elapsedRealtime(),
-            )
-            // Whether an app has a launcher entry is remembered; it can have changed.
-            intent.data?.schemeSpecificPart?.let(AppSwitcher::packageChanged)
-        }
-    }
-    private val defaultsReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            noteDefaults(context, "default apps changed")
-        }
-    }
-
-    private var lastDefaults: Set<String> = emptySet()
-
-    /**
-     * Notes what moved among the default apps. Called on the system's own broadcast and, to catch
-     * a change that sends none, when the screen wakes or the phone unlocks.
-     */
-    private fun noteDefaults(context: Context, what: String) {
-        val now = DefaultApps.snapshot(context)
-        val moved = DefaultApps.changes(lastDefaults, now)
-        // The first snapshot has nothing to compare with.
-        val first = lastDefaults.isEmpty()
-        lastDefaults = now
-        if (what != "default apps changed" && (moved == "none" || first)) return
-        SetupStore(context).note(
-            "$what (home launcher: ${LauncherWatch.homeLauncher(context)}; moved: ${if (first) "unknown" else moved}; ${PowerContext.describe(context)})",
-        )
-    }
-
-    private fun onNavigationModeChanged() {
-        startSettle()
-        val current = NavigationModeReader.read(this)
-        if (initialChecked && current != NavigationMode.GESTURAL && keepGestureMode()) {
-            // Put back at once, so there is nothing to alert about.
-            lastNavigationMode = NavigationMode.GESTURAL
-            return
-        }
-        if (AlertNotifier.navigationBarCameBack(lastNavigationMode, current)) {
-            AlertNotifier.navigationBarBack(this)
-        } else if (current == NavigationMode.GESTURAL) {
-            AlertNotifier.navigationBarGone(this)
-        }
-        lastNavigationMode = current
-    }
-
     private fun setUp() {
-        if (!scope.isActive) {
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + coroutineFailures)
-        }
-        settings = GestureSettingsRepository(applicationContext)
+        if (!scope.isActive) scope = newScope()
         performer = GestureActionPerformer(this)
-        windowManager = getSystemService(WindowManager::class.java)
-        overlay = EdgeStrips(
+        val stripHost = StripHost(
             context = this,
-            windowManager = windowManager,
-            replayer = this,
+            windowManager = getSystemService(WindowManager::class.java),
+            handler = handler,
+            replayer = GestureReplayer(this, handler),
             onGestureAction = ::onGestureAction,
-            onBroken = { repairStrips() },
         )
-        // A new connection builds a new overlay, which starts armed.
-        if (getSystemService(PowerManager::class.java)?.isInteractive != false) {
-            startLockWatch()
-        } else {
-            overlay?.setArmed(false, "screen off when the service started")
-        }
+        host = stripHost
+        lockGate = LockGate(this, handler, stripHost::setArmed).also { it.start(screenIsOn()) }
+        val deviceNotes = DeviceNotes(this)
+        notes = deviceNotes
+        pause = PauseController(this, handler, onSubscribed = { if (screenIsOn()) startStallWatch() })
+        keeper = NavigationKeeper(this, handler, onModeChanging = stripHost::startSettle, appChanges = deviceNotes::appChanges)
 
-        (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
-            .registerDisplayListener(displayListener, handler)
+        getSystemService(DisplayManager::class.java).registerDisplayListener(displayListener, handler)
         ContextCompat.registerReceiver(
             this,
             screenReceiver,
@@ -295,212 +177,46 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
             },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
-        ContextCompat.registerReceiver(
-            this,
-            packageReceiver,
-            IntentFilter().apply {
-                addAction(Intent.ACTION_PACKAGE_ADDED)
-                addAction(Intent.ACTION_PACKAGE_REPLACED)
-                addAction(Intent.ACTION_PACKAGE_REMOVED)
-                addDataScheme("package")
-            },
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
-        ContextCompat.registerReceiver(
-            this,
-            defaultsReceiver,
-            IntentFilter("android.intent.action.ACTION_PREFERRED_ACTIVITY_CHANGED"),
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
+        deviceNotes.start()
+        keeper?.start()
 
-        lastDefaults = DefaultApps.snapshot(this)
-
-        lastNavigationMode = NavigationModeReader.read(this)
-        contentResolver.registerContentObserver(
-            Settings.Secure.getUriFor("navigation_mode"),
-            false,
-            navigationObserver,
-        )
-        contentResolver.registerContentObserver(SecureSettingsAccess.barUri(), false, barObserver)
-
+        val settings = GestureSettingsRepository(applicationContext)
         scope.launch {
             settings.configuration.collect { updated ->
-                configuration = updated.copy(platform = platformDefaults())
-                installOverlay()
-                if (!initialChecked) startSettle()
-                applyEventSubscription()
-                if (!initialChecked) {
-                    initialChecked = true
-                    // Starting while a paused-for app is already in front must not flash the
-                    // service at it, so that check comes before the bar is touched.
-                    if (!pauseIfForegroundIsException()) ensureBarHidden()
+                val configuration = updated.copy(platform = platformDefaults())
+                stripHost.configure(configuration)
+                if (!started) stripHost.startSettle()
+                pause?.configure(configuration)
+                if (!started) {
+                    started = true
+                    keeper?.active = true
+                    // Starting while a listed app is in front must not flash the service at it,
+                    // so that comes before the bar is touched.
+                    if (pause?.pauseIfListedAppInFront() != true) keeper?.keepBarHidden()
                 }
             }
         }
     }
 
-    /**
-     * Window events are asked for only while the pause list is usable, and then only from
-     * the listed apps: the process is not woken by any other app, which is why the XML
-     * declares no event types at all.
-     */
-    private fun applyEventSubscription() {
-        val info = serviceInfo ?: return
-        val packages =
-            if (pauseUsable()) configuration.pauseApps.toTypedArray() else emptyArray<String>()
-        val subscription = packages.sorted().joinToString(",").ifEmpty { "none" }
-        if (subscription != lastSubscription) {
-            lastSubscription = subscription
+    private fun screenOff() {
+        PowerContext.screenWentOff(SystemClock.elapsedRealtime())
+        pause?.stopPolling()
+        stopStallWatch()
+        lockGate?.screenOff()
+    }
+
+    private fun screenOn() {
+        lockGate?.screenOn()
+        notes?.defaultsMaybeChanged()
+        // A long sleep is when the freezes on waking were seen, so it is worth a line.
+        PowerContext.screenWentOn(SystemClock.elapsedRealtime())?.takeIf { it >= LONG_SLEEP_MS }?.let {
+            SetupStore(this).note("screen on after ${PowerContext.duration(it)} off (${PowerContext.describe(this)})")
         }
-        if (packages.isEmpty()) {
-            info.eventTypes = 0
-            info.packageNames = null
-        } else {
-            info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-            info.packageNames = packages
-        }
-        serviceInfo = info
-        updatePolling()
-        if (getSystemService(PowerManager::class.java)?.isInteractive != false) startStallWatch()
-    }
-
-    private fun startStallWatch() {
-        handler.removeCallbacks(stallTick)
-        stallWatch.start(SystemClock.elapsedRealtime())
-        handler.postDelayed(stallTick, STALL_TICK_MS)
-    }
-
-    private fun stopStallWatch() {
-        handler.removeCallbacks(stallTick)
-        stallWatch.stop()
-    }
-
-    private fun updatePolling() {
-        val interactive = getSystemService(PowerManager::class.java)?.isInteractive != false
-        if (pauseUsable() && interactive && SetupStore(this).pausedForApp == null) {
-            startPolling()
-        } else {
-            stopPolling()
-        }
-    }
-
-    private fun startPolling() {
-        if (polling) return
-        polling = true
-        foreground = ForegroundApp.Tracker(this)
-        handler.postDelayed(poll, POLL_MS)
-    }
-
-    private fun stopPolling() {
-        polling = false
-        foreground = null
-        handler.removeCallbacks(poll)
-    }
-
-    private fun pollForeground() {
-        if (!polling) return
-        val front = foreground?.current(POLL_WINDOW_MS)
-        if (front != null && shouldPauseFor(front)) {
-            stopPolling()
-            pauseFor(front)
-            return
-        }
-        handler.postDelayed(poll, POLL_MS)
-    }
-
-    private fun pauseUsable(): Boolean =
-        configuration.pauseInAppsEnabled && configuration.pauseApps.isNotEmpty() &&
-            GesturePower.pauseAvailable(this)
-
-    private fun shouldPauseFor(packageName: String): Boolean = PausePolicy.shouldPause(
-        packageName = packageName,
-        featureEnabled = configuration.pauseInAppsEnabled,
-        apps = configuration.pauseApps,
-        available = GesturePower.pauseAvailable(this),
-        alreadyPaused = SetupStore(this).pausedForApp != null,
-    )
-
-    private fun pauseIfForegroundIsException(): Boolean {
-        if (!pauseUsable()) return false
-        val front = ForegroundApp.current(this, FOREGROUND_LOOKBACK_MS) ?: return false
-        if (!shouldPauseFor(front)) return false
-        pauseFor(front)
-        return true
-    }
-
-    /**
-     * Steps aside for an app that refuses to run next to an accessibility service: the
-     * watcher goes first (a pause nobody ends is worse than none), then the button bar comes
-     * back so the phone stays navigable, then the service takes itself out of the enabled list.
-     */
-    private fun pauseFor(packageName: String) {
-        val store = SetupStore(this)
-        store.pausedForApp = packageName
-        store.note("pausing for $packageName")
-        if (!ExceptionWatchService.start(this)) {
-            store.pausedForApp = null
-            store.note("the system refused the watcher, so no pause")
-            FailureLog.record(
-                this,
-                "pause for $packageName",
-                IllegalStateException("the system refused the foreground start for the watcher"),
-            )
-            return
-        }
-        if (GesturePower.barManaged(this)) {
-            val before = barState()
-            val written = SecureSettingsAccess.showBar(this)
-            store.note("pause: bar shown (written=$written), $before -> ${barState()}")
-        } else {
-            store.note("pause: the bar is not managed, left as it is (${barState()})")
-        }
-        disableSelf()
-    }
-
-    /** The two settings that decide what the bottom of the screen shows, for the pause notes. */
-    private fun barState(): String =
-        "bar hidden=${SecureSettingsAccess.barHidden(this)}, " +
-            "gesture mode=${SecureSettingsAccess.gestureModeOn(this)}"
-
-    private fun ensureBarHidden() {
-        val store = SetupStore(this)
-        if (store.pausedForApp != null || store.userPaused) return
-        if (!GesturePower.barManaged(this)) return
-        if (SecureSettingsAccess.barHidden(this) != true) {
-            SecureSettingsAccess.setBarHidden(this, true)
-        }
-        keepGestureMode()
-    }
-
-    /**
-     * HyperOS can switch itself back to the button bar with a third-party launcher. With ADB
-     * mode and "keep the bar hidden" on, and only while this service runs, gesture navigation
-     * is put back. Based on HyperGesture commit 81c1ad1 (#127) by Henrique Almeida (h3nc4).
-     */
-    private fun keepGestureMode(): Boolean {
-        val store = SetupStore(this)
-        if (store.pausedForApp != null || store.userPaused) return false
-        if (!GesturePower.barManaged(this)) return false
-        if (SecureSettingsAccess.gestureModeOn(this) != false) {
-            // Already on gestures (the user or the system put them back): nothing of ours is left.
-            if (store.buttonsByAnyGest) store.buttonsByAnyGest = false
-            return false
-        }
-        // The button bar AnyGest itself brought back for a pause is not the system's doing.
-        val ours = store.buttonsByAnyGest
-        store.buttonsByAnyGest = false
-        val restored = SecureSettingsAccess.setGestureMode(this)
-        store.note(
-            when {
-                !restored -> "could not put gesture navigation back"
-                ours -> "gesture navigation put back after AnyGest's own button bar"
-                else -> "navigation mode was reset by the system, gestures put back " +
-                    "(front: ${ForegroundApp.current(this, RESET_LOOKBACK_MS)}, " +
-                    "home launcher: ${LauncherWatch.homeLauncher(this)}, " +
-                    "app changes: ${recentPackageChanges.describe(SystemClock.elapsedRealtime())})"
-            },
-        )
-        return restored
+        startStallWatch()
+        pause?.updatePolling()
+        // The moment the gestures are about to be used: what went wrong while the screen was off
+        // is put right before the first swipe.
+        host?.screenOn()
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -508,13 +224,12 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         KeepAliveService.refresh(this)
         val store = SetupStore(this)
         store.serviceUp = false
-        // A pause already wrote its own line; an unbind nobody chose is the one worth a note.
+        // A pause wrote its own line; an unbind nobody chose is the one worth a note.
         if (store.pausedForApp == null) store.note("service unbound (userPause=${store.userPaused}; ${PowerContext.describe(this)})")
         // A pause or the tile's off switch is a choice; anything else is a stop to report.
         if (store.pausedForApp == null && !store.userPaused) {
             AlertNotifier.gesturesStopped(this)
-            // The bar was hidden for these gestures; without them nothing would be left to
-            // navigate with.
+            // The bar was hidden for these gestures; without them nothing would be left to navigate with.
             if (GesturePower.barManaged(this)) SecureSettingsAccess.showBar(this)
         }
         GestureTileService.requestRefresh(this)
@@ -528,386 +243,85 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        reinstallIfGeometryChanged()
+        host?.displayChanged()
     }
 
     /**
-     * Only window changes of the paused-for apps are ever delivered, and only the package name
-     * is read: never the content of the window.
+     * Only window changes are delivered (of the listed apps, or of every app for a few seconds
+     * after a gesture in a test build), and only the package and class names are read.
      */
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val changed = event ?: return
         if (changed.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val packageName = changed.packageName?.toString() ?: return
         Trace.windowChanged("$packageName/${changed.className?.toString().orEmpty()}", changed.eventTime)
-        if (shouldPauseFor(packageName)) pauseFor(packageName)
+        pause?.windowShown(packageName)
     }
 
     override fun onInterrupt() = Unit
 
-    /**
-     * Read on every settings emission and reinstall, so a changed "touch and hold delay" in
-     * accessibility settings is picked up the next time anything is adjusted; the AOSP
-     * defaults stand in if the platform refuses.
-     */
-    private fun platformDefaults(): PlatformDefaults {
-        val fallback = PlatformDefaults()
-        val touchSlopDp = runCatching {
-            ViewConfiguration.get(this).scaledTouchSlop / resources.displayMetrics.density
-        }.getOrDefault(fallback.touchSlopDp)
-        return fallback.copy(
-            longPressTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong(),
-            touchSlopDp = touchSlopDp,
-        )
-    }
-
-    /**
-     * Puts the strips up, unless nothing would change: the same configuration and geometry
-     * with the strips still attached is left alone, since rebuilding them cuts off a touch in
-     * progress. A touch in progress also delays a real rebuild for a moment, and an install
-     * that attaches no strip is tried again with growing waits.
-     */
-    private fun installOverlay() {
-        val current = overlay ?: return
-        handler.removeCallbacks(installAgain)
-        val geometry = ScreenGeometry.current(this, windowManager)
-        if (installedConfiguration == configuration && lastGeometry == geometry && current.intact()) return
-        if (current.streamHeld() && installDeferrals < MAX_INSTALL_DEFERRALS) {
-            installDeferrals++
-            handler.postDelayed(installAgain, INSTALL_DEFER_MS)
-            return
-        }
-        installDeferrals = 0
-        lastGeometry = geometry
-        val attached = current.install(configuration, geometry)
-        if (attached > 0) {
-            installedConfiguration = configuration
-            installFailures = 0
-            resetTokens.reset()
-            return
-        }
-        installedConfiguration = null
-        if (resetTokens.installed(attached, current.tokenRefusals, current.otherRefusals)) {
-            connectionLost()
-            return
-        }
-        if (installFailures == 0) {
-            SetupStore(this).note("no strip could be attached, trying again")
-        }
-        if (installFailures < MAX_INSTALL_RETRIES) {
-            handler.postDelayed(installAgain, INSTALL_RETRY_MS shl installFailures)
-            installFailures++
-        }
-    }
-
-    private val resetTokens = ResetTokenWatch()
-
-    /**
-     * The system reset this service's connection without unbinding it, so no strip can ever be
-     * attached again. With ADB mode the service is switched off and the recovery path switches it
-     * back on, which gives it a new connection; without it the stop is reported like any other.
-     */
-    private fun connectionLost() {
-        val store = SetupStore(this)
-        handler.removeCallbacks(installAgain)
-        store.note("connection lost: every strip was refused with a reset window token (${PowerContext.describe(this)})")
-        resetTokens.reset()
-        if (SecureSettingsAccess.canWrite(this) && store.autoRestore && !store.userPaused) {
-            store.note("restarting the service to get a new connection")
-            val app = applicationContext
-            // The job that watches the accessibility list switches it back on; this is the
-            // backstop in case that job does not run.
-            Handler(Looper.getMainLooper()).postDelayed({ GesturePower.restoreIfNeeded(app) }, RESTART_BACKSTOP_MS)
-            SecureSettingsAccess.setServiceEnabled(this, false)
-        } else {
-            store.serviceUp = false
-            AlertNotifier.gesturesStopped(this)
-            GestureTileService.requestRefresh(this)
-        }
-    }
-
-    // Lock screen: the strips take no touch from screen off until the keyguard is gone.
-    private val lockWatch = LockWatch()
-    private val lockCheck = Runnable { checkLock() }
-
-    private fun disarmForLockScreen() {
-        handler.removeCallbacks(lockCheck)
-        overlay?.setArmed(false, "screen off")
-    }
-
-    private fun startLockWatch() {
-        lockWatch.begin(SystemClock.elapsedRealtime())
-        checkLock()
-    }
-
-    private fun checkLock() {
-        handler.removeCallbacks(lockCheck)
-        val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true
-        val step = lockWatch.read(locked, SystemClock.elapsedRealtime())
-        // Armed while the lock screen is still reported: the reading was stuck and the gestures
-        // were dead for the whole wait, which is worth knowing.
-        if (step.armed && locked && overlay != null) {
-            SetupStore(this).note("lock screen still reported ${LockWatch.FAIL_OPEN_MS / 1000}s after the screen came on; strips on anyway")
-        }
-        overlay?.setArmed(step.armed, if (locked) "lock screen still reported, armed anyway" else "unlocked")
-        step.nextReadMs?.let { handler.postDelayed(lockCheck, it) }
-    }
-
-    private val repair = Runnable {
-        installedConfiguration = null
-        installOverlay()
-    }
-
-    /** A strip went away or stopped answering: build them again, once things calm down. */
-    private fun repairStrips() {
-        handler.removeCallbacks(repair)
-        handler.postDelayed(repair, REPAIR_DELAY_MS)
-    }
-
-    private var installedConfiguration: GestureConfiguration? = null
-    private var installDeferrals = 0
-    private var installFailures = 0
-    private val installAgain = Runnable { installOverlay() }
-
-    private val settle = GeometrySettle()
-    private val settleStep = Runnable { settleOnce() }
-
-    /** Called when the system may be about to change the bar inset: re-reads until it holds still. */
-    private fun startSettle() {
-        if (overlay == null) return
-        handler.removeCallbacks(settleStep)
-        handler.postDelayed(settleStep, settle.begin())
-    }
-
-    private fun settleOnce() {
-        if (overlay == null) return
-        val read = ScreenGeometry.current(this, windowManager)
-        val installed = lastGeometry
-        if (installed != null && read != installed) {
-            installed.describeChangeTo(read)?.let {
-                SetupStore(this).note("strips remeasured after the system settled ($it)")
-            }
-            installOverlay()
-        }
-        settle.next(read)?.let { handler.postDelayed(settleStep, it) }
-    }
-
-    /**
-     * Strip windows keep their pixel sizes across a rotation, so a side strip measured
-     * against portrait height runs off a landscape screen.
-     */
-    private fun reinstallIfGeometryChanged() {
-        if (overlay == null) return
-        if (ScreenGeometry.current(this, windowManager) == lastGeometry) return
-        installOverlay()
-        // A change usually comes in steps, the bar inset last.
-        startSettle()
-    }
-
-    private fun teardown() {
-        runCatching {
-            (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
-                .unregisterDisplayListener(displayListener)
-        }
-        runCatching { contentResolver.unregisterContentObserver(navigationObserver) }
-        runCatching { contentResolver.unregisterContentObserver(barObserver) }
-        stopPolling()
-        stopStallWatch()
-        handler.removeCallbacks(lockCheck)
-        runCatching { unregisterReceiver(screenReceiver) }
-        runCatching { unregisterReceiver(packageReceiver) }
-        runCatching { unregisterReceiver(defaultsReceiver) }
-        initialChecked = false
-        installedConfiguration = null
-        installDeferrals = 0
-        installFailures = 0
-        overlay?.remove()
-        overlay = null
-        handler.removeCallbacksAndMessages(null)
-        scope.cancel()
-        instance = null
-    }
-
-    /**
-     * For the trace only: window changes from every app, for the few seconds after a gesture,
-     * so the transition it starts can be timed. The narrow subscription comes back by itself;
-     * outside that window the process is still woken only by the pause-list apps.
-     */
-    private fun widenEventsForTrace() {
-        if (!testBuild) return
-        val info = serviceInfo ?: return
-        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-        info.packageNames = null
-        serviceInfo = info
-        handler.removeCallbacks(narrowEvents)
-        handler.postDelayed(narrowEvents, TraceLog.WINDOW_WAIT_MS + 500L)
-    }
-
-    private val narrowEvents = Runnable { applyEventSubscription() }
-
-    /** Only a pre-release build (`-test.N`) widens the subscription: a release never does. */
-    private val testBuild by lazy {
-        runCatching { packageManager.getPackageInfo(packageName, 0).versionName.orEmpty().contains("-test") }
-            .getOrDefault(false)
-    }
-
-    /** The panel's refresh rate right now, since the system lowers it on its own. */
-    private fun refreshRate(): String = runCatching {
-        val display = getSystemService(android.hardware.display.DisplayManager::class.java)
-            .getDisplay(android.view.Display.DEFAULT_DISPLAY)
-        "${display.refreshRate.toInt()} Hz"
-    }.getOrDefault("")
-
     private fun onGestureAction(action: GestureAction, edge: ScreenEdge) {
         Log.v(TAG, "Gesture from $edge -> $action")
-        widenEventsForTrace()
+        pause?.widenForTrace()
         Trace.gesture(edge.name, action.id, refreshRate())
         performer.perform(action)
     }
 
     /**
-     * The strips have been non-touchable and alpha 0 since this touch's `ACTION_DOWN`, so
-     * its own duration already counted toward the asynchronous window update and only the
-     * remainder of [WINDOW_SETTLE_MS] still has to be waited out.
+     * Read again on every settings change, so a changed "touch and hold delay" is picked up the
+     * next time anything is adjusted; the AOSP values stand in if the platform refuses.
      */
-    override fun replay(samples: List<TouchSample>, minSettleMs: Long, onDone: () -> Unit): Boolean {
-        if (samples.isEmpty()) return false
-
-        val first = samples.first()
-        val last = samples.last()
-        val movedPx = hypot(last.xPx - first.xPx, last.yPx - first.yPx)
-        val isTap = movedPx < TAP_SLOP_PX
-        val rawDurationMs = last.timestampMs - first.timestampMs
-
-        val path = Path().apply {
-            moveTo(first.xPx, first.yPx)
-            if (isTap) {
-                // dispatchGesture rejects a zero-length path. Nudge by a sub-slop pixel:
-                // still a tap, not a drag.
-                lineTo(first.xPx + 1f, first.yPx + 1f)
-            } else {
-                for (i in 1 until samples.size) lineTo(samples[i].xPx, samples[i].yPx)
-            }
-        }
-
-        val durationMs = when {
-            !isTap -> rawDurationMs.coerceIn(1L, MAX_REPLAY_MS)
-            // A deliberate hold: mirror it so the target's long-press fires too.
-            rawDurationMs >= ViewConfiguration.getLongPressTimeout() ->
-                rawDurationMs.coerceAtMost(MAX_REPLAY_MS)
-            // The click fires at the end of the stroke, so capping it cuts perceived
-            // tap latency; the press physically happened already.
-            else -> rawDurationMs.coerceIn(MIN_TAP_MS, TAP_STROKE_CAP_MS)
-        }
-
-        val gesture = runCatching {
-            GestureDescription.Builder()
-                .addStroke(GestureDescription.StrokeDescription(path, 0L, durationMs))
-                .build()
-        }.getOrElse {
-            Log.w(TAG, "Could not build replay gesture", it)
-            return false
-        }
-
-        // [minSettleMs] is for strips that were touchable until just now (a rested touch):
-        // the touch's own duration bought them no time to turn inert.
-        val settleDelayMs = (WINDOW_SETTLE_MS - rawDurationMs).coerceAtLeast(minSettleMs)
-        var finished = false
-        val finish = Runnable {
-            if (!finished) {
-                finished = true
-                onDone()
-            }
-        }
-        // Safety net: release the strips even if the result callback never arrives.
-        handler.postDelayed(finish, durationMs + settleDelayMs + FINISH_GRACE_MS)
-        handler.postDelayed({
-            // After this delay the service may be unbound, and dispatchGesture then throws
-            // instead of returning false; uncaught that kills the process and gets the
-            // service flagged "malfunctioning".
-            val dispatched = runCatching {
-                dispatchGesture(
-                    gesture,
-                    object : GestureResultCallback() {
-                        override fun onCompleted(gestureDescription: GestureDescription?) {
-                            releaseStrips()
-                        }
-
-                        override fun onCancelled(gestureDescription: GestureDescription?) {
-                            // The touch never reached the app underneath, so the tap is
-                            // lost; the strips still have to come back either way.
-                            Log.w(TAG, "REPLAY_CANCELLED after ${durationMs}ms")
-                            Trace.note("replay cancelled by the system after ${durationMs} ms")
-                            releaseStrips()
-                        }
-
-                        private fun releaseStrips() {
-                            handler.removeCallbacks(finish)
-                            finish.run()
-                        }
-                    },
-                    handler,
-                )
-            }.getOrElse { throwable ->
-                FailureLog.record(this, "dispatchGesture", throwable)
-                false
-            }
-            if (dispatched) {
-                Log.d(TAG, "REPLAY_DISPATCHED ${samples.size} samples over ${durationMs}ms")
-            } else {
-                Log.w(TAG, "REPLAY_REFUSED dispatchGesture rejected the replay")
-                Trace.note("replay refused by the system")
-                handler.removeCallbacks(finish)
-                finish.run()
-            }
-        }, settleDelayMs)
-        return true
+    private fun platformDefaults(): PlatformDefaults {
+        val fallback = PlatformDefaults()
+        val touchSlopDp = runCatching { ViewConfiguration.get(this).scaledTouchSlop / resources.displayMetrics.density }
+            .getOrDefault(fallback.touchSlopDp)
+        return fallback.copy(longPressTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong(), touchSlopDp = touchSlopDp)
     }
+
+    /** The panel's refresh rate right now, since the system lowers it on its own. */
+    private fun refreshRate(): String = runCatching {
+        "${getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY).refreshRate.toInt()} Hz"
+    }.getOrDefault("")
+
+    private fun screenIsOn(): Boolean = getSystemService(PowerManager::class.java)?.isInteractive != false
+
+    private fun startStallWatch() {
+        handler.removeCallbacks(stallTick)
+        stallWatch.start(SystemClock.elapsedRealtime())
+        handler.postDelayed(stallTick, STALL_TICK_MS)
+    }
+
+    private fun stopStallWatch() {
+        handler.removeCallbacks(stallTick)
+        stallWatch.stop()
+    }
+
+    private fun teardown() {
+        runCatching { getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener) }
+        keeper?.stop()
+        pause?.stopPolling()
+        stopStallWatch()
+        lockGate?.stop()
+        runCatching { unregisterReceiver(screenReceiver) }
+        notes?.stop()
+        started = false
+        host?.stop()
+        host = null
+        lockGate = null
+        pause = null
+        keeper = null
+        notes = null
+        handler.removeCallbacksAndMessages(null)
+        scope.cancel()
+        instance = null
+    }
+
+    private fun newScope() = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + coroutineFailures)
 
     companion object {
         private const val TAG = "AnyGest"
-
-        private const val MAX_REPLAY_MS = 3_000L
-
-        /** A 1ms stroke completes but never clicks. */
-        private const val MIN_TAP_MS = 50L
-
-        private const val TAP_STROKE_CAP_MS = 60L
-
-        private const val TAP_SLOP_PX = 12f
-
-        /**
-         * Grace for the non-touchable + alpha-0 update to reach the input pipeline, so the
-         * injected touch is not discarded as obscured.
-         */
-        internal const val WINDOW_SETTLE_MS = 65L
-
-        /** Lets a burst of window changes end before the strips are built again. */
-        private const val REPAIR_DELAY_MS = 500L
-
-        private const val FINISH_GRACE_MS = 1_000L
-
-        /** How far back to look for the app in front when the system resets the navigation. */
-        private const val RESET_LOOKBACK_MS = 60_000L
-
-        /** The longest a replay keeps the strips held after the finger is gone. */
-        internal const val LONGEST_REPLAY_HOLD_MS = MAX_REPLAY_MS + WINDOW_SETTLE_MS + FINISH_GRACE_MS
-
-        /** How often the foreground app is read while the screen is on and the list is in use. */
-        private const val POLL_MS = 1_500L
         private const val STALL_TICK_MS = 2_000L
-        private const val RESTART_BACKSTOP_MS = 3_000L
         private const val LONG_SLEEP_MS = 5 * 60_000L
-        private const val INSTALL_DEFER_MS = 100L
-        private const val MAX_INSTALL_DEFERRALS = 10
-        private const val INSTALL_RETRY_MS = 250L
-        private const val MAX_INSTALL_RETRIES = 6
-
-        /** Wide enough to catch an app that opened a few seconds ago, whose event came late. */
-        private const val POLL_WINDOW_MS = 30_000L
-
-        /** How far back the "which app is in front" check looks when the service starts. */
-        private const val FOREGROUND_LOOKBACK_MS = 2L * 60L * 60L * 1000L
 
         @Volatile
         private var instance: AnyGestAccessibilityService? = null
@@ -915,15 +329,14 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         fun isRunning(): Boolean = instance != null
 
         /** The strips as installed, for the copied log; says so when the service is not running. */
-        fun stripSummary(): String = instance?.overlay?.describe() ?: "service not running"
+        fun stripSummary(): String = instance?.host?.describe() ?: "service not running"
 
         /** After the one-time grant or a change to the pause list, without waiting for a restart. */
         fun refreshSubscription() {
-            instance?.applyEventSubscription()
+            instance?.pause?.subscribe()
         }
 
         /** For the checklist's "open Recents" button; false when the service is not running. */
-        fun openRecents(): Boolean =
-            instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS) == true
+        fun openRecents(): Boolean = instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS) == true
     }
 }

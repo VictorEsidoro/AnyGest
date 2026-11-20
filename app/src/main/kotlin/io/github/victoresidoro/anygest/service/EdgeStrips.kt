@@ -336,7 +336,7 @@ internal class EdgeStrips(
         confirmation.onReplayed(edge)
         syncPill(immediate = true)
         // A replay sends the strips no events, so starting one counts as activity.
-        val settleMs = hold.resumeForReplay(token, SystemClock.uptimeMillis(), AnyGestAccessibilityService.WINDOW_SETTLE_MS, MAX_RESTED_REPLAY_MS)
+        val settleMs = hold.resumeForReplay(token, SystemClock.uptimeMillis(), GestureReplayer.WINDOW_SETTLE_MS, MAX_RESTED_REPLAY_MS)
         if (settleMs == null) {
             letGo(token)
             return
@@ -461,6 +461,6 @@ internal class EdgeStrips(
         const val FOREGROUND_LOOKBACK_MS = 30_000L
 
         /** A replay sends no events and may last this long. */
-        const val REPLAY_STUCK_STREAM_MS = AnyGestAccessibilityService.LONGEST_REPLAY_HOLD_MS + 1_000L
+        const val REPLAY_STUCK_STREAM_MS = GestureReplayer.LONGEST_REPLAY_HOLD_MS + 1_000L
     }
 }
