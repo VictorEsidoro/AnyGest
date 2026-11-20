@@ -20,7 +20,7 @@ package io.github.victoresidoro.anygest.service
 import android.content.Context
 import android.os.SystemClock
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
 import io.github.victoresidoro.anygest.setup.SetupStore
@@ -52,7 +52,7 @@ internal object GesturePower {
     fun barManaged(context: Context): Boolean =
         SecureSettingsAccess.canWrite(context) &&
             SetupStore(context).autoHideBar &&
-            NavigationModeReader.isHyperOsDevice()
+            SystemNavigation.onXiaomiRom()
 
     /**
      * Switches the service back on when something took it down and nobody meant it to stay

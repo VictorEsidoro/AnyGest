@@ -1,6 +1,6 @@
 // Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,36 +18,36 @@
 package io.github.victoresidoro.anygest.gesture
 
 /**
- * What [GestureTracker] tells the caller after each event. The tracker never touches a clock
- * or a view: the caller runs the timers it asks for and reports back when they elapse.
+ * The tracker's answer to one touch event. The tracker owns no clock and no view: when an answer
+ * asks for a timer, the caller runs it and tells the tracker once it has elapsed.
  */
 sealed interface TrackerAction {
-    /** Nothing for the caller to do. */
+    /** Nothing to do. */
     data object None : TrackerAction
 
-    /** The swipe passed its distance. [scheduleHoldMs] is the Recents timer to start, if any. */
+    /** The swipe went far enough. Start the Recents timer if [scheduleHoldMs] is set. */
     data class Armed(val scheduleHoldMs: Long?) : TrackerAction
 
-    /** The finger moved while armed: start the Recents timer again from now. */
+    /** The finger moved while armed, so the Recents timer starts over with [delayMs]. */
     data class RearmHold(val delayMs: Long) : TrackerAction
 
-    /** Start the long-press timer and report it through `onLongPressElapsed`. */
+    /** Start the long-press timer; its end is reported through the long-press callback. */
     data class ScheduleLongPress(val delayMs: Long) : TrackerAction
 
-    /** Perform [action]. */
+    /** Carry out [action] for the swipe that came from [edge]. */
     data class Fire(val action: GestureAction, val edge: ScreenEdge) : TrackerAction
 
-    /** A Back swipe came back inside its distance while the finger is still down. */
+    /** A Back swipe moved back inside its distance with the finger still down. */
     data object Disarmed : TrackerAction
 
-    /** A Back swipe was released inside its distance: nothing fires and nothing is replayed. */
+    /** A Back swipe lifted inside its distance: nothing fires and nothing is replayed. */
     data object Reverted : TrackerAction
 
-    /** The touch was not a gesture; the caller may hand it to the app underneath. */
+    /** Not a gesture. The caller may hand the touch to the app underneath. */
     data class Unused(val reason: RejectionReason) : TrackerAction
 }
 
-/** Why a touch was not a gesture, for the log. */
+/** The reason a touch did not become a gesture, as the log spells it. */
 enum class RejectionReason {
     NO_MOVEMENT,
     INSUFFICIENT_MOVEMENT,

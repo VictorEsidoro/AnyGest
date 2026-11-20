@@ -1,6 +1,6 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,49 +21,42 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
 
 /**
- * Logcat cannot be trusted on the target ROM: its global `log.tag` threshold drops debug
- * and info logs, its `adb shell` lacks `WRITE_SECURE_SETTINGS`, and DropBox stayed empty —
- * a crash can be invisible from a host machine. So the stack trace goes to app storage:
- * `adb shell run-as io.github.victoresidoro.anygest cat files/last_failure.txt` (debug builds).
+ * Keeps the last failure's stack trace in app storage, since logcat cannot be trusted on the
+ * target ROM: it drops debug and info lines, and a crash can be invisible from a computer.
+ * A debug build can read it back with
+ * `adb shell run-as io.github.victoresidoro.anygest cat files/last_failure.txt`, and the
+ * diagnostics screen shows it in any build.
  */
 object FailureLog {
 
     private const val TAG = "AnyGest"
     private const val FILE_NAME = "last_failure.txt"
-    private const val MAX_BYTES = 16 * 1024
+    private const val LIMIT_CHARS = 16 * 1024
 
+    /** Only the latest failure is kept; a new one replaces the one before. */
     fun record(context: Context, label: String, throwable: Throwable) {
         Log.e(TAG, "FAILURE [$label]", throwable)
-        val text = buildString {
-            appendLine("label: $label")
-            appendLine("device: ${Build.MANUFACTURER} ${Build.MODEL}")
-            appendLine("android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
-            appendLine("---")
-            append(stackTraceOf(throwable))
-        }
-        runCatching {
-            file(context).writeText(text.take(MAX_BYTES))
-        }.onFailure { Log.e(TAG, "Could not persist the failure record", it) }
+        val record = listOf(
+            "label: $label",
+            "device: ${Build.MANUFACTURER} ${Build.MODEL}",
+            "android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+            "---",
+            Log.getStackTraceString(throwable),
+        ).joinToString("\n")
+        runCatching { fileIn(context).writeText(record.take(LIMIT_CHARS)) }
+            .onFailure { Log.e(TAG, "Could not persist the failure record", it) }
     }
 
-    fun read(context: Context): String? = runCatching {
-        val file = file(context)
-        if (file.exists()) file.readText().ifBlank { null } else null
-    }.getOrNull()
+    fun read(context: Context): String? =
+        runCatching { fileIn(context).takeIf(File::exists)?.readText() }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
 
     fun clear(context: Context) {
-        runCatching { file(context).delete() }
+        runCatching { fileIn(context).delete() }
     }
 
-    private fun file(context: Context) = File(context.filesDir, FILE_NAME)
-
-    private fun stackTraceOf(throwable: Throwable): String {
-        val writer = StringWriter()
-        PrintWriter(writer).use { throwable.printStackTrace(it) }
-        return writer.toString()
-    }
+    private fun fileIn(context: Context) = File(context.filesDir, FILE_NAME)
 }

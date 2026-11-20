@@ -92,13 +92,13 @@ import io.github.victoresidoro.anygest.R
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.SettingsLimits
-import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.service.AlertNotifier
 import io.github.victoresidoro.anygest.service.GesturePower
 import io.github.victoresidoro.anygest.service.KeepAliveService
 import io.github.victoresidoro.anygest.service.RecoveryJob
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.navigation.NavigationMode
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.settings.GestureSettingsRepository
 import io.github.victoresidoro.anygest.setup.GestureTileService
 import io.github.victoresidoro.anygest.setup.NavigationModeTileService
@@ -139,7 +139,7 @@ private fun AnyGestScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val configuration by settings.configuration.collectAsState(initial = GestureConfiguration())
-    val integration = remember { NavigationIntegrationFactory.create(context) }
+    val onXiaomiRom = remember { SystemNavigation.onXiaomiRom() }
 
     var diagnostics by remember { mutableStateOf(DiagnosticsCollector.collect(context)) }
     // Bumped on every resume and confirmation: the checklist reads system state that changes
@@ -160,7 +160,7 @@ private fun AnyGestScreen(
         SetupFactsReader.read(context, configuration)
     }
     val setupStates = remember(setupFacts) { SetupChecklist.evaluate(setupFacts) }
-    val navigationStatus = remember(setupRevision) { integration.status() }
+    val navigationMode = remember(setupRevision) { SystemNavigation.currentMode(context) }
     val tileAdded = remember(setupRevision) { SetupStore(context).tileAdded }
     val navigationTileAdded = remember(setupRevision) { SetupStore(context).navigationTileAdded }
     val alertsOn = remember(setupRevision) {
@@ -190,7 +190,7 @@ private fun AnyGestScreen(
     }
 
     if (section == null) {
-        val targets = remember(navigationStatus.available) { searchTargets(navigationStatus.available) }
+        val targets = remember(onXiaomiRom) { searchTargets(onXiaomiRom) }
         val items = rememberSearchItems(targets)
         val results = remember(query, items) {
             val ranked = SettingsSearch.rank(query, items.map { it.second })
@@ -309,15 +309,15 @@ private fun AnyGestScreen(
             }
 
             Section.BAR -> {
-                if (navigationStatus.available) {
+                if (onXiaomiRom) {
                     Anchor("navbar") {
                         NavigationBarCard(
-                            hidden = navigationStatus.currentMode == NavigationMode.GESTURAL,
+                            hidden = navigationMode == NavigationMode.GESTURAL,
                             canChange = SetupChecklist.canChangeNavigationBar(
                                 accessibilityEnabled = setupFacts.accessibilityEnabled,
-                                navigationGestural = navigationStatus.currentMode == NavigationMode.GESTURAL,
+                                navigationGestural = navigationMode == NavigationMode.GESTURAL,
                             ),
-                            onOpen = { integration.requestEnable() },
+                            onOpen = { SystemNavigation.openModeScreen(context) },
                         )
                     }
                 }
@@ -337,7 +337,7 @@ private fun AnyGestScreen(
                         },
                     )
                 }
-                if (navigationStatus.available) {
+                if (onXiaomiRom) {
                     // A separate shortcut: it targets a different vendor screen and only makes
                     // sense once HyperOS is confirmed.
                     Anchor("navtile") {

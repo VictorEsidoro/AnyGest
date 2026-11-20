@@ -1,6 +1,6 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import android.content.pm.ApplicationInfo
 import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -41,124 +42,105 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-/**
- * A damaged file (a power cut halfway through a write, say) reads as empty, so the defaults
- * apply instead of every reader of the settings throwing until the app data is cleared.
- * Based on HyperGesture work by Rohith-E-S.
- */
-private val Context.gestureDataStore: DataStore<Preferences> by
-    preferencesDataStore(
-        name = "gesture_configuration",
-        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
-    )
+// A damaged file (a power cut in the middle of a write) reads as empty, so the defaults apply
+// instead of every reader throwing until the app data is cleared. The idea comes from
+// HyperGesture, by Rohith-E-S.
+private val Context.gestureStore: DataStore<Preferences> by preferencesDataStore(
+    name = "gesture_configuration",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
-/** Defaults are never duplicated here: a missing key falls back to [GestureConfiguration]. */
+/** Saves [GestureConfiguration]. A key that was never written reads as the class's own default. */
 class GestureSettingsRepository(private val context: Context) {
 
-    val configuration: Flow<GestureConfiguration> =
-        context.gestureDataStore.data.map(::toConfiguration)
+    val configuration: Flow<GestureConfiguration> = context.gestureStore.data.map(::decode)
 
     suspend fun read(): GestureConfiguration = configuration.first()
 
-    suspend fun update(transform: (GestureConfiguration) -> GestureConfiguration) {
-        val updated = transform(read())
-        context.gestureDataStore.edit { preferences ->
-            preferences[EDGE_WIDTH_DP] = updated.edgeWidthDp
-            preferences[SIDE_MIN_DISTANCE_DP] = updated.sideMinimumSwipeDistanceDp
-            preferences[BOTTOM_MIN_DISTANCE_DP] = updated.bottomMinimumSwipeDistanceDp
-            preferences[MAX_ARM_DURATION_MS] = updated.maximumArmDurationMs
-            preferences[RECENTS_HOLD_MS] = updated.recentsHoldMs
-            preferences[HOLD_STILLNESS_DP] = updated.holdStillnessDp
-            preferences[OFF_AXIS_TOLERANCE] = updated.offAxisToleranceRatio
-            preferences[APP_SWITCH] = updated.appSwitchEnabled
-            preferences[LEFT_EDGE_BACK] = updated.leftEdgeBackEnabled
-            preferences[RIGHT_EDGE_BACK] = updated.rightEdgeBackEnabled
-            preferences[HAPTIC_FEEDBACK] = updated.hapticFeedbackEnabled
-            preferences[HAPTIC_STRENGTH] = updated.hapticStrength.name
-            preferences[HAPTIC_CONFIRM] = updated.hapticConfirmEnabled
-            preferences[LANDSCAPE_CONFIRM] = updated.landscapeConfirmEnabled
-            preferences[EDGE_ANIMATION] = updated.edgeAnimation.name
-            preferences[SIDE_LENGTH_PERCENT] = updated.sideLengthPercent
-            preferences[SIDE_POSITION] = updated.sidePosition.name
-            preferences[CIRCLE_TO_SEARCH] = updated.circleToSearchEnabled
-            preferences[CIRCLE_TO_SEARCH_HOLD_MS] = updated.circleToSearchHoldMs
-            preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = updated.circleToSearchFollowsSystemTiming
-            preferences[PAUSE_IN_APPS] = updated.pauseInAppsEnabled
-            preferences[PAUSE_APPS] = updated.pauseApps
-        }
+    suspend fun update(change: (GestureConfiguration) -> GestureConfiguration) {
+        val next = change(read())
+        context.gestureStore.edit { it.encode(next) }
     }
 
-    private fun toConfiguration(preferences: Preferences): GestureConfiguration {
-        val defaults = GestureConfiguration()
-        val storedHoldMs = preferences[RECENTS_HOLD_MS] ?: defaults.recentsHoldMs
+    private fun MutablePreferences.encode(c: GestureConfiguration) {
+        this[EDGE_WIDTH_DP] = c.edgeWidthDp
+        this[SIDE_MIN_DISTANCE_DP] = c.sideMinimumSwipeDistanceDp
+        this[BOTTOM_MIN_DISTANCE_DP] = c.bottomMinimumSwipeDistanceDp
+        this[MAX_ARM_DURATION_MS] = c.maximumArmDurationMs
+        this[RECENTS_HOLD_MS] = c.recentsHoldMs
+        this[HOLD_STILLNESS_DP] = c.holdStillnessDp
+        this[OFF_AXIS_TOLERANCE] = c.offAxisToleranceRatio
+        this[APP_SWITCH] = c.appSwitchEnabled
+        this[LEFT_EDGE_BACK] = c.leftEdgeBackEnabled
+        this[RIGHT_EDGE_BACK] = c.rightEdgeBackEnabled
+        this[HAPTIC_FEEDBACK] = c.hapticFeedbackEnabled
+        this[HAPTIC_STRENGTH] = c.hapticStrength.name
+        this[HAPTIC_CONFIRM] = c.hapticConfirmEnabled
+        this[LANDSCAPE_CONFIRM] = c.landscapeConfirmEnabled
+        this[EDGE_ANIMATION] = c.edgeAnimation.name
+        this[SIDE_LENGTH_PERCENT] = c.sideLengthPercent
+        this[SIDE_POSITION] = c.sidePosition.name
+        this[CIRCLE_TO_SEARCH] = c.circleToSearchEnabled
+        this[CIRCLE_TO_SEARCH_HOLD_MS] = c.circleToSearchHoldMs
+        this[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = c.circleToSearchFollowsSystemTiming
+        this[PAUSE_IN_APPS] = c.pauseInAppsEnabled
+        this[PAUSE_APPS] = c.pauseApps
+    }
+
+    private fun decode(saved: Preferences): GestureConfiguration {
+        val d = GestureConfiguration()
         return GestureConfiguration(
-            edgeWidthDp = preferences[EDGE_WIDTH_DP] ?: defaults.edgeWidthDp,
-            sideMinimumSwipeDistanceDp =
-                preferences[SIDE_MIN_DISTANCE_DP] ?: defaults.sideMinimumSwipeDistanceDp,
-            bottomMinimumSwipeDistanceDp =
-                preferences[BOTTOM_MIN_DISTANCE_DP] ?: defaults.bottomMinimumSwipeDistanceDp,
-            maximumArmDurationMs =
-                preferences[MAX_ARM_DURATION_MS] ?: defaults.maximumArmDurationMs,
-            recentsHoldMs = debugRecentsHoldMs() ?: storedHoldMs,
-            holdStillnessDp = preferences[HOLD_STILLNESS_DP] ?: defaults.holdStillnessDp,
-            offAxisToleranceRatio =
-                preferences[OFF_AXIS_TOLERANCE] ?: defaults.offAxisToleranceRatio,
-            appSwitchEnabled = debugAppSwitchEnabled() ?: (preferences[APP_SWITCH] ?: defaults.appSwitchEnabled),
-            leftEdgeBackEnabled = preferences[LEFT_EDGE_BACK] ?: defaults.leftEdgeBackEnabled,
-            rightEdgeBackEnabled = preferences[RIGHT_EDGE_BACK] ?: defaults.rightEdgeBackEnabled,
-            hapticFeedbackEnabled = preferences[HAPTIC_FEEDBACK] ?: defaults.hapticFeedbackEnabled,
-            hapticStrength = hapticStrengthOf(preferences[HAPTIC_STRENGTH]) ?: defaults.hapticStrength,
-            hapticConfirmEnabled = preferences[HAPTIC_CONFIRM] ?: defaults.hapticConfirmEnabled,
-            landscapeConfirmEnabled =
-                preferences[LANDSCAPE_CONFIRM] ?: defaults.landscapeConfirmEnabled,
-            edgeAnimation = EdgeAnimation.entries.firstOrNull { it.name == preferences[EDGE_ANIMATION] }
-                ?: defaults.edgeAnimation,
-            sideLengthPercent = (preferences[SIDE_LENGTH_PERCENT] ?: defaults.sideLengthPercent)
+            edgeWidthDp = saved[EDGE_WIDTH_DP] ?: d.edgeWidthDp,
+            sideMinimumSwipeDistanceDp = saved[SIDE_MIN_DISTANCE_DP] ?: d.sideMinimumSwipeDistanceDp,
+            bottomMinimumSwipeDistanceDp = saved[BOTTOM_MIN_DISTANCE_DP] ?: d.bottomMinimumSwipeDistanceDp,
+            maximumArmDurationMs = saved[MAX_ARM_DURATION_MS] ?: d.maximumArmDurationMs,
+            recentsHoldMs = testOverride(RECENTS_HOLD_OVERRIDE)?.toLongOrNull()
+                ?: saved[RECENTS_HOLD_MS] ?: d.recentsHoldMs,
+            holdStillnessDp = saved[HOLD_STILLNESS_DP] ?: d.holdStillnessDp,
+            offAxisToleranceRatio = saved[OFF_AXIS_TOLERANCE] ?: d.offAxisToleranceRatio,
+            appSwitchEnabled = testOverride(APP_SWITCH_OVERRIDE)?.let(::isTruthy)
+                ?: saved[APP_SWITCH] ?: d.appSwitchEnabled,
+            leftEdgeBackEnabled = saved[LEFT_EDGE_BACK] ?: d.leftEdgeBackEnabled,
+            rightEdgeBackEnabled = saved[RIGHT_EDGE_BACK] ?: d.rightEdgeBackEnabled,
+            hapticFeedbackEnabled = saved[HAPTIC_FEEDBACK] ?: d.hapticFeedbackEnabled,
+            hapticStrength = namedIn(HapticStrength.entries, saved[HAPTIC_STRENGTH]) ?: d.hapticStrength,
+            hapticConfirmEnabled = saved[HAPTIC_CONFIRM] ?: d.hapticConfirmEnabled,
+            landscapeConfirmEnabled = saved[LANDSCAPE_CONFIRM] ?: d.landscapeConfirmEnabled,
+            edgeAnimation = namedIn(EdgeAnimation.entries, saved[EDGE_ANIMATION]) ?: d.edgeAnimation,
+            sideLengthPercent = (saved[SIDE_LENGTH_PERCENT] ?: d.sideLengthPercent)
                 .coerceIn(SettingsLimits.SIDE_LENGTH_PERCENT),
-            sidePosition = SidePosition.entries.firstOrNull { it.name == preferences[SIDE_POSITION] }
-                ?: defaults.sidePosition,
-            circleToSearchEnabled =
-                preferences[CIRCLE_TO_SEARCH] ?: defaults.circleToSearchEnabled,
-            circleToSearchHoldMs =
-                preferences[CIRCLE_TO_SEARCH_HOLD_MS] ?: defaults.circleToSearchHoldMs,
-            circleToSearchFollowsSystemTiming = preferences[CIRCLE_TO_SEARCH_SYSTEM_TIMING]
-                ?: defaults.circleToSearchFollowsSystemTiming,
-            pauseInAppsEnabled = preferences[PAUSE_IN_APPS] ?: defaults.pauseInAppsEnabled,
-            // A stored empty set is a list the user emptied, not a missing one.
-            pauseApps = preferences[PAUSE_APPS] ?: defaults.pauseApps,
+            sidePosition = namedIn(SidePosition.entries, saved[SIDE_POSITION]) ?: d.sidePosition,
+            circleToSearchEnabled = saved[CIRCLE_TO_SEARCH] ?: d.circleToSearchEnabled,
+            circleToSearchHoldMs = saved[CIRCLE_TO_SEARCH_HOLD_MS] ?: d.circleToSearchHoldMs,
+            circleToSearchFollowsSystemTiming =
+                saved[CIRCLE_TO_SEARCH_SYSTEM_TIMING] ?: d.circleToSearchFollowsSystemTiming,
+            pauseInAppsEnabled = saved[PAUSE_IN_APPS] ?: d.pauseInAppsEnabled,
+            // A saved empty set is a list the user emptied, so it is not the same as no list.
+            pauseApps = saved[PAUSE_APPS] ?: d.pauseApps,
         )
     }
 
-    /** An unknown or missing name falls back to the default rather than failing the flow. */
-    private fun hapticStrengthOf(name: String?): HapticStrength? =
-        HapticStrength.entries.firstOrNull { it.name == name }
+    /** An unknown or missing name gives null, so the caller falls back instead of failing. */
+    private fun <T : Enum<T>> namedIn(values: List<T>, name: String?): T? =
+        values.firstOrNull { it.name == name }
 
-    /** Test seam for the emulator suite, which cannot tap a Compose switch. Debug only. */
-    private fun debugAppSwitchEnabled(): Boolean? {
-        if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return null
-        return runCatching {
-            Settings.Global.getString(context.contentResolver, APP_SWITCH_OVERRIDE)?.let {
-                it == "1" || it.equals("true", ignoreCase = true)
-            }
-        }.getOrNull()
-    }
+    private fun isTruthy(text: String) = text == "1" || text.equals("true", ignoreCase = true)
 
     /**
-     * Test seam for the emulator suite, which cannot deliver a gap-free touch stream: on a
-     * loaded machine input stalls past the hold window and a continuous swipe is read as a
-     * hold. Only consulted in a debuggable build, so a release APK never reaches it.
+     * A hook for the emulator suite, which cannot tap a Compose switch or deliver a touch stream
+     * without gaps (a stalled input would read a swipe as a hold). It reads a global setting, and
+     * only in a debuggable build, so a release APK never looks.
      */
-    private fun debugRecentsHoldMs(): Long? {
+    private fun testOverride(name: String): String? {
         if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return null
-        return runCatching {
-            Settings.Global.getString(context.contentResolver, RECENTS_HOLD_OVERRIDE)?.toLong()
-        }.getOrNull()
+        return runCatching { Settings.Global.getString(context.contentResolver, name) }.getOrNull()
     }
 
     private companion object {
         const val RECENTS_HOLD_OVERRIDE = "anygest_recents_hold_ms"
         const val APP_SWITCH_OVERRIDE = "anygest_app_switch"
 
+        // The key names are what is on disk. They must not change.
         val EDGE_WIDTH_DP = floatPreferencesKey("edge_width_dp")
         val SIDE_MIN_DISTANCE_DP = floatPreferencesKey("side_minimum_swipe_distance_dp")
         val BOTTOM_MIN_DISTANCE_DP = floatPreferencesKey("bottom_minimum_swipe_distance_dp")
@@ -172,14 +154,13 @@ class GestureSettingsRepository(private val context: Context) {
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback_enabled")
         val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
         val HAPTIC_CONFIRM = booleanPreferencesKey("haptic_confirm_enabled")
-        val EDGE_ANIMATION = stringPreferencesKey("edge_animation")
         val LANDSCAPE_CONFIRM = booleanPreferencesKey("landscape_confirm_enabled")
+        val EDGE_ANIMATION = stringPreferencesKey("edge_animation")
         val SIDE_LENGTH_PERCENT = intPreferencesKey("side_length_percent")
         val SIDE_POSITION = stringPreferencesKey("side_position")
         val CIRCLE_TO_SEARCH = booleanPreferencesKey("circle_to_search_enabled")
         val CIRCLE_TO_SEARCH_HOLD_MS = longPreferencesKey("circle_to_search_hold_ms")
-        val CIRCLE_TO_SEARCH_SYSTEM_TIMING =
-            booleanPreferencesKey("circle_to_search_follows_system_timing")
+        val CIRCLE_TO_SEARCH_SYSTEM_TIMING = booleanPreferencesKey("circle_to_search_follows_system_timing")
         val PAUSE_IN_APPS = booleanPreferencesKey("pause_in_apps_enabled")
         val PAUSE_APPS = stringSetPreferencesKey("pause_apps")
     }

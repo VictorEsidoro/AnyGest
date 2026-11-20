@@ -28,9 +28,8 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.util.Log
 import io.github.victoresidoro.anygest.R
-import io.github.victoresidoro.anygest.navigation.HyperOSNavigationIntegration
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.navigation.NavigationMode
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
 
 /**
  * A second, independent Control Center tile: when HyperOS reverts to the three-button bar
@@ -56,13 +55,13 @@ class NavigationModeTileService : TileService() {
     }
 
     override fun onClick() {
-        val intent = Intent(HyperOSNavigationIntegration.NAVIGATION_MODE_SETTINGS_ACTION)
+        val intent = Intent(SystemNavigation.MODE_SCREEN_ACTION)
         if (isLocked) unlockAndRun { open(intent) } else open(intent)
     }
 
     private fun refresh() {
         val tile = qsTile ?: return
-        val mode = NavigationModeReader.read(this)
+        val mode = SystemNavigation.currentMode(this)
         tile.state = if (mode == NavigationMode.GESTURAL) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         tile.label = getString(R.string.tile_navigation_label)
         tile.subtitle = getString(subtitleFor(mode))

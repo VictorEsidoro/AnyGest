@@ -4,7 +4,7 @@ The gesture service does not depend on any of this. Everything here concerns the
 
 ## Current behaviour
 
-`navigation/HyperOSNavigationIntegration.kt` fires the vendor settings intent:
+`navigation/SystemNavigation.kt` (`openModeScreen`) fires the vendor settings intent:
 
 ```kotlin
 startActivity(

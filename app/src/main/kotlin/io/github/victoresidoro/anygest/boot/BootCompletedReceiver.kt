@@ -1,6 +1,6 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,17 +21,18 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.navigation.NavigationMode
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.service.GesturePower
 import io.github.victoresidoro.anygest.service.KeepAliveService
 import io.github.victoresidoro.anygest.service.RecoveryJob
 import io.github.victoresidoro.anygest.service.TimedPause
 
 /**
- * Android rebinds the accessibility service on boot by itself, so this exists only for the
- * navigation subsystem — and since a normal APK cannot restore the state HyperOS resets
- * across a reboot, it only observes it and lets the UI report it.
+ * Android rebinds the accessibility service after a boot by itself. This receiver picks up what
+ * does not survive one: a pause that was running, the ADB-mode power state, the content-triggered
+ * recovery job and the keep-alive notification. It also notes when HyperOS came back from the
+ * boot with its gestures off, which an app cannot fix.
  */
 class BootCompletedReceiver : BroadcastReceiver() {
 
@@ -39,19 +40,17 @@ class BootCompletedReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
         TimedPause.settleAfterBoot(context)
-        // Only does anything once ADB mode is set up; otherwise Android's own rebind is it.
-        GesturePower.restoreIfNeeded(context)
-        // Content-triggered jobs do not survive a reboot.
+        GesturePower.restoreIfNeeded(context) // does nothing until ADB mode is set up
         RecoveryJob.schedule(context)
         KeepAliveService.refresh(context)
+        noteNavigationAfterBoot(context)
+    }
 
-        val status = NavigationIntegrationFactory.create(context).status()
-        if (status.available && status.currentMode != NavigationMode.GESTURAL) {
-            Log.i(
-                TAG,
-                "Navigation mode after boot is ${status.currentMode}; " +
-                    "gestural navigation was not restored by the system.",
-            )
+    private fun noteNavigationAfterBoot(context: Context) {
+        if (!SystemNavigation.onXiaomiRom()) return
+        val mode = SystemNavigation.currentMode(context)
+        if (mode != NavigationMode.GESTURAL) {
+            Log.i(TAG, "Navigation mode after boot is $mode; the system did not bring gestures back.")
         }
     }
 

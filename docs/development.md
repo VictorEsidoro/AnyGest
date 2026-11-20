@@ -20,7 +20,7 @@ app/
   src/main/kotlin/io/github/victoresidoro/anygest/
     gesture/      Pure, Android-free recognition (unit tested)
     service/      AccessibilityService, edge overlays, global actions
-    navigation/   NavigationIntegration + HyperOS/generic implementations
+    navigation/   SystemNavigation: the mode, the Xiaomi check, the mode screen
     settings/     DataStore-backed configuration
     diagnostics/  Local-only device/state snapshot
     boot/         BOOT_COMPLETED observer

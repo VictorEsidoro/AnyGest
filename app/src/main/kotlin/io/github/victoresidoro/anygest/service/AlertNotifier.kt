@@ -27,7 +27,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import io.github.victoresidoro.anygest.R
-import io.github.victoresidoro.anygest.navigation.HyperOSNavigationIntegration
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.navigation.NavigationMode
 import io.github.victoresidoro.anygest.setup.GestureTileService
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
@@ -89,7 +89,7 @@ internal object AlertNotifier {
             ID_BUTTONS,
             R.string.alert_buttons_title,
             R.string.alert_buttons_body,
-            Intent(HyperOSNavigationIntegration.NAVIGATION_MODE_SETTINGS_ACTION),
+            Intent(SystemNavigation.MODE_SCREEN_ACTION),
         )
     }
 

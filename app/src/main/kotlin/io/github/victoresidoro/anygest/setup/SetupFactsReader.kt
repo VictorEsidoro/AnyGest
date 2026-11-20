@@ -28,7 +28,7 @@ import java.util.Date
 import java.util.Locale
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 
 /**
  * What the user confirmed by hand, and whether the Quick Settings tile is in the panel.
@@ -176,7 +176,7 @@ internal object SetupFactsReader {
         return SetupFacts(
             accessibilityEnabled = accessibilityEnabled,
             batteryUnrestricted = isBatteryUnrestricted(context),
-            isHyperOs = NavigationModeReader.isHyperOsDevice(),
+            isHyperOs = SystemNavigation.onXiaomiRom(),
             appSwitchEnabled = configuration.appSwitchEnabled,
             usageAccessGranted = hasUsageAccess(context),
             circleToSearchEnabled = configuration.circleToSearchEnabled,

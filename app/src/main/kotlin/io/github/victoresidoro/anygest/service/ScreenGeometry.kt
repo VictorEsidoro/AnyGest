@@ -1,6 +1,6 @@
 // Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ import android.view.WindowInsets
 import android.view.WindowManager
 
 /**
- * The screen as the strips see it: the full display in pixels and the navigation-bar inset on
- * each side. Taken from the window metrics, which cover the whole display, because the touch
- * coordinates the tracker gets (`rawX`, `rawY`) are display coordinates too.
+ * The display as the strips need it: its size in pixels and how deep the system's navigation
+ * bar is on each side. It comes from the window metrics, which span the whole display, since the
+ * raw touch coordinates the tracker receives are display coordinates as well.
  */
 internal data class ScreenGeometry(
     val widthPx: Int,
@@ -39,22 +39,23 @@ internal data class ScreenGeometry(
     companion object {
         fun current(context: Context, windowManager: WindowManager): ScreenGeometry {
             val metrics = windowManager.currentWindowMetrics
-            val bar = metrics.windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            val nav = metrics.windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            val bounds = metrics.bounds
             return ScreenGeometry(
-                widthPx = metrics.bounds.width(),
-                heightPx = metrics.bounds.height(),
-                density = context.resources.displayMetrics.density,
-                navLeftPx = bar.left,
-                navRightPx = bar.right,
-                navBottomPx = bar.bottom,
+                bounds.width(),
+                bounds.height(),
+                context.resources.displayMetrics.density,
+                nav.left,
+                nav.right,
+                nav.bottom,
             )
         }
     }
 }
 
 /**
- * How much of the bottom edge the bottom strip covers. It stops short of the corners so the
- * corners stay with the app; the side strips' length is a setting instead.
+ * How much of the bottom edge its strip covers. The strip stops short of the corners, which stay
+ * with the app; the side strips get their length from a setting.
  */
 internal data class OverlayLayout(
     val bottomLengthPercent: Int = 90,

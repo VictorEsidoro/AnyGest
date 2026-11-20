@@ -22,7 +22,7 @@ import android.database.ContentObserver
 import android.os.Handler
 import android.provider.Settings
 import io.github.victoresidoro.anygest.navigation.NavigationMode
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupStore
 
@@ -57,7 +57,7 @@ internal class NavigationKeeper(
     }
 
     fun start() {
-        lastMode = NavigationModeReader.read(context)
+        lastMode = SystemNavigation.currentMode(context)
         context.contentResolver.registerContentObserver(Settings.Secure.getUriFor("navigation_mode"), false, modeObserver)
         context.contentResolver.registerContentObserver(SecureSettingsAccess.barUri(), false, barObserver)
     }
@@ -79,7 +79,7 @@ internal class NavigationKeeper(
 
     private fun modeChanged() {
         onModeChanging()
-        val current = NavigationModeReader.read(context)
+        val current = SystemNavigation.currentMode(context)
         // Put back at once, so there is nothing to tell the user.
         if (active && current != NavigationMode.GESTURAL && keepGestureMode()) {
             lastMode = NavigationMode.GESTURAL

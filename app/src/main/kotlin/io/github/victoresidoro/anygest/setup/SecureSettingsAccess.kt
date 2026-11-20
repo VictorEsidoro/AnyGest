@@ -24,7 +24,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 
 /**
@@ -88,7 +88,7 @@ internal object SecureSettingsAccess {
     }
 
     fun setBarHidden(context: Context, hidden: Boolean): Boolean {
-        if (!canWrite(context) || !NavigationModeReader.isHyperOsDevice()) return false
+        if (!canWrite(context) || !SystemNavigation.onXiaomiRom()) return false
         return runCatching {
             Settings.Global.putInt(context.contentResolver, FORCE_FSG_NAV_BAR, if (hidden) 1 else 0)
         }.getOrDefault(false)

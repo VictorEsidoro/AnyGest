@@ -1,6 +1,6 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,18 +21,18 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.os.Build
 import android.view.accessibility.AccessibilityManager
-import io.github.victoresidoro.anygest.navigation.NavigationIntegrationFactory
 import io.github.victoresidoro.anygest.navigation.NavigationMode
-import io.github.victoresidoro.anygest.navigation.NavigationModeReader
+import io.github.victoresidoro.anygest.navigation.SystemNavigation
+import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.service.AppSwitcher
 import io.github.victoresidoro.anygest.service.GestureActionPerformer
 import io.github.victoresidoro.anygest.service.LauncherWatch
-import io.github.victoresidoro.anygest.service.AnyGestAccessibilityService
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupStore
 
-/** Everything here stays on the device: rendered in the UI, never transmitted. */
+/** What the app can tell about the phone and itself. It stays on the device: shown, never sent. */
 data class Diagnostics(
+    // The phone
     val androidRelease: String,
     val sdkInt: Int,
     val manufacturer: String,
@@ -40,26 +40,28 @@ data class Diagnostics(
     val hyperOsVersion: String?,
     val miuiVersion: String?,
     val navigationMode: NavigationMode,
+    val navigationIntegrationId: String,
+    val navigationIntegrationAvailable: Boolean,
+    /** The package that answers Home right now, to compare with what a launcher warns about. */
+    val homeLauncher: String = "unknown",
+    val homeCandidates: String = "unknown",
+    // The app
+    val appVersionName: String,
     val accessibilityServiceEnabled: Boolean,
     val accessibilityServiceRunning: Boolean,
     /** Whether the one-time `pm grant` has been done. */
     val adbMode: Boolean,
-    val navigationIntegrationId: String,
-    val navigationIntegrationAvailable: Boolean,
+    /** The strips as installed: edge, pixel size and age, or why there are none. */
+    val strips: String = "unknown",
+    // What went wrong lately
     val lastGlobalActionFailure: String?,
     /** Usually the missing usage access, which no global action failure would explain. */
     val lastAppSwitchFailure: String?,
-    /** Shown in-app because release builds cannot be read with `adb run-as`. */
+    /** Kept in-app because a release build cannot be read with `adb run-as`. */
     val lastRecordedFailure: String?,
     /** The last pause decisions, newest first; null before any. */
     val pauseNotes: String?,
-    val appVersionName: String,
-    /** The package that answers Home right now, to compare with what a launcher warns about. */
-    val homeLauncher: String = "unknown",
-    val homeCandidates: String = "unknown",
-    /** The strips as installed: edge, pixel size and age, or why there are none. */
-    val strips: String = "unknown",
-    /** What the system reports about itself, one `- name: value` line each; null if not collected. */
+    /** What the system says about itself, one "- name: value" line each; null if not gathered. */
     val systemSnapshot: String? = null,
     /** The last gestures with their timings, oldest first; null before any. */
     val trace: String? = null,
@@ -68,45 +70,42 @@ data class Diagnostics(
 object DiagnosticsCollector {
 
     fun collect(context: Context): Diagnostics {
-        val integration = NavigationIntegrationFactory.create(context)
-        val status = integration.status()
+        val xiaomi = SystemNavigation.onXiaomiRom()
         return Diagnostics(
             androidRelease = Build.VERSION.RELEASE ?: "unknown",
             sdkInt = Build.VERSION.SDK_INT,
             manufacturer = Build.MANUFACTURER ?: "unknown",
             model = Build.MODEL ?: "unknown",
-            hyperOsVersion = NavigationModeReader.hyperOsVersion(),
-            miuiVersion = NavigationModeReader.miuiVersion(),
-            navigationMode = status.currentMode,
+            hyperOsVersion = SystemNavigation.hyperOsVersion(),
+            miuiVersion = SystemNavigation.miuiVersion(),
+            navigationMode = SystemNavigation.currentMode(context),
+            navigationIntegrationId = if (xiaomi) "hyperos" else "generic-android",
+            navigationIntegrationAvailable = xiaomi,
+            homeLauncher = LauncherWatch.homeLauncher(context),
+            homeCandidates = LauncherWatch.homeCandidates(context),
+            appVersionName = versionNameOf(context),
             accessibilityServiceEnabled = isAccessibilityServiceEnabled(context),
             accessibilityServiceRunning = AnyGestAccessibilityService.isRunning(),
             adbMode = SecureSettingsAccess.canWrite(context),
-            navigationIntegrationId = status.integrationId,
-            navigationIntegrationAvailable = status.available,
+            strips = AnyGestAccessibilityService.stripSummary(),
             lastGlobalActionFailure = GestureActionPerformer.lastFailure,
             lastAppSwitchFailure = AppSwitcher.lastFailure,
             lastRecordedFailure = FailureLog.read(context),
             pauseNotes = SetupStore(context).pauseNotes,
-            appVersionName = appVersionName(context),
-            homeLauncher = LauncherWatch.homeLauncher(context),
-            homeCandidates = LauncherWatch.homeCandidates(context),
-            strips = AnyGestAccessibilityService.stripSummary(),
             systemSnapshot = SystemSnapshot.collect(context),
             trace = Trace.report(),
         )
     }
 
-    /** Avoids parsing `ENABLED_ACCESSIBILITY_SERVICES`, whose separator format is undocumented. */
+    /** Compares by class name instead of parsing the secure setting, whose separators are undocumented. */
     fun isAccessibilityServiceEnabled(context: Context): Boolean {
-        val manager = context.getSystemService(AccessibilityManager::class.java)
-            ?: return false
-        val target = AnyGestAccessibilityService::class.java.name
-        return manager
-            .getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-            .any { it.resolveInfo?.serviceInfo?.name == target }
+        val manager = context.getSystemService(AccessibilityManager::class.java) ?: return false
+        val ours = AnyGestAccessibilityService::class.java.name
+        val enabled = manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+        return enabled.any { it.resolveInfo?.serviceInfo?.name == ours }
     }
 
-    private fun appVersionName(context: Context): String = runCatching {
-        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
-    }.getOrDefault("unknown")
+    private fun versionNameOf(context: Context): String =
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
+            .getOrNull() ?: "unknown"
 }
