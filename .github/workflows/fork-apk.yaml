@@ -24,7 +24,6 @@ env:
   # Brasília time, so the files inside downloaded artifacts carry the maintainer's clock
   # instead of UTC (zip stores local time with no zone).
   TZ: America/Sao_Paulo
-  DEV_DOCKER_ARGS: -v ${HOME:?}/ci-cache/gradle:/cache/gradle -e GRADLE_USER_HOME=/cache/gradle
 
 jobs:
   checks:
@@ -32,18 +31,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/toolchain
+      - name: Cache the Gradle downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          fetch-depth: 0 # dev-image-action diffs against the base to spot image changes
-      - name: Create the cache directories
-        run: mkdir -p ~/ci-cache/gradle
-      - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2
-        with:
-          docker-args: ${{ env.DEV_DOCKER_ARGS }}
+          path: ~/ci-cache/gradle
+          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: gradle-
       - name: Unit tests and lint
         run: |
           set -o pipefail
-          $DEV_RUN -c 'gradle --no-daemon testDebugUnitTest lintDebug' 2>&1 | tee build.log
+          mkdir -p ~/ci-cache/gradle
+          docker run --rm -v "${PWD}:/workspace" -w /workspace \
+            -v "${HOME}/ci-cache/gradle:/cache/gradle" -e GRADLE_USER_HOME=/cache/gradle \
+            anygest-toolchain gradle --no-daemon testDebugUnitTest lintDebug 2>&1 | tee build.log
       # Logs are not always at hand where the build is reviewed, so the compiler, test and
       # lint errors are repeated as one annotation on the run's summary page.
       - name: Surface build errors
@@ -71,8 +72,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Run docker/setup-buildx-action
-        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: ./.github/actions/toolchain
       - name: Restore keystore
         env:
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
@@ -98,12 +98,14 @@ jobs:
       - name: Build signed APK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          # The toolchain step above filled this cache, so the release build reuses its layers.
+          EXTRA_BUILD_ARGS: --cache-from type=local,src=/tmp/buildx-cache
         run: ./scripts/build-apk.sh "${{ steps.version.outputs.version }}"
       - name: Verify the APK signature
         run: |
           docker run --rm --entrypoint bash \
             -v "${PWD}:/apk:ro" \
-            "$(./scripts/devcontainer-image.sh)" \
+            anygest-toolchain \
             -c 'set -e
               apksigner="$(find "${ANDROID_HOME}/build-tools" -name apksigner | sort | tail -n1)"
               "${apksigner}" verify --print-certs /apk/anygest.apk'

@@ -5,13 +5,13 @@ Everything a contributor needs. For what the app is and how to use it, see the [
 ## Stack
 
 - **Language.** Kotlin, JDK 21
-- **Build.** Gradle with the Android Gradle Plugin, both provided by the Dev Container and pinned there to one version
+- **Build.** Gradle with the Android Gradle Plugin, both provided by the build image and pinned there to one version
 - **Gestures.** `AccessibilityService` plus `TYPE_ACCESSIBILITY_OVERLAY` edge strips, which need no "draw over other apps" permission
 - **UI.** Jetpack Compose, Material 3
 - **Persistence.** DataStore Preferences, no database
-- **Quality.** JUnit over a device-free recognizer, Android lint, shellcheck, and an emulator-driven gesture suite
+- **Quality.** JUnit over device-free logic, Android lint, shellcheck and CodeQL
 
-Versions are pinned in `gradle/libs.versions.toml`, and Renovate raises the bumps in grouped pull requests. `minSdk` is 30 because the edge overlays need `WindowMetrics` insets and `setSystemGestureExclusionRects`. The emulator runs API 36 rather than matching `compileSdk`, because no API 37 `google_apis` x86_64 system image is published yet.
+Versions are pinned in `gradle/libs.versions.toml`, and Renovate raises the bumps in grouped pull requests. `minSdk` is 30 because the edge overlays need `WindowMetrics` insets and `setSystemGestureExclusionRects`.
 
 ## Repository layout
 
@@ -25,70 +25,40 @@ app/
     diagnostics/  Local-only device/state snapshot
     boot/         BOOT_COMPLETED observer
     ui/           MainActivity, the single Compose screen, theme
-  src/test/kotlin/            Recognizer tests (plain JVM, no device)
-docker/           Dev container and APK build images
-scripts/          Entrypoint, hooks, version, emulator and E2E helpers
+  src/test/kotlin/            Plain-JVM tests, no device
+docker/           The build image (docker/build.Dockerfile)
+scripts/          build-apk.sh and version.sh
 docs/             This file and the platform investigations
-.github/          CI workflows
+.github/          CI workflow, the toolchain action and CodeQL
 ```
 
-## Dev container
+## Build image
 
-The host doesn't need a JDK or an Android SDK. The container has the whole toolchain, and Android Studio is never required.
+Everything that builds the app runs in one image, `docker/build.Dockerfile`, which starts from a pinned plain Debian and adds a JDK 21, the Android SDK and Gradle (checked by sha256). It is the only place the toolchain is installed, so nothing is needed on the host except Docker. No image, action or package mirror of another project is used: the base is the official Debian image and the SDK and Gradle come from Google's and Gradle's own servers.
 
-Build the image once by hand with `docker build -f docker/dev.Dockerfile -t "$(scripts/devcontainer-image.sh)" .`. After that the merge is the release.
+The file has three stages:
 
-The image is versioned by a build id rather than semver. The tag in the image key of `.devcontainer.json` is a whole number that only CI writes. A pull request that changes the Dockerfile gets that pin moved to the next id in a commit of its own, and its checks run in a candidate image built from the branch. Once it reaches main, CI publishes the pinned id and moves `:latest`. Docker Hub is the only record of a release.
+- `toolchain`: the tools above. CI builds it to run the unit tests and lint, and to verify the APK signature.
+- `builder`: copies the repository in and runs `assembleRelease`.
+- `final`: `FROM scratch`, holding only `anygest.apk`, so neither the key nor its password is in a layer that could be published.
 
-There is nothing to decide, by design. Semver would promise a kind of compatibility that no box of build tools can honour, and nobody stays on an older one. The number only has to be ordered and unique. Renovate can bump a base image digest or a pinned tool with no human in the loop, and the release follows on merge. The pin and the change behind it merge together, so main only pins an image built from its own tree.
-
-Note `bash -c`, not `-lc`, when running commands in the container: a login shell sources `/etc/profile`, which replaces `PATH` and drops the SDK directories.
+CI caches the toolchain layers per version of the Dockerfile (`.github/actions/toolchain`), so the first build after a change to the file takes a few minutes and the rest reuse the cache. The Gradle downloads are cached separately.
 
 ## Commands
 
-Gradle is the only task runner. There is no Node toolchain.
+Gradle is the only task runner. There is no Node toolchain. With Docker alone:
 
 ```sh
-gradle assembleDebug   # build
-gradle test            # unit tests (GestureTracker decision logic)
-gradle lint            # Android lint
-gradle jacocoTestReport
-shellcheck -o all scripts/*.sh scripts/hooks/*
-./e2e/run.sh              # gesture tests against a headless emulator
-./scripts/emulator-vnc.sh # emulator on a browser-viewable display, installs the APK
-./scripts/build-apk.sh    # signed release APK via docker/apk.Dockerfile
+docker buildx build -f docker/build.Dockerfile --target toolchain --load -t anygest-toolchain .
+docker run --rm -v "$PWD:/workspace" -w /workspace anygest-toolchain gradle testDebugUnitTest lintDebug
+./scripts/build-apk.sh 1.0.0   # signed release APK, left in the repository root
 ```
+
+With a local JDK and Android SDK the usual tasks work too: `gradle assembleDebug`, `gradle test`, `gradle lint`.
 
 ## Testing
 
-Two layers, because they catch different things.
-
-**Unit tests** (`gradle test`) cover `GestureTracker`, the pure decision logic. They do not need a device or Robolectric, because `GestureTracker` has no `android.*` imports at all. The hold timer is driven by calling `onHoldElapsed()` directly, so no clock is involved.
-
-**End-to-end** (`./e2e/run.sh`) drives a headless emulator through the whole path:
-
-- boots the emulator and installs the APK
-- enables the accessibility service
-- injects real swipes with `adb shell input`
-
-It then asserts on two independent signals: logcat (did *our* service decide correctly) and `dumpsys` (did the system state actually change). It needs `/dev/kvm`:
-
-```sh
-docker run --rm --device /dev/kvm \
-  -v "$HOST_ROOT:/workspaces/hypergesture" -w /workspaces/hypergesture \
-  --entrypoint /bin/bash h3nc4/hypergesture-dev:"$(cat .github/VERSION)" \
-  -c './e2e/run.sh'
-```
-
-`-k` leaves the emulator running for interactive poking. `-p anygest.apk` runs the suite against a release build, worth doing before every release, because R8 obfuscation and shrinking can break things no JVM test sees. It has already caught one such bug: log and diagnostics strings built from `::class.simpleName` came out as `a`/`b`/`c` once minified, so `GestureAction` carries an explicit `id`.
-
-Every bug that ever reached a real device was in the Android integration, not the recognizer:
-
-- overlay windows not receiving touches
-- strips left permanently inert after a gesture fired
-- coordinates measured against the wrong display
-
-None of that is reachable from a JVM test.
+The tests are plain JVM unit tests (`gradle test`): the decision logic is kept free of `android.*` imports, so it runs without a device or Robolectric. Timers are driven by calling the handlers directly (`onHoldElapsed()`, `onLongPressElapsed()`), so no clock is involved. Behaviour that only a phone can show is covered by the diagnostics the app writes, which the maintainer reads from real devices.
 
 ## Releasing
 

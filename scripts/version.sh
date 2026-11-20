@@ -1,6 +1,5 @@
-#!/bin/sh
-#
-# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#!/usr/bin/env sh
+# Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 #
 # This file is part of AnyGest, based on HyperGesture.
 #
@@ -17,14 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Called by CI to update version numbers in various files based on the Git tag.
+# Writes a version into app/build.gradle.kts. The release build calls it so the APK carries
+# the version the workflow read, whatever the file says.
 set -e
 
 cd "$(dirname "$0")/../"
 
-version=${1#v}
+version="${1#v}"
 if [ -z "${version}" ]; then
-  echo "usage: ${0} <version>" >&2
+  echo "usage: $0 <version>" >&2
   exit 2
 fi
 

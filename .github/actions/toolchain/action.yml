@@ -1,0 +1,37 @@
+# Copyright (C) 2026  Victor Eduardo (@victoresidoro)
+#
+# This file is part of AnyGest, based on HyperGesture.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: AnyGest toolchain image
+description: Builds the build image from docker/build.Dockerfile, with its layers cached between runs.
+
+runs:
+  using: composite
+  steps:
+    - name: Run docker/setup-buildx-action
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+    - name: Cache the image layers
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        path: /tmp/buildx-cache
+        key: toolchain-${{ hashFiles('docker/build.Dockerfile') }}
+    - name: Build the toolchain image
+      shell: bash
+      run: |
+        docker buildx build -f docker/build.Dockerfile --target toolchain \
+          --load -t anygest-toolchain \
+          --cache-from type=local,src=/tmp/buildx-cache \
+          --cache-to type=local,dest=/tmp/buildx-cache,mode=max .

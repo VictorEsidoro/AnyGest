@@ -22,7 +22,7 @@ build/
 captures/
 local.properties
 
-# android.keystore is the deliberate exception: apk.Dockerfile needs it to sign, and only
+# android.keystore is the deliberate exception: docker/build.Dockerfile needs it to sign, and only
 # in the builder stage - the final stage is FROM scratch, so the key never ships.
 *.keystore
 !android.keystore
