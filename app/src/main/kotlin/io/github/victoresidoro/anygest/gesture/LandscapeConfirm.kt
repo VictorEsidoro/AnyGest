@@ -1,6 +1,7 @@
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 // Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,45 +40,48 @@ sealed interface ConfirmVerdict {
     data class ShowPill(val expiresAtMs: Long) : ConfirmVerdict
 }
 
-// Whether a bottom gesture goes ahead or waits for a second swipe. Kept out of the tracker, since
-// the pill spans two touches and is kept when the strips are rebuilt.
+/**
+ * Decides whether a bottom gesture goes ahead or waits for a second swipe. It lives outside the
+ * tracker because the pill spans two touches and outlasts a rebuild of the strips.
+ */
 class LandscapeConfirm(private val windowMs: Long = ConfirmPill.WINDOW_MS) {
 
-    private var required = false
-
+    private var asking = false
     private var landscape: Boolean? = null
 
-    private var shownAtMs: Long? = null
+    // When the pill in the air goes away, or null while there is none.
+    private var upUntil: Long? = null
 
-    // The bottom touch in progress began while the pill was up, so it is the confirmation.
-    private var confirming = false
+    // True while the bottom touch that began under the pill is still down.
+    private var answering = false
 
-    val pillShown: Boolean get() = shownAtMs != null
+    val pillShown: Boolean get() = upUntil != null
 
-    val expiresAtMs: Long? get() = shownAtMs?.plus(windowMs)
+    val expiresAtMs: Long? get() = upUntil
 
-    /** A rotation drops a pill, since it asked about the orientation that is gone. */
+    /** Applies the setting and the orientation. A turn drops a pill, which asked about the old one. */
     fun configure(enabled: Boolean, landscape: Boolean) {
-        if (this.landscape != landscape) dismiss()
+        val turned = this.landscape != landscape
         this.landscape = landscape
-        required = enabled && landscape
-        if (!required) dismiss()
+        asking = enabled && landscape
+        if (turned || !asking) dismiss()
     }
 
     fun onDown(edge: ScreenEdge, nowMs: Long) {
         if (edge != ScreenEdge.BOTTOM) return
         expire(nowMs)
-        confirming = pillShown
+        answering = pillShown
     }
 
     fun onFire(action: GestureAction, edge: ScreenEdge, nowMs: Long): ConfirmVerdict {
-        if (edge != ScreenEdge.BOTTOM || action !in GUARDED) return ConfirmVerdict.Perform
-        if (!required || confirming) {
+        if (edge != ScreenEdge.BOTTOM || action !in HELD_BACK) return ConfirmVerdict.Perform
+        if (answering || !asking) {
             dismiss()
             return ConfirmVerdict.Perform
         }
-        shownAtMs = nowMs
-        return ConfirmVerdict.ShowPill(nowMs + windowMs)
+        val until = nowMs + windowMs
+        upUntil = until
+        return ConfirmVerdict.ShowPill(until)
     }
 
     /** A bottom touch handed to the app is the user going back to it, so the pill goes. */
@@ -87,24 +91,24 @@ class LandscapeConfirm(private val windowMs: Long = ConfirmPill.WINDOW_MS) {
 
     fun onStreamEnd(edge: ScreenEdge, nowMs: Long) {
         if (edge != ScreenEdge.BOTTOM) return
-        confirming = false
+        answering = false
         expire(nowMs)
     }
 
-    /** A touch that started inside the window keeps the pill until it ends. */
+    /** Drops the pill once its time is up, unless a touch that began inside it is still down. */
     fun expire(nowMs: Long) {
-        val expiry = expiresAtMs ?: return
-        if (!confirming && nowMs >= expiry) dismiss()
+        val until = upUntil ?: return
+        if (!answering && nowMs >= until) dismiss()
     }
 
     fun dismiss() {
-        shownAtMs = null
-        confirming = false
+        upUntil = null
+        answering = false
     }
 
     private companion object {
         // Circle to Search is a still hold rather than a swipe, so it never leaves by accident.
-        val GUARDED = setOf(
+        val HELD_BACK = setOf(
             GestureAction.Home,
             GestureAction.Recents,
             GestureAction.PreviousApp,

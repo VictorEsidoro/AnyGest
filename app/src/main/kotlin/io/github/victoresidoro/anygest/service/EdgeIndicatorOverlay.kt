@@ -24,12 +24,10 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.PixelFormat
 import android.graphics.LinearGradient
 import android.graphics.RadialGradient
 import android.graphics.Shader
 import android.os.SystemClock
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -52,7 +50,7 @@ import kotlin.math.ceil
  */
 internal class EdgeIndicatorOverlay(
     context: Context,
-    private val windowManager: WindowManager,
+    windowManager: WindowManager,
     private val edge: ScreenEdge,
     private val geometry: ScreenGeometry,
     style: EdgeAnimation,
@@ -63,42 +61,27 @@ internal class EdgeIndicatorOverlay(
     private val depthPx: Int =
         ceil((EdgeIndicator.MAX_RISE_DP + MARGIN_DP) * geometry.density).toInt()
 
-    private var attached = false
+    private val window = GhostWindow(
+        windowManager,
+        view,
+        "$edge indicator",
+        if (edge == ScreenEdge.BOTTOM) WindowManager.LayoutParams.MATCH_PARENT else depthPx,
+        if (edge == ScreenEdge.BOTTOM) depthPx else geometry.heightPx,
+        when (edge) {
+            ScreenEdge.BOTTOM -> Gravity.BOTTOM or Gravity.START
+            ScreenEdge.LEFT -> Gravity.TOP or Gravity.START
+            ScreenEdge.RIGHT -> Gravity.TOP or Gravity.END
+        },
+    )
 
     // Whether this touch's shape is up, so a re-arm after pulling back does not restart it.
     private var shown = false
 
-    fun install() {
-        val horizontal = edge == ScreenEdge.BOTTOM
-        val params = WindowManager.LayoutParams(
-            if (horizontal) WindowManager.LayoutParams.MATCH_PARENT else depthPx,
-            if (horizontal) depthPx else geometry.heightPx,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = when (edge) {
-                ScreenEdge.BOTTOM -> Gravity.BOTTOM or Gravity.START
-                ScreenEdge.LEFT -> Gravity.TOP or Gravity.START
-                ScreenEdge.RIGHT -> Gravity.TOP or Gravity.END
-            }
-            // Full-display coordinates, so a touch's raw position maps straight onto it.
-            fitInsetsTypes = 0
-            alpha = 0f
-        }
-        runCatching {
-            windowManager.addView(view, params)
-            attached = true
-        }.onFailure { Log.e(TAG, "Could not add the $edge indicator", it) }
-    }
+    fun install() = window.install()
 
     fun remove() {
         hide()
-        if (attached) runCatching { windowManager.removeView(view) }
-        attached = false
+        window.remove()
     }
 
     /** Applies one tracker verdict, with the finger at raw [x],[y]. */
@@ -114,21 +97,21 @@ internal class EdgeIndicatorOverlay(
     /** The finger left without a verdict, such as a second pointer or a cancel. */
     fun release() {
         shown = false
-        view.release { setWindowVisible(false) }
+        view.release { window.light(false) }
     }
 
     /** Immediate: a replay must never land under a visible window. */
     fun hide() {
         shown = false
         view.reset()
-        setWindowVisible(false)
+        window.light(false)
     }
 
     private fun show(x: Float, y: Float) {
         if (!shown) {
             shown = true
             view.start(along(x, y))
-            setWindowVisible(true)
+            window.light(true)
         }
         view.moveTo(along(x, y), risePx(x, y))
     }
@@ -143,15 +126,6 @@ internal class EdgeIndicatorOverlay(
             ScreenEdge.RIGHT -> geometry.widthPx - x
         }
         return EdgeIndicator.riseDp(distancePx / geometry.density) * geometry.density
-    }
-
-    private fun setWindowVisible(visible: Boolean) {
-        if (!attached) return
-        val params = view.layoutParams as? WindowManager.LayoutParams ?: return
-        val alpha = if (visible) 1f else 0f
-        if (params.alpha == alpha) return
-        params.alpha = alpha
-        runCatching { windowManager.updateViewLayout(view, params) }
     }
 
     /**
@@ -410,8 +384,6 @@ internal class EdgeIndicatorOverlay(
     }
 
     private companion object {
-        const val TAG = "AnyGest"
-
         /** Room past the tallest shape. */
         const val MARGIN_DP = 10f
     }

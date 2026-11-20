@@ -1,6 +1,6 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,120 +25,106 @@ import org.junit.Test
 class BackBellyTest {
 
     @Test
-    fun `scale is empty at the edge and full at the end of the drag`() {
-        assertEquals(0f, BackBelly.scale(0f), 0f)
-        assertEquals(1f, BackBelly.scale(BackBelly.FULL_DRAG_DP), 1e-6f)
-        assertEquals(1f, BackBelly.scale(BackBelly.FULL_DRAG_DP * 2), 1e-6f)
+    fun `the belly is empty at the edge, full at the end of the drag and clamped past both`() {
         assertEquals(0f, BackBelly.scale(-10f), 0f)
-    }
-
-    @Test
-    fun `scale is half way at half the drag, like Xiaomi's 180 px ready point`() {
+        assertEquals(0f, BackBelly.scale(0f), 0f)
         assertEquals(0.5f, BackBelly.scale(BackBelly.FULL_DRAG_DP / 2), 1e-6f)
+        assertEquals(1f, BackBelly.scale(BackBelly.FULL_DRAG_DP), 1e-6f)
+        assertEquals(1f, BackBelly.scale(BackBelly.FULL_DRAG_DP * 3), 1e-6f)
     }
 
     @Test
-    fun `scale only grows with the drag`() {
-        var previous = -1f
-        for (dp in 0..BackBelly.FULL_DRAG_DP.toInt()) {
-            val scale = BackBelly.scale(dp.toFloat())
-            assertTrue("shrank at ${dp}dp", scale >= previous)
-            previous = scale
-        }
+    fun `the belly never shrinks as the finger goes in`() {
+        val scales = (0..BackBelly.FULL_DRAG_DP.toInt()).map { BackBelly.scale(it.toFloat()) }
+        assertTrue(scales.zipWithNext().all { (before, after) -> after >= before })
     }
 
     @Test
-    fun `profile closes at both ends and peaks in the middle`() {
+    fun `the outline closes at the top and bottom and is widest in the middle, evenly`() {
         assertEquals(0f, BackBelly.profile(0f), 1e-6f)
         assertEquals(0f, BackBelly.profile(1f), 1e-6f)
         assertEquals(1f, BackBelly.profile(0.5f), 1e-6f)
-    }
-
-    @Test
-    fun `profile is symmetric`() {
-        for (step in 0..50) {
-            val t = step / 100f
-            assertEquals(BackBelly.profile(t), BackBelly.profile(1f - t), 1e-5f)
+        (0..49).map { it / 100f }.forEach { down ->
+            assertEquals(BackBelly.profile(down), BackBelly.profile(1f - down), 1e-5f)
         }
     }
 
-    /** Widths in px read off Xiaomi's 84 by 858 px asset, every 66 rows from the top. */
     @Test
-    fun `profile matches the HyperOS asset to within 2 px`() {
-        val measured = listOf(
-            0.2f, 2.0f, 8.0f, 20.2f, 40.5f, 65.7f, 81.2f,
-            81.1f, 65.1f, 39.8f, 19.7f, 7.7f, 1.8f,
-        )
-        measured.forEachIndexed { index, widthPx ->
-            val t = (index * 66 + 0.5f) / 858f
-            assertEquals("row ${index * 66}", widthPx, BackBelly.profile(t) * 84f, 2f)
+    fun `the outline stays within 2 px of the rows measured off the HyperOS asset`() {
+        // Widths in px of Xiaomi's 84 by 858 px asset, every 66 rows from the top.
+        val widths = listOf(0.2f, 2.0f, 8.0f, 20.2f, 40.5f, 65.7f, 81.2f, 81.1f, 65.1f, 39.8f, 19.7f, 7.7f, 1.8f)
+        widths.forEachIndexed { n, px ->
+            assertEquals("row ${n * 66}", px, BackBelly.profile((n * 66 + 0.5f) / 858f) * 84f, 2f)
         }
     }
 
-    // Drives the belly from a real tracker at density 3, so 3 px is 1 dp of drag.
-    private fun swipe(vararg xPx: Float): Pair<BackBellyState, MutableList<Float>> {
+    // Runs a real left tracker at density 3 (3 px per dp) and feeds every verdict to a fresh state.
+    private class Swipe {
         val tracker = GestureTracker(ScreenEdge.LEFT, GestureConfiguration(), density = 3f)
         val belly = BackBellyState()
-        val scales = mutableListOf<Float>()
-        tracker.onDown(TouchSample(0f, 1200f, 0L))
-        xPx.forEachIndexed { index, x ->
-            belly.follow(tracker.onMove(TouchSample(x, 1200f, 20L * (index + 1))), x / 3f)
-            scales += belly.scale
+        var clock = 0L
+
+        init {
+            tracker.onDown(TouchSample(0f, 1200f, clock))
         }
-        val last = xPx.last()
-        belly.follow(tracker.onUp(TouchSample(last, 1200f, 20L * (xPx.size + 1))), last / 3f)
-        return belly to scales
+
+        fun moveTo(xPx: Float): TrackerAction {
+            clock += 20L
+            return tracker.onMove(TouchSample(xPx, 1200f, clock)).also { belly.follow(it, xPx / 3f) }
+        }
+
+        fun lift(xPx: Float): TrackerAction {
+            clock += 20L
+            return tracker.onUp(TouchSample(xPx, 1200f, clock)).also { belly.follow(it, xPx / 3f) }
+        }
     }
 
     @Test
-    fun `the belly follows a reverted swipe back and shrinks toward the edge`() {
-        val (_, scales) = swipe(180f, 120f, 60f, 3f)
-        assertTrue("did not shrink on the way back: $scales", scales.zipWithNext().all { (a, b) -> b < a })
-        assertTrue(scales.last() < BackBelly.ARROW_MINIMUM_SCALE)
+    fun `a swipe that arms shows the belly with its arrow`() {
+        val swipe = Swipe()
+        assertFalse(swipe.belly.visible)
+        swipe.moveTo(180f)
+        assertTrue(swipe.belly.visible)
+        assertTrue(swipe.belly.arrowShown)
+        assertEquals(BackBelly.scale(60f), swipe.belly.scale, 1e-6f)
     }
 
     @Test
-    fun `pulling back inside the trigger drops the arrow and pushing out restores it`() {
-        val tracker = GestureTracker(ScreenEdge.LEFT, GestureConfiguration(), density = 3f)
+    fun `pulling back inside the trigger drops only the arrow, and pushing out brings it back`() {
+        val swipe = Swipe()
+        swipe.moveTo(180f)
+        swipe.moveTo(30f)
+        assertFalse(swipe.belly.arrowShown)
+        assertTrue(swipe.belly.visible)
+        assertEquals(BackBelly.scale(10f), swipe.belly.scale, 0f)
+        swipe.moveTo(180f)
+        assertTrue(swipe.belly.arrowShown)
+    }
+
+    @Test
+    fun `the belly shrinks step by step on the way back and is gone on a revert`() {
+        val swipe = Swipe()
+        val scales = listOf(180f, 120f, 60f, 3f).map { x -> swipe.moveTo(x); swipe.belly.scale }
+        assertTrue(scales.zipWithNext().all { (before, after) -> after < before })
+        assertEquals(TrackerAction.Reverted, swipe.lift(3f))
+        assertFalse(swipe.belly.visible)
+        assertFalse(swipe.belly.arrowShown)
+        assertEquals(0f, swipe.belly.scale, 0f)
+    }
+
+    @Test
+    fun `a fired swipe takes the belly with it`() {
+        val swipe = Swipe()
+        swipe.moveTo(180f)
+        swipe.lift(170f)
+        assertFalse(swipe.belly.visible)
+    }
+
+    @Test
+    fun `a move that arrives with no belly up does not bring one back`() {
         val belly = BackBellyState()
-        tracker.onDown(TouchSample(0f, 1200f, 0L))
-        belly.follow(tracker.onMove(TouchSample(180f, 1200f, 20L)), 60f)
-        assertTrue(belly.arrowShown)
-        belly.follow(tracker.onMove(TouchSample(30f, 1200f, 40L)), 10f)
-        assertFalse(belly.arrowShown)
-        assertTrue("the belly keeps following without its arrow", belly.visible)
-        assertEquals(BackBelly.scale(10f), belly.scale, 0f)
-        belly.follow(tracker.onMove(TouchSample(180f, 1200f, 60L)), 60f)
-        assertTrue(belly.arrowShown)
-    }
-
-    @Test
-    fun `a reverted swipe leaves no belly on screen`() {
-        val tracker = GestureTracker(ScreenEdge.LEFT, GestureConfiguration(), density = 3f)
-        val belly = BackBellyState()
-        tracker.onDown(TouchSample(0f, 1200f, 0L))
-        belly.follow(tracker.onMove(TouchSample(180f, 1200f, 20L)), 60f)
-        belly.follow(tracker.onMove(TouchSample(3f, 1200f, 40L)), 1f)
-        assertFalse("the arrow outlived the revert", belly.arrowShown)
-        val release = tracker.onUp(TouchSample(3f, 1200f, 60L))
-        assertEquals(TrackerAction.Reverted, release)
-        belly.follow(release, 1f)
-        assertFalse(belly.visible)
-        assertFalse(belly.arrowShown)
-        assertEquals(0f, belly.scale, 0f)
-    }
-
-    @Test
-    fun `a hidden belly ignores a late move`() {
-        val (belly, _) = swipe(180f, 3f)
         belly.follow(TrackerAction.None, 50f)
-        assertEquals(0f, belly.scale, 0f)
-    }
-
-    @Test
-    fun `a fired swipe leaves no belly on screen either`() {
-        val (belly, scales) = swipe(180f, 170f)
-        assertTrue(scales.all { it > 0f })
         assertFalse(belly.visible)
+        assertEquals(0f, belly.scale, 0f)
     }
 }

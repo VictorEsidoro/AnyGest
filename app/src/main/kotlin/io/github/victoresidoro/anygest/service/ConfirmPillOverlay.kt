@@ -1,6 +1,7 @@
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 // Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
 //
-// This file is part of AnyGest, based on HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,18 +18,13 @@
 
 package io.github.victoresidoro.anygest.service
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PixelFormat
 import android.graphics.RectF
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -36,146 +32,106 @@ import android.view.animation.DecelerateInterpolator
 import io.github.victoresidoro.anygest.gesture.ConfirmPill
 import kotlin.math.ceil
 
-// Based on HyperGesture (f0f655f) by Henrique Almeida (h3nc4).
-// The handle-like pill a held-back landscape swipe shows at the bottom centre. A window of its
-// own the size of the pill, so it covers as little as it can of a touch replayed below it.
+/**
+ * The handle-like pill a held-back landscape swipe shows at the bottom centre, based on
+ * HyperGesture (f0f655f) by Henrique Almeida (h3nc4). Its window is only as big as the pill, so
+ * it covers as little as it can of a touch replayed below it.
+ */
 internal class ConfirmPillOverlay(
     private val context: Context,
-    private val windowManager: WindowManager,
-    private val geometry: ScreenGeometry,
+    windowManager: WindowManager,
+    geometry: ScreenGeometry,
 ) {
 
     private val view = PillView(context, geometry.density)
 
-    private var attached = false
-
-    private var fade: ValueAnimator? = null
-
-    fun install() {
-        val outlinePx = OUTLINE_DP * geometry.density
-        val params = WindowManager.LayoutParams(
-            ceil(ConfirmPill.WIDTH_DP * geometry.density + 2 * outlinePx).toInt(),
-            ceil(ConfirmPill.HEIGHT_DP * geometry.density + 2 * outlinePx).toInt(),
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-            y = (ConfirmPill.ABOVE_EDGE_DP * geometry.density).toInt()
-            fitInsetsTypes = 0
-            alpha = 0f
-        }
-        runCatching {
-            windowManager.addView(view, params)
-            attached = true
-        }.onFailure { Log.e(TAG, "Could not add confirm pill", it) }
+    private val window = run {
+        val ring = RING_DP * geometry.density
+        GhostWindow(
+            windowManager,
+            view,
+            "confirm pill",
+            ceil(ConfirmPill.WIDTH_DP * geometry.density + 2 * ring).toInt(),
+            ceil(ConfirmPill.HEIGHT_DP * geometry.density + 2 * ring).toInt(),
+            Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+            (ConfirmPill.ABOVE_EDGE_DP * geometry.density).toInt(),
+        )
     }
+
+    private val fade = Tween { view.opacity = it }
+
+    fun install() = window.install()
 
     fun remove() {
         hide()
-        if (attached) runCatching { windowManager.removeView(view) }
-        attached = false
+        window.remove()
     }
 
     fun show() {
-        fade?.cancel()
-        view.dark = isNightMode()
-        setWindowVisible(true)
-        animateTo(1f, FADE_IN_MS)
+        view.nightTheme = inNightMode()
+        window.light(true)
+        fadeTo(1f, FADE_IN_MS)
     }
 
     fun fadeOut() {
-        if (!attached || view.fraction == 0f) return
-        animateTo(0f, FADE_OUT_MS)
+        if (view.opacity == 0f) return
+        fadeTo(0f, FADE_OUT_MS) { window.light(false) }
     }
 
     /** Immediate, for a touch about to be replayed: it must never land under a visible window. */
     fun hide() {
-        fade?.cancel()
-        fade = null
-        view.fraction = 0f
-        setWindowVisible(false)
+        fade.stop()
+        view.opacity = 0f
+        window.light(false)
     }
 
-    private fun animateTo(target: Float, durationMs: Long) {
-        fade?.cancel()
-        fade = ValueAnimator.ofFloat(view.fraction, target).apply {
-            duration = durationMs
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { view.fraction = it.animatedValue as Float }
-            addListener(object : AnimatorListenerAdapter() {
-                private var cancelled = false
+    private fun fadeTo(target: Float, ms: Long, onDone: (() -> Unit)? = null) =
+        fade.play(view.opacity, target, ms, DecelerateInterpolator(), onDone)
 
-                override fun onAnimationCancel(animation: Animator) {
-                    cancelled = true
-                }
-
-                override fun onAnimationEnd(animation: Animator) {
-                    if (!cancelled && target == 0f) setWindowVisible(false)
-                }
-            })
-            start()
-        }
-    }
-
-    // Read on each show, since a theme switch does not rebuild the overlay.
-    private fun isNightMode(): Boolean =
+    // Asked again on each show, since a theme switch does not rebuild the overlay.
+    private fun inNightMode(): Boolean =
         context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
             Configuration.UI_MODE_NIGHT_YES
-
-    private fun setWindowVisible(visible: Boolean) {
-        if (!attached) return
-        val params = view.layoutParams as? WindowManager.LayoutParams ?: return
-        val alpha = if (visible) 1f else 0f
-        if (params.alpha == alpha) return
-        params.alpha = alpha
-        runCatching { windowManager.updateViewLayout(view, params) }
-    }
 
     @SuppressLint("ViewConstructor")
     private class PillView(context: Context, density: Float) : View(context) {
 
-        var dark = false
+        var nightTheme = false
 
-        var fraction = 0f
+        var opacity = 0f
             set(value) {
                 field = value
                 invalidate()
             }
 
-        private val outlinePx = OUTLINE_DP * density
-
-        private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-
-        private val outline = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        private val ringPx = RING_DP * density
+        private val inkPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeWidth = outlinePx
+            strokeWidth = ringPx
         }
-
-        private val bounds = RectF()
+        private val area = RectF()
 
         // Light on a dark theme and dark on a light one, each ringed in the other for any game.
         override fun onDraw(canvas: Canvas) {
-            super.onDraw(canvas)
-            if (fraction <= 0f) return
-            val ink = if (dark) Color.WHITE else Color.BLACK
-            val ring = if (dark) Color.BLACK else Color.WHITE
-            fill.color = Color.argb((FILL_ALPHA * fraction).toInt(), Color.red(ink), Color.green(ink), Color.blue(ink))
-            outline.color = Color.argb((RING_ALPHA * fraction).toInt(), Color.red(ring), Color.green(ring), Color.blue(ring))
-            bounds.set(outlinePx, outlinePx, width - outlinePx, height - outlinePx)
-            val radius = bounds.height() / 2
-            canvas.drawRoundRect(bounds, radius, radius, outline)
-            canvas.drawRoundRect(bounds, radius, radius, fill)
+            if (opacity <= 0f) return
+            val ink = if (nightTheme) Color.WHITE else Color.BLACK
+            val ring = if (nightTheme) Color.BLACK else Color.WHITE
+            inkPaint.color = faded(ink, INK_ALPHA)
+            ringPaint.color = faded(ring, RING_ALPHA)
+            area.set(ringPx, ringPx, width - ringPx, height - ringPx)
+            val round = area.height() / 2
+            canvas.drawRoundRect(area, round, round, ringPaint)
+            canvas.drawRoundRect(area, round, round, inkPaint)
         }
+
+        private fun faded(colour: Int, alpha: Int): Int =
+            Color.argb((alpha * opacity).toInt(), Color.red(colour), Color.green(colour), Color.blue(colour))
     }
 
     private companion object {
-        const val TAG = "AnyGest"
-        const val OUTLINE_DP = 1f
-        const val FILL_ALPHA = 230
+        const val RING_DP = 1f
+        const val INK_ALPHA = 230
         const val RING_ALPHA = 90
         const val FADE_IN_MS = 120L
         const val FADE_OUT_MS = 250L

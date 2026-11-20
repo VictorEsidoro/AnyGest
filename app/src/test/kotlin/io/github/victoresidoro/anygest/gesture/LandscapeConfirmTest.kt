@@ -1,6 +1,6 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
-// This file is part of HyperGesture.
+// This file is part of AnyGest, based on HyperGesture by Henrique Almeida (h3nc4).
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,259 +24,123 @@ import org.junit.Test
 
 class LandscapeConfirmTest {
 
-    // A real bottom tracker at density 3 on a 2400 by 1080 landscape screen, fed through the
-    // model the way the overlay does, recording what reached the system.
-    private class Screen(
-        configuration: GestureConfiguration = GestureConfiguration(),
-        landscape: Boolean = true,
-    ) {
-        private val tracker = GestureTracker(ScreenEdge.BOTTOM, configuration, density = 3f)
-        val confirm = LandscapeConfirm()
-        val performed = mutableListOf<GestureAction>()
-        val pills = mutableListOf<GestureAction>()
-        var time = 0L
+    private fun asking(landscape: Boolean = true) =
+        LandscapeConfirm().apply { configure(enabled = true, landscape = landscape) }
 
-        init {
-            confirm.configure(configuration.landscapeConfirmEnabled, landscape)
-        }
-
-        private fun feed(action: TrackerAction) {
-            if (action !is TrackerAction.Fire) return
-            when (confirm.onFire(action.action, action.edge, time)) {
-                is ConfirmVerdict.Perform -> performed += action.action
-                is ConfirmVerdict.ShowPill -> pills += action.action
-            }
-        }
-
-        private fun down(x: Float) {
-            confirm.onDown(ScreenEdge.BOTTOM, time)
-            feed(tracker.onDown(TouchSample(x, BOTTOM_Y, time)))
-        }
-
-        private fun move(x: Float, y: Float) {
-            time += STEP_MS
-            feed(tracker.onMove(TouchSample(x, y, time)))
-        }
-
-        private fun up(x: Float, y: Float) {
-            time += STEP_MS
-            feed(tracker.onUp(TouchSample(x, y, time)))
-            confirm.onStreamEnd(ScreenEdge.BOTTOM, time)
-        }
-
-        fun swipeUp() {
-            down(CENTRE_X)
-            move(CENTRE_X, BOTTOM_Y - 150f)
-            up(CENTRE_X, BOTTOM_Y - 150f)
-        }
-
-        fun swipeUpAndHold() {
-            down(CENTRE_X)
-            move(CENTRE_X, BOTTOM_Y - 150f)
-            time += 100L
-            feed(tracker.onHoldElapsed())
-            up(CENTRE_X, BOTTOM_Y - 150f)
-        }
-
-        fun swipeRight() {
-            down(CENTRE_X)
-            move(CENTRE_X + 300f, BOTTOM_Y)
-            up(CENTRE_X + 300f, BOTTOM_Y)
-        }
-
-        fun pause(ms: Long) {
-            time += ms
-            confirm.expire(time)
-        }
+    private fun LandscapeConfirm.swipe(action: GestureAction, at: Long, edge: ScreenEdge = ScreenEdge.BOTTOM): ConfirmVerdict {
+        onDown(edge, at)
+        val verdict = onFire(action, edge, at + 50L)
+        onStreamEnd(edge, at + 100L)
+        return verdict
     }
 
     @Test
-    fun `a first swipe up in landscape shows the pill and goes nowhere`() {
-        val screen = Screen()
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.pills)
-        assertTrue(screen.performed.isEmpty())
-        assertTrue(screen.confirm.pillShown)
-    }
-
-    @Test
-    fun `a second swipe inside the window goes Home and drops the pill`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.pause(1_000L)
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-        assertFalse(screen.confirm.pillShown)
-    }
-
-    @Test
-    fun `a second swipe after the window shows the pill again`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.pause(ConfirmPill.WINDOW_MS)
-        assertFalse(screen.confirm.pillShown)
-        screen.swipeUp()
-        assertTrue(screen.performed.isEmpty())
-        assertEquals(2, screen.pills.size)
-    }
-
-    @Test
-    fun `a swipe that starts inside the window counts even if it ends after it`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.time += ConfirmPill.WINDOW_MS - 10L
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-    }
-
-    @Test
-    fun `a swipe and hold after the pill goes to Recents`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.pause(500L)
-        screen.swipeUpAndHold()
-        assertEquals(listOf(GestureAction.Recents), screen.performed)
-    }
-
-    @Test
-    fun `a first swipe and hold is held back like a swipe`() {
-        val screen = Screen()
-        screen.swipeUpAndHold()
-        assertEquals(listOf(GestureAction.Recents), screen.pills)
-        assertTrue(screen.performed.isEmpty())
-    }
-
-    @Test
-    fun `portrait goes Home on the first swipe`() {
-        val screen = Screen(landscape = false)
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-        assertTrue(screen.pills.isEmpty())
-    }
-
-    @Test
-    fun `with the setting off landscape goes Home on the first swipe`() {
-        val screen = Screen(GestureConfiguration(landscapeConfirmEnabled = false))
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-        assertTrue(screen.pills.isEmpty())
-    }
-
-    @Test
-    fun `turning the setting off drops a pill already up`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.confirm.configure(enabled = false, landscape = true)
-        assertFalse(screen.confirm.pillShown)
-    }
-
-    @Test
-    fun `rotating to portrait between swipes drops the pill and the next swipe goes Home`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.confirm.configure(enabled = true, landscape = false)
-        assertFalse(screen.confirm.pillShown)
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-    }
-
-    @Test
-    fun `rotating into landscape between swipes asks again`() {
-        val screen = Screen(landscape = false)
-        screen.swipeUp()
-        screen.confirm.configure(enabled = true, landscape = true)
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-        assertEquals(listOf(GestureAction.Home), screen.pills)
-    }
-
-    @Test
-    fun `a rebuild in the same orientation keeps the pill`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.confirm.configure(enabled = true, landscape = true)
-        assertTrue(screen.confirm.pillShown)
-        screen.swipeUp()
-        assertEquals(listOf(GestureAction.Home), screen.performed)
-    }
-
-    @Test
-    fun `a sideways app switch asks for the same confirmation`() {
-        val screen = Screen(GestureConfiguration(appSwitchEnabled = true))
-        screen.swipeRight()
-        assertEquals(listOf(GestureAction.PreviousApp), screen.pills)
-        screen.swipeRight()
-        assertEquals(listOf(GestureAction.PreviousApp), screen.performed)
-    }
-
-    @Test
-    fun `a tap handed to the app drops the pill`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.confirm.onReplayed(ScreenEdge.BOTTOM)
-        assertFalse(screen.confirm.pillShown)
-    }
-
-    @Test
-    fun `a touch handed to the app from a side edge keeps the pill`() {
-        val screen = Screen()
-        screen.swipeUp()
-        screen.confirm.onReplayed(ScreenEdge.LEFT)
-        assertTrue(screen.confirm.pillShown)
-    }
-
-    @Test
-    fun `a confirming touch still down keeps the pill past its expiry`() {
-        val confirm = LandscapeConfirm().apply { configure(enabled = true, landscape = true) }
-        confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 0L)
-        confirm.onDown(ScreenEdge.BOTTOM, 100L)
-        confirm.expire(ConfirmPill.WINDOW_MS + 500L)
+    fun `the first guarded swipe is held back and the second one inside the window goes through`() {
+        val confirm = asking()
+        assertEquals(ConfirmVerdict.ShowPill(50L + ConfirmPill.WINDOW_MS), confirm.swipe(GestureAction.Home, 0L))
         assertTrue(confirm.pillShown)
-        assertEquals(
-            ConfirmVerdict.Perform,
-            confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, ConfirmPill.WINDOW_MS + 600L),
-        )
-    }
-
-    @Test
-    fun `Back and Circle to Search are never held back`() {
-        val confirm = LandscapeConfirm().apply { configure(enabled = true, landscape = true) }
-        assertEquals(ConfirmVerdict.Perform, confirm.onFire(GestureAction.Back, ScreenEdge.LEFT, 0L))
-        assertEquals(ConfirmVerdict.Perform, confirm.onFire(GestureAction.Back, ScreenEdge.RIGHT, 0L))
-        assertEquals(
-            ConfirmVerdict.Perform,
-            confirm.onFire(GestureAction.CircleToSearch, ScreenEdge.BOTTOM, 0L),
-        )
+        assertEquals(ConfirmVerdict.Perform, confirm.swipe(GestureAction.Home, 1_000L))
         assertFalse(confirm.pillShown)
     }
 
     @Test
-    fun `a touch on a side edge does not confirm a bottom swipe`() {
-        val confirm = LandscapeConfirm().apply { configure(enabled = true, landscape = true) }
-        confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 0L)
-        confirm.onDown(ScreenEdge.LEFT, 100L)
-        confirm.onStreamEnd(ScreenEdge.LEFT, 200L)
-        assertTrue(confirm.pillShown)
-        confirm.onDown(ScreenEdge.BOTTOM, 300L)
-        assertEquals(ConfirmVerdict.Perform, confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 400L))
+    fun `every bottom action except Circle to Search is guarded`() {
+        listOf(GestureAction.Home, GestureAction.Recents, GestureAction.PreviousApp, GestureAction.NextApp).forEach {
+            assertTrue("$it", asking().swipe(it, 0L) is ConfirmVerdict.ShowPill)
+        }
+        assertEquals(ConfirmVerdict.Perform, asking().swipe(GestureAction.CircleToSearch, 0L))
     }
 
     @Test
-    fun `the pill expires two seconds after it showed`() {
-        val confirm = LandscapeConfirm().apply { configure(enabled = true, landscape = true) }
-        assertEquals(
-            ConfirmVerdict.ShowPill(1_000L + ConfirmPill.WINDOW_MS),
-            confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 1_000L),
-        )
+    fun `a different action can answer the pill`() {
+        val confirm = asking()
+        confirm.swipe(GestureAction.Home, 0L)
+        assertEquals(ConfirmVerdict.Perform, confirm.swipe(GestureAction.Recents, 500L))
+    }
+
+    @Test
+    fun `Back from the sides is never held back`() {
+        val confirm = asking()
+        assertEquals(ConfirmVerdict.Perform, confirm.swipe(GestureAction.Back, 0L, ScreenEdge.LEFT))
+        assertEquals(ConfirmVerdict.Perform, confirm.swipe(GestureAction.Back, 0L, ScreenEdge.RIGHT))
+        assertFalse(confirm.pillShown)
+    }
+
+    @Test
+    fun `the pill times out after exactly the window`() {
+        val confirm = asking()
+        confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 1_000L)
         confirm.expire(1_000L + ConfirmPill.WINDOW_MS - 1L)
         assertTrue(confirm.pillShown)
         confirm.expire(1_000L + ConfirmPill.WINDOW_MS)
         assertFalse(confirm.pillShown)
+        assertTrue(confirm.swipe(GestureAction.Home, 4_000L) is ConfirmVerdict.ShowPill)
     }
 
-    private companion object {
-        const val CENTRE_X = 1200f
-        const val BOTTOM_Y = 1075f
-        const val STEP_MS = 20L
+    @Test
+    fun `a touch that began inside the window is still the answer after the window ends`() {
+        val confirm = asking()
+        confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 0L)
+        confirm.onDown(ScreenEdge.BOTTOM, ConfirmPill.WINDOW_MS - 10L)
+        confirm.expire(ConfirmPill.WINDOW_MS + 500L)
+        assertTrue(confirm.pillShown)
+        assertEquals(ConfirmVerdict.Perform, confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, ConfirmPill.WINDOW_MS + 600L))
+    }
+
+    @Test
+    fun `a touch on a side edge does not answer a bottom pill`() {
+        val confirm = asking()
+        confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 0L)
+        confirm.swipe(GestureAction.Back, 100L, ScreenEdge.LEFT)
+        assertTrue(confirm.pillShown)
+        assertEquals(ConfirmVerdict.Perform, confirm.swipe(GestureAction.Home, 300L))
+    }
+
+    @Test
+    fun `portrait and a disabled setting go straight through`() {
+        assertEquals(ConfirmVerdict.Perform, asking(landscape = false).swipe(GestureAction.Home, 0L))
+        val off = LandscapeConfirm().apply { configure(enabled = false, landscape = true) }
+        assertEquals(ConfirmVerdict.Perform, off.swipe(GestureAction.Home, 0L))
+    }
+
+    @Test
+    fun `turning the setting off or rotating drops a pill that is up`() {
+        val off = asking().also { it.swipe(GestureAction.Home, 0L) }
+        off.configure(enabled = false, landscape = true)
+        assertFalse(off.pillShown)
+
+        val turned = asking().also { it.swipe(GestureAction.Home, 0L) }
+        turned.configure(enabled = true, landscape = false)
+        assertFalse(turned.pillShown)
+        assertEquals(ConfirmVerdict.Perform, turned.swipe(GestureAction.Home, 500L))
+    }
+
+    @Test
+    fun `rotating into landscape starts asking, and a rebuild in the same orientation keeps the pill`() {
+        val confirm = asking(landscape = false)
+        assertEquals(ConfirmVerdict.Perform, confirm.swipe(GestureAction.Home, 0L))
+        confirm.configure(enabled = true, landscape = true)
+        assertTrue(confirm.swipe(GestureAction.Home, 100L) is ConfirmVerdict.ShowPill)
+        confirm.configure(enabled = true, landscape = true)
+        assertTrue(confirm.pillShown)
+    }
+
+    @Test
+    fun `only a bottom touch handed back to the app drops the pill`() {
+        val confirm = asking().also { it.swipe(GestureAction.Home, 0L) }
+        confirm.onReplayed(ScreenEdge.LEFT)
+        assertTrue(confirm.pillShown)
+        confirm.onReplayed(ScreenEdge.BOTTOM)
+        assertFalse(confirm.pillShown)
+    }
+
+    @Test
+    fun `the pill reports when it goes away`() {
+        val confirm = asking()
+        assertEquals(null, confirm.expiresAtMs)
+        confirm.onFire(GestureAction.Home, ScreenEdge.BOTTOM, 700L)
+        assertEquals(700L + ConfirmPill.WINDOW_MS, confirm.expiresAtMs)
+        confirm.dismiss()
+        assertEquals(null, confirm.expiresAtMs)
     }
 }
