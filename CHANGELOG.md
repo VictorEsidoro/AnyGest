@@ -4,6 +4,22 @@ Changes in AnyGest ([VictorEsidoro/AnyGest](https://github.com/VictorEsidoro/Any
 
 Versões em português logo abaixo de cada versão.
 
+## 5.0.0 (in progress)
+
+AnyGest's own code base: the parts that still came from HyperGesture are rewritten, one area at a time, with the same behavior. Nothing changes for the user unless a line below says so.
+
+### Changed
+
+- The gesture recognizer is rewritten as a single state machine (pressing, armed, pulled back, switching, done) with its distances worked out once per configuration instead of on every touch. The gesture data types are split into their own files, and the gesture action is a plain enum. New tests cover every swipe rule.
+
+### Português
+
+O código passa a ser todo do AnyGest: as partes que ainda vinham do HyperGesture são reescritas, uma área de cada vez, com o mesmo comportamento. Nada muda para quem usa, a não ser que uma linha abaixo diga.
+
+#### Alterado
+
+- O reconhecedor de gestos foi reescrito como uma máquina de estados única (pressionando, armado, recuado, trocando de app, concluído), com as distâncias calculadas uma vez por configuração em vez de a cada toque. Os tipos de dados dos gestos ficam em arquivos próprios, e a ação do gesto virou um enum simples. Testes novos cobrem cada regra de deslize.
+
 ## 4.4.4
 
 ### Changed

@@ -1,4 +1,4 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
 // This file is part of AnyGest, based on HyperGesture.
 //
@@ -18,308 +18,247 @@
 package io.github.victoresidoro.anygest.gesture
 
 import kotlin.math.abs
+import kotlin.math.hypot
 
 /**
- * Tracks one finger on one screen edge. Contains no Android types on purpose: that is the
- * whole reason gesture recognition can be tested on a plain JVM.
+ * Follows one finger on one edge and decides what it means. Pure Kotlin, no Android types,
+ * so every rule here is covered by plain JVM tests.
  *
- * [GestureConfiguration.maximumArmDurationMs] gates only the pre-arm phase; once armed a
- * gesture may be held indefinitely, or swipe-and-hold for Recents would be discarded.
- *
- * Recents fires mid-gesture, the moment the hold elapses: deciding on release instead
- * makes a merely slow Home swipe register as Recents, with no feedback about which.
- *
- * There is deliberately no minimum-velocity threshold, which would penalise the slow,
- * deliberate swipes a careful user makes.
+ * The rules, in short:
+ * - A swipe counts once it travels its distance inward, inside a cone around the axis,
+ *   within [GestureConfiguration.maximumArmDurationMs]. There is no speed requirement:
+ *   a slow, careful swipe is as good as a quick one.
+ * - Side edges: Back fires on release, and only if the finger is still past the distance,
+ *   so bringing it back to the edge cancels.
+ * - Bottom edge: Home on release; holding still after arming fires Recents right away,
+ *   while the finger is down, so a slow Home swipe is never taken for Recents afterwards.
+ *   With app switching on, a swipe along the edge goes to the previous or next app.
+ * - Bottom edge, Circle to Search on: a still press over the handle is a long press. A thumb
+ *   that creeps a little while pressing still counts as a press, not as a swipe.
  */
 class GestureTracker(
     private val edge: ScreenEdge,
     private val configuration: GestureConfiguration,
-    private val density: Float,
-    /**
-     * Display x of the navigation handle's centre. A long press only counts over the handle,
-     * as with the system's; null accepts the whole edge (plain JVM tests).
-     */
+    density: Float,
+    /** Display x of the handle's centre; null accepts the whole edge (tests). */
     private val handleCenterXPx: Float? = null,
 ) {
 
-    // What an armed gesture became, as one field. A boolean beside a nullable also described a
-    // fired hold that was sideways, and the checks against that state were unreachable.
-    private sealed interface Arm {
-        /** Armed for [shortAction], carrying the sample the hold's stillness is measured from. */
-        data class Holding(val anchor: TouchSample) : Arm
+    /** Where the finger is in the gesture. Exactly one at a time. */
+    private sealed interface Phase {
+        /** No finger, or one that is no longer followed. */
+        data object Idle : Phase
 
-        /** The hold already fired mid-gesture, so the release does nothing. */
-        data object Fired : Arm
+        /** Down, not armed yet. [longPress] while it may still become a long press. */
+        data class Pressing(val down: TouchSample, val longPress: Boolean) : Phase
 
-        /** A sideways swipe, which fires on release and schedules no hold. */
-        data class Sideways(val action: GestureAction) : Arm
+        /** Armed for the edge's own action; [still] is where the Recents hold is measured from. */
+        data class Armed(val down: TouchSample, val still: TouchSample) : Phase
 
-        /** A side swipe pulled back inside the trigger, which re-arms if pushed out again. */
-        data object Retracted : Arm
+        /** A Back swipe that came back inside its distance; pushing out again re-arms it. */
+        data class Pulled(val down: TouchSample) : Phase
+
+        /** A swipe along the bottom edge, which fires [action] on release. */
+        data class Switching(val down: TouchSample, val action: GestureAction) : Phase
+
+        /** Something already fired mid-gesture; the release does nothing. */
+        data object Done : Phase
     }
 
-    // The DOWN sample, kept after tracking ends so a release can still be explained: the arm
-    // timeout stops the gesture and the UP behind it still reports a rejection reason.
-    private var start: TouchSample? = null
+    private var phase: Phase = Phase.Idle
 
-    // The same sample while the gesture is live, and null when nothing is tracked. One field
-    // rather than a boolean next to a nullable, which could disagree with it.
-    private var tracked: TouchSample? = null
+    /** The last DOWN, kept after the gesture ends so a late release can still be explained. */
+    private var lastDown: TouchSample? = null
 
-    // Null until the gesture arms.
-    private var arm: Arm? = null
+    private val bottom = edge == ScreenEdge.BOTTOM
+    private val tapAction = if (bottom) GestureAction.Home else GestureAction.Back
+    private val holdsForRecents = bottom
+    private val longPressEnabled = bottom && configuration.circleToSearchEnabled
+    private val switchingEnabled = bottom && configuration.appSwitchEnabled
 
-    // A still touch that has not armed may still become a long press. Cleared for good as
-    // soon as the finger strays, so a slow swipe that pauses later cannot fire it.
-    private var longPressPending = false
+    private val swipePx = density *
+        if (bottom) configuration.bottomMinimumSwipeDistanceDp else configuration.sideMinimumSwipeDistanceDp
+    private val stillPx = density * configuration.holdStillnessDp
+    private val slopPx = density * configuration.platform.touchSlopDp
+    private val handleHalfPx = density / 2f *
+        maxOf(configuration.platform.handleWidthDp, PlatformDefaults.MIN_TOUCH_TARGET_DP)
 
-    private val shortAction: GestureAction =
-        if (edge == ScreenEdge.BOTTOM) GestureAction.Home else GestureAction.Back
-
-    private val holdAction: GestureAction? =
-        if (edge == ScreenEdge.BOTTOM) GestureAction.Recents else null
-
-    private val longPressAction: GestureAction? =
-        if (edge == ScreenEdge.BOTTOM && configuration.circleToSearchEnabled) {
-            GestureAction.CircleToSearch
-        } else {
-            null
-        }
-
-    private val minimumDistancePx: Float
-        get() = density * when (edge) {
-            ScreenEdge.BOTTOM -> configuration.bottomMinimumSwipeDistanceDp
-            ScreenEdge.LEFT, ScreenEdge.RIGHT -> configuration.sideMinimumSwipeDistanceDp
-        }
-
-    private val stillnessPx: Float get() = configuration.holdStillnessDp * density
-
-    private val longPressSlopPx: Float get() = configuration.platform.touchSlopDp * density
-
-    private val handleHalfWidthPx: Float
-        get() = density / 2f * maxOf(
-            configuration.platform.handleWidthDp,
-            PlatformDefaults.MIN_TOUCH_TARGET_DP,
-        )
+    /** A creeping press may cover this much and still be a press. */
+    private val creepPx = maxOf(slopPx, swipePx * CREEP_FACTOR)
+    private val cone = configuration.offAxisToleranceRatio
 
     fun onDown(sample: TouchSample): TrackerAction {
-        start = sample
-        tracked = sample
-        arm = null
-        longPressPending = longPressAction != null && overHandle(sample)
-        return if (longPressPending) {
-            TrackerAction.ScheduleLongPress(configuration.effectiveCircleToSearchHoldMs)
-        } else {
-            TrackerAction.None
-        }
+        lastDown = sample
+        val longPress = longPressEnabled && onHandle(sample)
+        phase = Phase.Pressing(sample, longPress)
+        return if (longPress) TrackerAction.ScheduleLongPress(configuration.effectiveCircleToSearchHoldMs) else TrackerAction.None
     }
 
-    fun onMove(sample: TouchSample): TrackerAction {
-        val origin = tracked ?: return TrackerAction.None
-        if (longPressPending && strayedBeyondSlop(origin, sample) && !isPressDrift(origin, sample)) {
-            longPressPending = false
-        }
-        val state = arm
-        return if (state == null) whileArming(origin, sample) else whileArmed(origin, state, sample)
-    }
-
-    private fun whileArming(origin: TouchSample, sample: TouchSample): TrackerAction {
-        if (sample.timestampMs - origin.timestampMs > configuration.maximumArmDurationMs) {
-            tracked = null
-            return TrackerAction.Unused(RejectionReason.TOO_SLOW_TO_ARM)
-        }
-        // A thumb that rolls upward while pressing is a long press, not the start of a swipe.
-        if (isPressDrift(origin, sample)) return TrackerAction.None
-        sidewaysAction(origin, sample)?.let { return armSideways(it) }
-        if (!hasArmed(origin, sample)) return TrackerAction.None
-
-        arm = Arm.Holding(sample)
-        return TrackerAction.Armed(
-            scheduleHoldMs = if (holdAction != null) configuration.recentsHoldMs else null,
-        )
-    }
-
-    private fun whileArmed(origin: TouchSample, state: Arm, sample: TouchSample): TrackerAction {
-        if (holdAction == null) return followSide(origin, state, sample)
-        // A fired hold owns the release, and a sideways arm is already decided.
-        if (state !is Arm.Holding) return TrackerAction.None
-        // An upward drift can arm Home before the sideways travel accumulates, so a gesture
-        // may still become a sideways one until the hold fires.
-        sidewaysAction(origin, sample)?.let { return armSideways(it) }
-        return reanchorHold(state.anchor, sample)
-    }
-
-    // A back swipe is judged by where the finger is, against the same distance that armed it,
-    // so pulling back inside the trigger disarms it and pushing out again re-arms it.
-    private fun followSide(origin: TouchSample, state: Arm, sample: TouchSample): TrackerAction {
-        val retracted = state is Arm.Retracted
-        val past = isPastTrigger(origin, sample)
-        if (retracted && past) {
-            arm = Arm.Holding(sample)
-            return TrackerAction.Armed(scheduleHoldMs = null)
-        }
-        if (!retracted && !past) {
-            arm = Arm.Retracted
-            return TrackerAction.Disarmed
-        }
-        return TrackerAction.None
-    }
-
-    private fun armSideways(action: GestureAction): TrackerAction {
-        arm = Arm.Sideways(action)
-        return TrackerAction.Armed(scheduleHoldMs = null)
-    }
-
-    // The hold may come anywhere along the swipe, so movement re-anchors, not cancels.
-    private fun reanchorHold(reference: TouchSample, sample: TouchSample): TrackerAction {
-        if (!strayed(reference, sample)) return TrackerAction.None
-
-        arm = Arm.Holding(sample)
-        return TrackerAction.RearmHold(configuration.recentsHoldMs)
+    fun onMove(sample: TouchSample): TrackerAction = when (val current = phase) {
+        is Phase.Pressing -> pressing(current, sample)
+        is Phase.Armed -> armed(current, sample)
+        is Phase.Pulled -> if (pastDistance(current.down, sample)) arm(current.down, sample) else TrackerAction.None
+        Phase.Idle, Phase.Done, is Phase.Switching -> TrackerAction.None
     }
 
     fun onHoldElapsed(): TrackerAction {
-        val action = holdAction ?: return TrackerAction.None
-        if (tracked == null || arm !is Arm.Holding) return TrackerAction.None
-        arm = Arm.Fired
-        return TrackerAction.Fire(action, edge)
+        if (!holdsForRecents || phase !is Phase.Armed) return TrackerAction.None
+        phase = Phase.Done
+        return TrackerAction.Fire(GestureAction.Recents, edge)
     }
 
-    /**
-     * Fires only for a touch that is still down, has not armed a swipe and has not strayed
-     * since DOWN. Marks the gesture fired, so the release neither fires Home nor replays
-     * the touch to the app underneath.
-     */
+    /** Fires for a press that is still down, has not armed and has not wandered off. */
     fun onLongPressElapsed(): TrackerAction {
-        val action = longPressAction ?: return TrackerAction.None
-        if (!longPressPending || tracked == null || arm != null) return TrackerAction.None
-        longPressPending = false
-        arm = Arm.Fired
-        return TrackerAction.Fire(action, edge)
+        val current = phase as? Phase.Pressing ?: return TrackerAction.None
+        if (!current.longPress) return TrackerAction.None
+        phase = Phase.Done
+        return TrackerAction.Fire(GestureAction.CircleToSearch, edge)
     }
 
     fun onUp(sample: TouchSample): TrackerAction {
-        val origin = tracked
-        val state = arm
-        val drifted = origin != null && isPressDrift(origin, sample)
-        tracked = null
-        longPressPending = false
-
-        if (state is Arm.Fired) return TrackerAction.None
-        if (origin == null) return TrackerAction.Unused(rejectionFor(start, sample))
-        if (state != null) {
-            // The release point decides, so a swipe brought back to the edge in one batched
-            // event reverts as surely as one that disarmed on the way.
-            if (holdAction == null && !isPastTrigger(origin, sample)) return TrackerAction.Reverted
-            return TrackerAction.Fire((state as? Arm.Sideways)?.action ?: shortAction, edge)
+        val ended = phase
+        phase = Phase.Idle
+        return when (ended) {
+            Phase.Done -> TrackerAction.None
+            Phase.Idle -> TrackerAction.Unused(rejection(lastDown, sample))
+            is Phase.Pressing -> released(ended, sample)
+            is Phase.Switching -> TrackerAction.Fire(ended.action, edge)
+            is Phase.Armed -> releasedArmed(ended.down, sample)
+            is Phase.Pulled -> releasedArmed(ended.down, sample)
         }
-
-        // A stream can arrive as DOWN then UP with no MOVE between - event batching under
-        // load does this, and a slow emulator does it reliably. The release is still a
-        // swipe if it clears the threshold on its own, so judge it by the same rule.
-        if (drifted) return TrackerAction.Unused(rejectionFor(origin, sample))
-        if (sample.timestampMs - origin.timestampMs <= configuration.maximumArmDurationMs) {
-            val late = sidewaysAction(origin, sample)
-            if (late != null) return TrackerAction.Fire(late, edge)
-            if (hasArmed(origin, sample)) return TrackerAction.Fire(shortAction, edge)
-        }
-        return TrackerAction.Unused(rejectionFor(origin, sample))
     }
 
     fun onCancel() {
-        start = null
-        tracked = null
-        arm = null
-        longPressPending = false
+        phase = Phase.Idle
+        lastDown = null
     }
 
-    private fun strayed(reference: TouchSample, sample: TouchSample): Boolean =
-        abs(sample.xPx - reference.xPx) > stillnessPx ||
-            abs(sample.yPx - reference.yPx) > stillnessPx
-
-    // Launcher3 aborts a handle long press once the finger passes the platform touch slop,
-    // measured as a distance rather than per axis.
-    private fun strayedBeyondSlop(reference: TouchSample, sample: TouchSample): Boolean {
-        val dx = sample.xPx - reference.xPx
-        val dy = sample.yPx - reference.yPx
-        return dx * dx + dy * dy > longPressSlopPx * longPressSlopPx
+    private fun pressing(current: Phase.Pressing, sample: TouchSample): TrackerAction {
+        val down = current.down
+        // Moving past the slop ends a long press for good, unless it is only a creep.
+        val longPress = current.longPress && (!beyondSlop(down, sample) || creeping(down, sample, true))
+        if (sample.timestampMs - down.timestampMs > configuration.maximumArmDurationMs) {
+            phase = Phase.Idle
+            return TrackerAction.Unused(RejectionReason.TOO_SLOW_TO_ARM)
+        }
+        phase = Phase.Pressing(down, longPress)
+        if (creeping(down, sample, longPress)) return TrackerAction.None
+        switchTarget(down, sample)?.let { return switchTo(down, it) }
+        return if (swipe(down, sample)) arm(down, sample) else TrackerAction.None
     }
+
+    private fun armed(current: Phase.Armed, sample: TouchSample): TrackerAction {
+        val down = current.down
+        if (!bottom) {
+            if (pastDistance(down, sample)) return TrackerAction.None
+            phase = Phase.Pulled(down)
+            return TrackerAction.Disarmed
+        }
+        // Arming upward first and then going along the edge is still a switch.
+        switchTarget(down, sample)?.let { return switchTo(down, it) }
+        if (!moved(current.still, sample)) return TrackerAction.None
+        // The hold may happen anywhere along the swipe: movement restarts it.
+        phase = Phase.Armed(down, sample)
+        return TrackerAction.RearmHold(configuration.recentsHoldMs)
+    }
+
+    private fun arm(down: TouchSample, sample: TouchSample): TrackerAction {
+        phase = Phase.Armed(down, sample)
+        return TrackerAction.Armed(if (holdsForRecents) configuration.recentsHoldMs else null)
+    }
+
+    private fun switchTo(down: TouchSample, action: GestureAction): TrackerAction {
+        phase = Phase.Switching(down, action)
+        return TrackerAction.Armed(scheduleHoldMs = null)
+    }
+
+    /** Back is judged where the finger lets go; Home fires wherever it does. */
+    private fun releasedArmed(down: TouchSample, sample: TouchSample): TrackerAction =
+        if (!bottom && !pastDistance(down, sample)) TrackerAction.Reverted else TrackerAction.Fire(tapAction, edge)
 
     /**
-     * A press on the handle that moved only slowly and not far. A deliberate swipe covers the
-     * first few millimetres at once, whereas a pressing thumb creeps. Without this, a creep of
-     * 10dp armed Home and, 100ms later, Recents, in place of the long press the user meant.
-     * Past [PRESS_DRIFT_FACTOR] times the swipe distance it is a swipe whatever its speed.
+     * A release that never armed. Under load a whole swipe can arrive as DOWN then UP with no
+     * MOVE in between, so the release point alone is judged by the same rules.
      */
-    private fun isPressDrift(origin: TouchSample, sample: TouchSample): Boolean {
-        if (!longPressPending) return false
-        if (sample.timestampMs - origin.timestampMs < QUICK_SWIPE_MS) return false
-        val dx = sample.xPx - origin.xPx
-        val dy = sample.yPx - origin.yPx
-        val ceilingPx = maxOf(longPressSlopPx, minimumDistancePx * PRESS_DRIFT_FACTOR)
-        return dx * dx + dy * dy <= ceilingPx * ceilingPx
-    }
-
-    private fun overHandle(sample: TouchSample): Boolean {
-        val center = handleCenterXPx ?: return true
-        return abs(sample.xPx - center) <= handleHalfWidthPx
-    }
-
-    // A swipe along the bottom edge rather than up from it. Only the bottom edge offers this:
-    // on a side edge the sideways axis is the one that already means Back.
-    private fun sidewaysAction(origin: TouchSample, sample: TouchSample): GestureAction? {
-        if (edge != ScreenEdge.BOTTOM || !configuration.appSwitchEnabled) return null
-        val sideways = sample.xPx - origin.xPx
-        if (abs(sideways) < minimumDistancePx) return null
-        // Held to the same cone as every other gesture, measured the other way round.
-        if (abs(sample.yPx - origin.yPx) > abs(sideways) * configuration.offAxisToleranceRatio) {
-            return null
+    private fun released(current: Phase.Pressing, sample: TouchSample): TrackerAction {
+        val down = current.down
+        val inTime = sample.timestampMs - down.timestampMs <= configuration.maximumArmDurationMs
+        if (inTime && !creeping(down, sample, current.longPress)) {
+            switchTarget(down, sample)?.let { return TrackerAction.Fire(it, edge) }
+            if (swipe(down, sample)) return TrackerAction.Fire(tapAction, edge)
         }
+        return TrackerAction.Unused(rejection(down, sample))
+    }
+
+    /** Inward travel: positive away from the edge. */
+    private fun travel(from: TouchSample, to: TouchSample): Float = when (edge) {
+        ScreenEdge.LEFT -> to.xPx - from.xPx
+        ScreenEdge.RIGHT -> from.xPx - to.xPx
+        ScreenEdge.BOTTOM -> from.yPx - to.yPx
+    }
+
+    /** Movement along the edge, at right angles to [travel]. */
+    private fun along(from: TouchSample, to: TouchSample): Float = when (edge) {
+        ScreenEdge.LEFT, ScreenEdge.RIGHT -> to.yPx - from.yPx
+        ScreenEdge.BOTTOM -> to.xPx - from.xPx
+    }
+
+    private fun pastDistance(down: TouchSample, sample: TouchSample) = travel(down, sample) >= swipePx
+
+    private fun swipe(down: TouchSample, sample: TouchSample): Boolean {
+        val inward = travel(down, sample)
+        return inward >= swipePx && abs(along(down, sample)) <= inward * cone
+    }
+
+    /** A swipe along the bottom edge, held to the same cone turned sideways. */
+    private fun switchTarget(down: TouchSample, sample: TouchSample): GestureAction? {
+        if (!switchingEnabled) return null
+        val sideways = along(down, sample)
+        if (abs(sideways) < swipePx || abs(travel(down, sample)) > abs(sideways) * cone) return null
         return if (sideways > 0f) GestureAction.PreviousApp else GestureAction.NextApp
     }
 
-    private fun hasArmed(origin: TouchSample, sample: TouchSample): Boolean {
-        val travelPx = travelFrom(origin, sample)
-        if (travelPx < minimumDistancePx) return false
-        val offAxisPx = offAxisFrom(origin, sample)
-        return abs(offAxisPx) <= travelPx * configuration.offAxisToleranceRatio
+    /** Moved outside the Recents stillness box, per axis. */
+    private fun moved(from: TouchSample, to: TouchSample) =
+        abs(to.xPx - from.xPx) > stillPx || abs(to.yPx - from.yPx) > stillPx
+
+    /** Moved past the platform slop, as a distance, the way the handle's long press is cancelled. */
+    private fun beyondSlop(from: TouchSample, to: TouchSample) =
+        hypot(to.xPx - from.xPx, to.yPx - from.yPx) > slopPx
+
+    /**
+     * A pressing thumb that creeps: slow to start moving and not far. A real swipe covers its
+     * first millimetres at once. Without this, a creep of the bottom distance armed Home and
+     * then Recents in place of the long press.
+     */
+    private fun creeping(down: TouchSample, sample: TouchSample, longPress: Boolean): Boolean =
+        longPress && sample.timestampMs - down.timestampMs >= QUICK_SWIPE_MS &&
+            hypot(sample.xPx - down.xPx, sample.yPx - down.yPx) <= creepPx
+
+    private fun onHandle(sample: TouchSample): Boolean {
+        val center = handleCenterXPx ?: return true
+        return abs(sample.xPx - center) <= handleHalfPx
     }
 
-    private fun isPastTrigger(origin: TouchSample, sample: TouchSample): Boolean =
-        travelFrom(origin, sample) >= minimumDistancePx
-
-    /** Positive inward, negative outward. */
-    private fun travelFrom(origin: TouchSample, sample: TouchSample): Float = when (edge) {
-        ScreenEdge.LEFT -> sample.xPx - origin.xPx
-        ScreenEdge.RIGHT -> origin.xPx - sample.xPx
-        ScreenEdge.BOTTOM -> origin.yPx - sample.yPx
-    }
-
-    private fun offAxisFrom(origin: TouchSample, sample: TouchSample): Float = when (edge) {
-        ScreenEdge.LEFT, ScreenEdge.RIGHT -> sample.yPx - origin.yPx
-        ScreenEdge.BOTTOM -> sample.xPx - origin.xPx
-    }
-
-    private fun rejectionFor(origin: TouchSample?, sample: TouchSample): RejectionReason {
-        if (origin == null) return RejectionReason.NO_MOVEMENT
-        val travelPx = travelFrom(origin, sample)
-        val offAxisPx = abs(offAxisFrom(origin, sample))
-        val movedAtAll = abs(travelPx) > 0f || offAxisPx > 0f
+    private fun rejection(down: TouchSample?, sample: TouchSample): RejectionReason {
+        if (down == null) return RejectionReason.NO_MOVEMENT
+        val inward = travel(down, sample)
+        val sideways = abs(along(down, sample))
         return when {
-            !movedAtAll -> RejectionReason.NO_MOVEMENT
-            travelPx < 0f -> RejectionReason.WRONG_DIRECTION
-            travelPx < minimumDistancePx -> RejectionReason.INSUFFICIENT_MOVEMENT
-            offAxisPx > travelPx * configuration.offAxisToleranceRatio -> RejectionReason.OFF_AXIS
-            sample.timestampMs - origin.timestampMs > configuration.maximumArmDurationMs ->
-                RejectionReason.TOO_SLOW_TO_ARM
+            inward == 0f && sideways == 0f -> RejectionReason.NO_MOVEMENT
+            inward < 0f -> RejectionReason.WRONG_DIRECTION
+            inward < swipePx -> RejectionReason.INSUFFICIENT_MOVEMENT
+            sideways > inward * cone -> RejectionReason.OFF_AXIS
+            sample.timestampMs - down.timestampMs > configuration.maximumArmDurationMs -> RejectionReason.TOO_SLOW_TO_ARM
             else -> RejectionReason.INSUFFICIENT_MOVEMENT
         }
     }
 
     private companion object {
-        /** A move that starts after this long is a creeping press, not the start of a swipe. */
+        /** A press that only starts moving after this long is creeping, not swiping. */
         const val QUICK_SWIPE_MS = 250L
-        const val PRESS_DRIFT_FACTOR = 3f
+
+        /** How many swipe distances a creep may cover. */
+        const val CREEP_FACTOR = 3f
     }
 }
