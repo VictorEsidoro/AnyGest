@@ -44,6 +44,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import io.github.victoresidoro.anygest.diagnostics.FailureLog
 import io.github.victoresidoro.anygest.diagnostics.Trace
+import io.github.victoresidoro.anygest.diagnostics.TraceLog
 import io.github.victoresidoro.anygest.gesture.GestureAction
 import io.github.victoresidoro.anygest.gesture.GestureConfiguration
 import io.github.victoresidoro.anygest.gesture.PlatformDefaults
@@ -710,6 +711,22 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         instance = null
     }
 
+    /**
+     * For the trace only: window changes from every app, for the few seconds after a gesture,
+     * so the transition it starts can be timed. The narrow subscription comes back by itself;
+     * outside that window the process is still woken only by the pause-list apps.
+     */
+    private fun widenEventsForTrace() {
+        val info = serviceInfo ?: return
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+        info.packageNames = null
+        serviceInfo = info
+        handler.removeCallbacks(narrowEvents)
+        handler.postDelayed(narrowEvents, TraceLog.WINDOW_WAIT_MS + 500L)
+    }
+
+    private val narrowEvents = Runnable { applyEventSubscription() }
+
     /** The panel's refresh rate right now, since the system lowers it on its own. */
     private fun refreshRate(): String = runCatching {
         val display = getSystemService(android.hardware.display.DisplayManager::class.java)
@@ -719,6 +736,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
     private fun onGestureAction(action: GestureAction, edge: ScreenEdge) {
         Log.v(TAG, "Gesture from $edge -> $action")
+        widenEventsForTrace()
         Trace.gesture(edge.name, action.id, refreshRate())
         performer.perform(action)
     }

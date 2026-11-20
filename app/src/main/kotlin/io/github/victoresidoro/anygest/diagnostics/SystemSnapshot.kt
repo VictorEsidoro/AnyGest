@@ -101,7 +101,13 @@ internal object SystemSnapshot {
 
     /** Only keys about navigation, gestures and the home screen; values cut short. */
     private fun navigationSettings(context: Context): String {
-        val wanted = Regex("nav|gesture|fsg|hide|home|recent|refresh|fps|white_list", RegexOption.IGNORE_CASE)
+        val wanted = Regex("nav|fsg|gesture|recent|refresh_rate|smart_fps|highfps|animation_rate|shielder|hide_gesture", RegexOption.IGNORE_CASE)
+        // Unrelated to navigation, or private (the recents blur list names the user's apps).
+        val skipped = Regex(
+            "hush|silence_gesture|skip_gesture|doze_|wake_gesture|double_tap_power|knock|three_gesture|zman|mbn_|backup|cloud_|" +
+                "support_gesture_shortcut|hide_rotation|privacy_thumbnail|key_home_screen",
+            RegexOption.IGNORE_CASE,
+        )
         val found = sortedSetOf<String>()
         for ((table, uri) in listOf(
             "global" to Settings.Global.CONTENT_URI,
@@ -112,11 +118,11 @@ internal object SystemSnapshot {
                 context.contentResolver.query(uri, arrayOf("name", "value"), null, null, null)?.use { cursor ->
                     while (cursor.moveToNext()) {
                         val name = cursor.getString(0) ?: continue
-                        if (wanted.containsMatchIn(name)) found += "$table.$name=${cursor.getString(1).orEmpty().take(if (name.contains("white_list", true)) 400 else 40)}"
+                        if (wanted.containsMatchIn(name) && !skipped.containsMatchIn(name)) found += "$table.$name=${cursor.getString(1).orEmpty().take(if (name.contains("rt_gesture", true) || name.contains("shielder", true)) 400 else 40)}"
                     }
                 }
             }
         }
-        return if (found.isEmpty()) "none readable" else found.take(60).joinToString("; ")
+        return if (found.isEmpty()) "none readable" else found.take(100).joinToString("; ")
     }
 }

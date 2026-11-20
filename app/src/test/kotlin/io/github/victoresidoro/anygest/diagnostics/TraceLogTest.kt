@@ -42,17 +42,27 @@ class TraceLogTest {
     }
 
     @Test
-    fun `the first window change after an accepted action is timed from the call`() {
+    fun `window changes after an accepted action are timed from the call`() {
         val log = TraceLog()
         log.performed(2_000, 12, "recents", ok = true)
         log.windowChanged(2_340, "com.example.app/Main")
         log.windowChanged(2_400, "other")
 
         val lines = log.lines(3_000)
-        assertEquals(2, lines.size)
+        assertEquals(3, lines.size)
         assertTrue("took 12 ms, accepted" in lines[0])
         assertTrue("window -> com.example.app/Main, 340 ms after recents started" in lines[1])
+        assertTrue("window -> other, 400 ms after recents started" in lines[2])
         assertFalse("stamped" in lines[1])
+    }
+
+    @Test
+    fun `only the first few window changes of one action are kept`() {
+        val log = TraceLog()
+        log.performed(1_000, 1, "home", ok = true)
+        for (i in 1..10) log.windowChanged(1_000L + i * 10, "w$i")
+
+        assertEquals(1 + TraceLog.MAX_WINDOW_EVENTS, log.lines(2_000).size)
     }
 
     @Test
@@ -72,6 +82,7 @@ class TraceLogTest {
 
         val lines = log.lines(6_000)
         assertEquals(2, lines.size)
+        assertFalse("late" in lines.joinToString())
         assertTrue("no window change within 3 s after home" in lines.last())
     }
 

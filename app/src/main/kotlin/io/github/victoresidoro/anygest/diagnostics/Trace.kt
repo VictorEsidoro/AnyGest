@@ -25,10 +25,12 @@ import android.os.SystemClock
  * touch to action, how long `performGlobalAction` itself took, and how long until the
  * first window change followed.
  */
-internal class TraceLog(private val capacity: Int = 80) {
+internal class TraceLog(private val capacity: Int = 120) {
 
     private class Entry(val atMs: Long, val text: String)
-    private class Waiting(val startedMs: Long, val action: String)
+    private class Waiting(val startedMs: Long, val action: String) {
+        var seen = 0
+    }
 
     private val entries = ArrayDeque<Entry>()
     private var downAtMs = NONE
@@ -54,7 +56,9 @@ internal class TraceLog(private val capacity: Int = 80) {
     }
 
     /**
-     * Only the first window change after an action counts. [atMs] is when the event
+     * The first few window changes after an action are recorded, so a transition that
+     * goes through several windows (the recents screen, then the app) shows each step.
+     * [atMs] is when the event
      * reached the service, not the time stamped on it: the stamp's clock is not the same
      * on every system, so [eventSkewMs] (receipt minus stamp) is shown when it is far off.
      */
@@ -62,7 +66,7 @@ internal class TraceLog(private val capacity: Int = 80) {
     fun windowChanged(atMs: Long, label: String, eventSkewMs: Long = 0) {
         expire(atMs)
         val pending = waiting ?: return
-        waiting = null
+        if (++pending.seen >= MAX_WINDOW_EVENTS) waiting = null
         val skew = if (Math.abs(eventSkewMs) > SKEW_NOTE_MS) ", event stamped $eventSkewMs ms before receipt" else ""
         add(atMs, "window -> $label, ${atMs - pending.startedMs} ms after ${pending.action} started$skew")
     }
@@ -79,7 +83,7 @@ internal class TraceLog(private val capacity: Int = 80) {
         val pending = waiting ?: return
         if (atMs - pending.startedMs <= WINDOW_WAIT_MS) return
         waiting = null
-        add(pending.startedMs + WINDOW_WAIT_MS, "no window change within 3 s after ${pending.action}")
+        if (pending.seen == 0) add(pending.startedMs + WINDOW_WAIT_MS, "no window change within 3 s after ${pending.action}")
     }
 
     private fun add(atMs: Long, text: String) {
@@ -89,6 +93,7 @@ internal class TraceLog(private val capacity: Int = 80) {
 
     companion object {
         const val WINDOW_WAIT_MS = 3_000L
+        const val MAX_WINDOW_EVENTS = 4
         private const val SKEW_NOTE_MS = 1_000L
         private const val NONE = Long.MIN_VALUE
     }
