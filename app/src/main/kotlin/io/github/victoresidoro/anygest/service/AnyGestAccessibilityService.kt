@@ -88,7 +88,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
     private lateinit var settings: GestureSettingsRepository
     private lateinit var performer: GestureActionPerformer
     private lateinit var windowManager: WindowManager
-    private var overlay: EdgeTouchOverlay? = null
+    private var overlay: EdgeStrips? = null
     private var configuration: GestureConfiguration = GestureConfiguration()
     private var lastGeometry: ScreenGeometry? = null
     private var lastNavigationMode: NavigationMode? = null
@@ -269,17 +269,18 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         settings = GestureSettingsRepository(applicationContext)
         performer = GestureActionPerformer(this)
         windowManager = getSystemService(WindowManager::class.java)
-        overlay = EdgeTouchOverlay(
+        overlay = EdgeStrips(
             context = this,
             windowManager = windowManager,
             replayer = this,
             onGestureAction = ::onGestureAction,
+            onBroken = { repairStrips() },
         )
         // A new connection builds a new overlay, which starts armed.
         if (getSystemService(PowerManager::class.java)?.isInteractive != false) {
             startLockWatch()
         } else {
-            overlay?.setArmed(false)
+            overlay?.setArmed(false, "screen off when the service started")
         }
 
         (getSystemService(Context.DISPLAY_SERVICE) as DisplayManager)
@@ -631,7 +632,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
 
     private fun disarmForLockScreen() {
         handler.removeCallbacks(lockCheck)
-        overlay?.setArmed(false)
+        overlay?.setArmed(false, "screen off")
     }
 
     private fun startLockWatch() {
@@ -643,8 +644,24 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
         handler.removeCallbacks(lockCheck)
         val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true
         val step = lockWatch.read(locked, SystemClock.elapsedRealtime())
-        overlay?.setArmed(step.armed)
+        // Armed while the lock screen is still reported: the reading was stuck and the gestures
+        // were dead for the whole wait, which is worth knowing.
+        if (step.armed && locked && overlay != null) {
+            SetupStore(this).note("lock screen still reported ${LockWatch.FAIL_OPEN_MS / 1000}s after the screen came on; strips on anyway")
+        }
+        overlay?.setArmed(step.armed, if (locked) "lock screen still reported, armed anyway" else "unlocked")
         step.nextReadMs?.let { handler.postDelayed(lockCheck, it) }
+    }
+
+    private val repair = Runnable {
+        installedConfiguration = null
+        installOverlay()
+    }
+
+    /** A strip went away or stopped answering: build them again, once things calm down. */
+    private fun repairStrips() {
+        handler.removeCallbacks(repair)
+        handler.postDelayed(repair, REPAIR_DELAY_MS)
     }
 
     private var installedConfiguration: GestureConfiguration? = null
@@ -820,6 +837,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                             // The touch never reached the app underneath, so the tap is
                             // lost; the strips still have to come back either way.
                             Log.w(TAG, "REPLAY_CANCELLED after ${durationMs}ms")
+                            Trace.note("replay cancelled by the system after ${durationMs} ms")
                             releaseStrips()
                         }
 
@@ -838,6 +856,7 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
                 Log.d(TAG, "REPLAY_DISPATCHED ${samples.size} samples over ${durationMs}ms")
             } else {
                 Log.w(TAG, "REPLAY_REFUSED dispatchGesture rejected the replay")
+                Trace.note("replay refused by the system")
                 handler.removeCallbacks(finish)
                 finish.run()
             }
@@ -862,6 +881,9 @@ class AnyGestAccessibilityService : AccessibilityService(), TouchReplayer {
          * injected touch is not discarded as obscured.
          */
         internal const val WINDOW_SETTLE_MS = 65L
+
+        /** Lets a burst of window changes end before the strips are built again. */
+        private const val REPAIR_DELAY_MS = 500L
 
         private const val FINISH_GRACE_MS = 1_000L
 

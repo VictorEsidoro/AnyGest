@@ -1,4 +1,4 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
 // This file is part of AnyGest, based on HyperGesture.
 //
@@ -18,8 +18,14 @@
 package io.github.victoresidoro.anygest.service
 
 /**
- * Whether the strips are held for a touch stream, and which stream that is. Every start and
- * every reinstall hands out a new token, and a release with an older token is ignored.
+ * Whether the strips are held inert for a touch, and for which one. Each touch gets a token;
+ * an event or release carrying an older token is ignored, so a late release of one touch can
+ * never give the strips back in the middle of the next.
+ *
+ * A held touch is let go on its own when it goes quiet too long, with a limit that depends on
+ * what it is: a touch that never armed is a resting finger or palm and gets only the rest
+ * limit (plus the long-press wait while that is pending), an armed touch the quiet limit, and
+ * a replay, which sends the strips no events at all, the replay limit.
  *
  * Based on HyperGesture commit 209e504 (#124) by Henrique Almeida (h3nc4).
  */
@@ -29,153 +35,139 @@ internal class StreamHold(
     private val restLimitMs: Long = quietLimitMs,
 ) {
 
-    /**
-     * Set once the touch armed a gesture or may still become a long press. Until then a touch
-     * that sends nothing is a finger or palm resting on the edge (a still finger produces no
-     * events at all), and it gets only [restLimitMs] before the strips are given back.
-     */
-    private var engaged = false
+    /** One touch, from its DOWN until the next touch replaces it. */
+    private class Stream(val token: Long, val startMs: Long) {
+        var lastEventMs = startMs
 
-    /**
-     * How long the touch waits to become a long press, while it still may. The long press fires
-     * at that time or never, so it protects the strips for that long plus [restLimitMs]: a
-     * finger that stays still past it, or one whose release was lost, is a resting touch too.
-     */
-    var longPressWaitMs: Long? = null
-        private set
+        /** Armed a gesture or fired one: no resting touch. */
+        var engaged = false
 
-    /**
-     * The stream was given back while resting. It is not held again by its later events:
-     * holding only serves a replay, so a resting grip that twitches must not turn every
-     * strip inert again. [resumeForReplay] takes it back if its release is to be replayed.
-     */
-    var rested = false
-        private set
+        /** Being replayed into the app underneath. */
+        var replaying = false
 
-    private var startMs = 0L
+        /** Let go while resting; its later events do not take the strips again. */
+        var rested = false
 
-    /** Set once a replay runs: it sends the strips no touch events, so it may stay quiet longer. */
-    var replaying = false
-        private set
+        /** Taken again after an expiry, because the finger was only still. Never replayed. */
+        var heldAgain = false
 
-    private var token = 0L
+        /** How long it may wait to become a long press, while it still may. */
+        var longPressWaitMs: Long? = null
+    }
 
-    private var lastActivityMs = 0L
-
-    private var reheld = false
+    private var stream: Stream? = null
+    private var lastToken = 0L
 
     var held = false
         private set
 
-    /** When [expire] would release the stream, or null while nothing is held. */
+    val longPressWaitMs: Long? get() = stream?.longPressWaitMs
+    val rested: Boolean get() = stream?.rested == true
+    val replaying: Boolean get() = stream?.replaying == true
+
+    /** When the held touch would be let go, or null when nothing is held. */
     val deadlineMs: Long?
         get() {
-            if (!held) return null
+            val s = stream?.takeIf { held } ?: return null
             val limit = when {
-                replaying -> replayLimitMs
-                engaged -> quietLimitMs
-                else -> restLimitMs + (longPressWaitMs ?: 0L)
+                s.replaying -> replayLimitMs
+                s.engaged -> quietLimitMs
+                else -> restLimitMs + (s.longPressWaitMs ?: 0L)
             }
-            return lastActivityMs + limit
+            return s.lastEventMs + limit
         }
 
+    /** A new touch holds the strips. Returns its token. */
     fun start(nowMs: Long): Long {
-        token++
+        val s = Stream(++lastToken, nowMs)
+        stream = s
         held = true
-        reheld = false
-        replaying = false
-        engaged = false
-        longPressWaitMs = null
-        rested = false
-        startMs = nowMs
-        lastActivityMs = nowMs
-        return token
+        return s.token
     }
 
-    /** How long the held stream has gone without a touch event. */
-    fun quietMs(nowMs: Long): Long = nowMs - lastActivityMs
+    fun isCurrent(token: Long): Boolean = stream?.token == token
 
-    fun isCurrent(streamToken: Long): Boolean = streamToken == token
+    private fun current(token: Long): Stream? = stream?.takeIf { it.token == token }
+
+    fun quietMs(nowMs: Long): Long = stream?.let { nowMs - it.lastEventMs } ?: 0L
 
     /**
-     * A touch event of [streamToken]. True when it arrived after [expire] gave the strips back,
-     * because the finger was only still, so the caller must hold them again.
+     * An event of the touch [token]. True when it came after an expiry let the strips go,
+     * because the finger was only still: the caller must make the strips inert again.
      */
-    fun activity(streamToken: Long, nowMs: Long): Boolean {
-        if (!isCurrent(streamToken)) return false
-        lastActivityMs = nowMs
-        if (held || rested) return false
+    fun activity(token: Long, nowMs: Long): Boolean {
+        val s = current(token) ?: return false
+        s.lastEventMs = nowMs
+        if (held || s.rested) return false
         held = true
-        reheld = true
+        s.heldAgain = true
         return true
     }
 
-    /** The touch of [streamToken] armed a swipe or fired a gesture, so it is no resting touch. */
-    fun engage(streamToken: Long) {
-        if (isCurrent(streamToken)) engaged = true
+    fun engage(token: Long) {
+        current(token)?.engaged = true
+    }
+
+    /** The touch is over the handle and fires a long press after [waitMs] if it stays put. */
+    fun awaitLongPress(token: Long, waitMs: Long) {
+        current(token)?.longPressWaitMs = waitMs
     }
 
     /**
-     * The touch of [streamToken] is over the handle and fires a long press after [waitMs] if
-     * it stays put. Past that it is a resting touch like any other, even when no release came.
-     */
-    fun awaitLongPress(streamToken: Long, waitMs: Long) {
-        if (isCurrent(streamToken)) longPressWaitMs = waitMs
-    }
-
-    /**
-     * Called when the release of [streamToken] is to be replayed. Returns how long the replay
-     * must wait for the strips to turn inert first, or null when it must not run at all.
+     * The release of [token] is about to be replayed. Returns how long the replay must wait
+     * for the strips to turn inert, or null when it must not run.
      *
-     * A stream still held waits nothing: its strips have been inert since the touch began. A
-     * rested one is held again here and needs the full [settleMs], since its strips were
-     * touchable until this moment and the injected touch would land on them; and it is not
-     * replayed at all once the touch lasted longer than [maxRestedTouchMs], because that was
-     * a grip and not a press meant for the app.
+     * A touch still held waits nothing: its strips have been inert since its DOWN. A rested
+     * one is held again here and waits the whole [settleMs], since its strips were touchable
+     * until now; and a rested touch longer than [maxRestedTouchMs] was a grip, not a press for
+     * the app, so it is not replayed.
      */
-    fun resumeForReplay(streamToken: Long, nowMs: Long, settleMs: Long, maxRestedTouchMs: Long): Long? {
-        if (!isCurrent(streamToken) || reheld) return null
+    fun resumeForReplay(token: Long, nowMs: Long, settleMs: Long, maxRestedTouchMs: Long): Long? {
+        val s = current(token) ?: return null
+        if (s.heldAgain) return null
         if (held) {
-            replaying = true
-            lastActivityMs = nowMs
+            s.replaying = true
+            s.lastEventMs = nowMs
             return 0L
         }
-        if (!rested || nowMs - startMs > maxRestedTouchMs) return null
-        rested = false
+        if (!s.rested || nowMs - s.startMs > maxRestedTouchMs) return null
+        s.rested = false
+        s.replaying = true
+        s.lastEventMs = nowMs
         held = true
-        replaying = true
-        lastActivityMs = nowMs
         return settleMs
     }
 
-    /** A replay started after the strips were held again could start another replay. */
-    fun mayReplay(streamToken: Long): Boolean = isCurrent(streamToken) && !reheld
+    /** False for a touch held again after an expiry: replaying it could replay twice. */
+    fun mayReplay(token: Long): Boolean = current(token)?.heldAgain == false
 
-    /** A replay keeps the stream alive without touch events; it counts as activity. */
-    fun touch(streamToken: Long, nowMs: Long) {
-        if (!isCurrent(streamToken) || !held) return
-        replaying = true
-        lastActivityMs = nowMs
+    /** A replay in flight keeps the touch alive without events. */
+    fun touch(token: Long, nowMs: Long) {
+        val s = current(token) ?: return
+        if (!held) return
+        s.replaying = true
+        s.lastEventMs = nowMs
     }
 
-    fun release(streamToken: Long): Boolean {
-        if (!isCurrent(streamToken) || !held) return false
+    fun release(token: Long): Boolean {
+        if (current(token) == null || !held) return false
         held = false
         return true
     }
 
-    /** True when the stream went [quietLimitMs] without a touch event and is now released. */
+    /** True when the held touch went quiet past its limit and the strips are let go now. */
     fun expire(nowMs: Long): Boolean {
         val deadline = deadlineMs ?: return false
         if (nowMs < deadline) return false
-        if (!engaged && !replaying) rested = true
+        val s = stream ?: return false
+        if (!s.engaged && !s.replaying) s.rested = true
         held = false
         return true
     }
 
-    /** The strips are gone, so whatever stream they held can never complete. */
+    /** The strips were taken down: no touch they held can finish. */
     fun reset() {
-        token++
+        stream = null
         held = false
     }
 }

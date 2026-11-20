@@ -11,6 +11,8 @@ AnyGest's own code base: the parts that still came from HyperGesture are rewritt
 ### Changed
 
 - The gesture recognizer is rewritten as a single state machine (pressing, armed, pulled back, switching, done) with its distances worked out once per configuration instead of on every touch. The gesture data types are split into their own files, and the gesture action is a plain enum. New tests cover every swipe rule.
+- The strips are rewritten: the window side (sizes, touchability), the touch handling of each strip and the hold that keeps the strips inert during a touch are now separate pieces. A change of touchability the system refuses is no longer taken as done: it is retried, noted, and the strips are built again. A strip the system takes off the screen while the service runs is noticed and put back (before, the gestures on that edge stayed dead until the next screen-on). The lock-screen wait now notes when the phone kept saying "locked" until the two-minute limit.
+- The log's trace now has a line for every touch on a strip, gesture or not: its length, its moves and what it came to (the action, unused and why, replayed, pulled back, taken by the system). It also notes when the strips go off for the screen or the lock screen and on again, when they are installed, and when a replay is cancelled or refused. The "Strips" line says whether they are inert or detached at that moment.
 
 ### Português
 
@@ -19,6 +21,8 @@ O código passa a ser todo do AnyGest: as partes que ainda vinham do HyperGestur
 #### Alterado
 
 - O reconhecedor de gestos foi reescrito como uma máquina de estados única (pressionando, armado, recuado, trocando de app, concluído), com as distâncias calculadas uma vez por configuração em vez de a cada toque. Os tipos de dados dos gestos ficam em arquivos próprios, e a ação do gesto virou um enum simples. Testes novos cobrem cada regra de deslize.
+- As faixas foram reescritas: a parte das janelas (tamanho, se recebem toque), o tratamento do toque em cada faixa e a espera que deixa as faixas inertes durante um toque viraram peças separadas. Uma mudança de "recebe toque" que o sistema recusa não é mais dada como feita: é tentada de novo, anotada, e as faixas são montadas de novo. Uma faixa que o sistema tira da tela com o serviço rodando é percebida e recolocada (antes, os gestos daquela borda ficavam mortos até a próxima vez que a tela acendesse). A espera da tela de bloqueio agora anota quando o celular continuou dizendo "bloqueado" até o limite de dois minutos.
+- A trilha do log agora tem uma linha para cada toque numa faixa, gesto ou não: a duração, os movimentos e no que deu (a ação, não usado e por quê, repassado ao app, recuado, tomado pelo sistema). Também anota quando as faixas desligam pela tela ou pelo bloqueio e religam, quando são instaladas e quando um repasse é cancelado ou recusado. A linha "Strips" diz se elas estão inertes ou soltas naquele momento.
 
 ## 4.4.4
 

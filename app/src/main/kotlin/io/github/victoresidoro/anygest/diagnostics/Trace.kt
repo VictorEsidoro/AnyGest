@@ -71,6 +71,10 @@ internal class TraceLog(private val capacity: Int = 120) {
         add(atMs, "window -> $label, ${atMs - pending.startedMs} ms after ${pending.action} started$skew")
     }
 
+    /** A line of its own: a touch that ended, a change of the strips' state. */
+    @Synchronized
+    fun note(atMs: Long, text: String) = add(atMs, text)
+
     /** Oldest first, each with its age at [nowMs]. */
     @Synchronized
     fun lines(nowMs: Long): List<String> {
@@ -115,6 +119,8 @@ internal object Trace {
         val now = SystemClock.uptimeMillis()
         log.windowChanged(now, label, now - eventTimeMs)
     }
+
+    fun note(text: String) = log.note(SystemClock.uptimeMillis(), text)
 
     fun report(): String? =
         log.lines(SystemClock.uptimeMillis()).takeIf { it.isNotEmpty() }?.joinToString("\n")

@@ -123,4 +123,13 @@ class TraceLogTest {
         assertEquals(3, lines.size)
         assertTrue("a3" in lines.first() && "a5" in lines.last())
     }
+
+    @Test
+    fun `a note sits between the gestures in time order`() {
+        val log = TraceLog()
+        log.gesture(1_000, "LEFT", "Back")
+        log.note(1_500, "RIGHT touch 40 ms, 0 moves: unused (NO_MOVEMENT), replayed")
+
+        assertEquals("-0 s  RIGHT touch 40 ms, 0 moves: unused (NO_MOVEMENT), replayed", log.lines(1_900).last())
+    }
 }

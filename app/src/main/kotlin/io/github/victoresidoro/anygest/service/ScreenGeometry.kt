@@ -1,4 +1,4 @@
-// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+// Copyright (C) 2026  Victor Eduardo (@victoresidoro)
 //
 // This file is part of AnyGest, based on HyperGesture.
 //
@@ -22,9 +22,9 @@ import android.view.WindowInsets
 import android.view.WindowManager
 
 /**
- * Read from `currentWindowMetrics`, never `resources.displayMetrics`: the latter can
- * report only the app-usable area, while the `rawX/rawY` the recognizer compares against
- * are full-display coordinates, and mixing the two breaks bottom-edge detection.
+ * The screen as the strips see it: the full display in pixels and the navigation-bar inset on
+ * each side. Taken from the window metrics, which cover the whole display, because the touch
+ * coordinates the tracker gets (`rawX`, `rawY`) are display coordinates too.
  */
 internal data class ScreenGeometry(
     val widthPx: Int,
@@ -34,29 +34,27 @@ internal data class ScreenGeometry(
     val navRightPx: Int,
     val navBottomPx: Int,
 ) {
-
-    /** From the window bounds, which swap on every rotation the display goes through. */
     val landscape: Boolean get() = widthPx > heightPx
 
     companion object {
         fun current(context: Context, windowManager: WindowManager): ScreenGeometry {
             val metrics = windowManager.currentWindowMetrics
-            val nav = metrics.windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            val bar = metrics.windowInsets.getInsets(WindowInsets.Type.navigationBars())
             return ScreenGeometry(
                 widthPx = metrics.bounds.width(),
                 heightPx = metrics.bounds.height(),
                 density = context.resources.displayMetrics.density,
-                navLeftPx = nav.left,
-                navRightPx = nav.right,
-                navBottomPx = nav.bottom,
+                navLeftPx = bar.left,
+                navRightPx = bar.right,
+                navBottomPx = bar.bottom,
             )
         }
     }
 }
 
 /**
- * The bottom strip stops short of the edge's full length (the side strips' length is a setting) so the status bar, app bar controls and
- * the bottom corners stay natively touchable.
+ * How much of the bottom edge the bottom strip covers. It stops short of the corners so the
+ * corners stay with the app; the side strips' length is a setting instead.
  */
 internal data class OverlayLayout(
     val bottomLengthPercent: Int = 90,
