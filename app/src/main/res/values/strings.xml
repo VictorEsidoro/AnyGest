@@ -367,4 +367,9 @@
     <string name="shortcut_needs_adb">Without ADB mode and usage access, the app opens with the gestures on.</string>
     <string name="shortcut_not_listed">This app is no longer on the exception list, so it opens with the gestures on.</string>
     <string name="search_kw_shortcut">shortcut icon home screen open without gestures launch bank nubank</string>
+    <string name="power_title">Gestures on or off</string>
+    <string name="power_body_on">The gestures are on. Switch them off here and AnyGest stays off, without switching itself back on, until you switch them on again. The button bar comes back first.</string>
+    <string name="power_body_off">The gestures are off and will stay off until you switch them on. The button bar is showing.</string>
+    <string name="power_turn_off">Switch off until I switch on</string>
+    <string name="power_turn_on">Switch on</string>
 </resources>

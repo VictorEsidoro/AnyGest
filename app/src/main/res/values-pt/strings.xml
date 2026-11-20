@@ -360,4 +360,9 @@
     <string name="shortcut_needs_adb">Sem Modo ADB e acesso de uso, o app abre com os gestos ligados.</string>
     <string name="shortcut_not_listed">Esse app não está mais na lista de exceções, então abre com os gestos ligados.</string>
     <string name="search_kw_shortcut">atalho ícone tela inicial abrir sem gestos iniciar banco nubank</string>
+    <string name="power_title">Gestos ligados ou desligados</string>
+    <string name="power_body_on">Os gestos estão ligados. Desligue aqui e o AnyGest fica desligado, sem religar sozinho, até você ligar de novo. A barra de botões volta antes.</string>
+    <string name="power_body_off">Os gestos estão desligados e só voltam quando você ligar. A barra de botões está aparecendo.</string>
+    <string name="power_turn_off">Desligar até eu ligar</string>
+    <string name="power_turn_on">Ligar</string>
 </resources>

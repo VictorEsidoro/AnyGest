@@ -79,6 +79,7 @@ internal fun HomeScreen(
             SearchResults(query, matches, onJump)
             return@Column
         }
+        PowerCard()
         SetupCard(
             states = states,
             onAction = { step -> openStepScreen(context, step) },
