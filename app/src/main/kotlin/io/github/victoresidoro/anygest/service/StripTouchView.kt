@@ -149,6 +149,7 @@ internal class StripTouchView(
 
     private fun down(sample: TouchSample) {
         Trace.touchDown()
+        Trace.note("$edge touch reached the strip at ${sample.xPx.toInt()},${sample.yPx.toInt()}")
         samples.clear()
         twoFingers = false
         clicked = false

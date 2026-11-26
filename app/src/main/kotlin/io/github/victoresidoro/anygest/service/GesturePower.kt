@@ -20,6 +20,7 @@ package io.github.victoresidoro.anygest.service
 import android.content.Context
 import android.os.SystemClock
 import io.github.victoresidoro.anygest.diagnostics.DiagnosticsCollector
+import io.github.victoresidoro.anygest.diagnostics.Trace
 import io.github.victoresidoro.anygest.navigation.SystemNavigation
 import io.github.victoresidoro.anygest.setup.SecureSettingsAccess
 import io.github.victoresidoro.anygest.setup.SetupFactsReader
@@ -85,9 +86,13 @@ internal object GesturePower {
     fun toggleByUser(context: Context): Boolean {
         // Pulling the panel down may already have started the service, and a tap right after
         // would read it as "on" and switch it off. Taps during the start do nothing.
-        if (starting()) return true
-        val store = SetupStore(context)
-        return if (DiagnosticsCollector.isAccessibilityServiceEnabled(context)) {
+        if (starting()) {
+            Trace.note("power button: tap ignored, the service was just asked to start")
+            return true
+        }
+        val enabled = DiagnosticsCollector.isAccessibilityServiceEnabled(context)
+        Trace.note("power button: tapped, service enabled=$enabled")
+        return if (enabled) {
             switchOff(context)
             false
         } else {
@@ -101,6 +106,8 @@ internal object GesturePower {
         SetupStore(context).userPaused = true
         if (barManaged(context)) SecureSettingsAccess.showBar(context)
         SecureSettingsAccess.setServiceEnabled(context, false)
+        SetupStore(context).note("switched off by the user")
+        Trace.note("power button: service switched off")
     }
 
     /** Clears every pause and switches the service on: the tile, and the notification button. */
@@ -112,5 +119,7 @@ internal object GesturePower {
         ExceptionWatchService.stop(context)
         markStarting()
         SecureSettingsAccess.setServiceEnabled(context, true)
+        store.note("switched on by the user")
+        Trace.note("power button: service switched on")
     }
 }

@@ -185,6 +185,11 @@ class AnyGestAccessibilityService : AccessibilityService() {
             settings.configuration.collect { updated ->
                 val configuration = updated.copy(platform = platformDefaults())
                 performer.alternateHome = configuration.alternateHome
+                Trace.note(
+                    "settings in use: Recents hold ${configuration.recentsHoldMs}ms, bottom swipe " +
+                        "${configuration.bottomMinimumSwipeDistanceDp}dp, still box ${configuration.holdStillnessDp}dp, " +
+                        "alternate home ${configuration.alternateHome ?: "off"}",
+                )
                 stripHost.configure(configuration)
                 if (!running) stripHost.startSettle()
                 pause?.configure(configuration)
