@@ -18,6 +18,7 @@
 package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
+import android.content.ComponentName
 import android.content.Intent
 import android.os.SystemClock
 import android.util.Log
@@ -76,24 +77,41 @@ class GestureActionPerformer(private val service: AccessibilityService) {
         return global(action, AccessibilityService.GLOBAL_ACTION_HOME)
     }
 
-    /** Null when started, otherwise why it was not. */
+    /**
+     * Null when started, otherwise why it was not. The launcher's home screen is started as an
+     * ordinary activity, by name and without the Home category: with that category the system
+     * takes it for "go home" and brings its own launcher to the front first, which is the screen
+     * that flashed up before the chosen launcher. If that start is refused, the plain Home
+     * intent is tried before giving up.
+     */
     private fun openHomeOf(packageName: String): String? {
-        val intent = Intent(Intent.ACTION_MAIN)
-            .addCategory(Intent.CATEGORY_HOME)
-            .setPackage(packageName)
-            // The task flags the system itself uses for Home. The launcher is left out of
-            // Recents so it does not show up there as a card of its own.
-            .addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
-                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS,
-            )
-        return try {
-            service.startActivity(intent)
-            null
-        } catch (t: Throwable) {
-            t.javaClass.simpleName
+        val flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+            Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
+            Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setPackage(packageName)
+        val component = homeActivityOf(homeIntent)
+        if (component != null) {
+            val plain = Intent(Intent.ACTION_MAIN).setComponent(component).addFlags(flags)
+            if (start(plain) == null) return null
         }
+        return start(homeIntent.addFlags(flags))
+    }
+
+    /** The launcher's own Home activity, or null when it cannot be told from here. */
+    private fun homeActivityOf(homeIntent: Intent): ComponentName? = try {
+        service.packageManager.queryIntentActivities(homeIntent, 0)
+            .firstOrNull { it.activityInfo.exported }
+            ?.activityInfo
+            ?.let { ComponentName(it.packageName, it.name) }
+    } catch (t: Throwable) {
+        null
+    }
+
+    private fun start(intent: Intent): String? = try {
+        service.startActivity(intent)
+        null
+    } catch (t: Throwable) {
+        t.javaClass.simpleName
     }
 
     // A service that was unbound throws here instead of returning false, and an uncaught throw

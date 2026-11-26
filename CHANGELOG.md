@@ -22,6 +22,7 @@ AnyGest's own code base: the parts that still came from HyperGesture are rewritt
 - New "Alternate home screen" card in Gestures: the system launcher stays the default (so Recents and its animations stay with the system, avoiding the overlapping animation HyperOS shows with a third-party launcher as default) and the Home gesture opens the launcher you pick instead. If it cannot be opened, Home goes back to the system's. The launcher is kept out of Recents.
 - The log now says which Recents hold and swipe settings are in use, notes every tap on the gestures on/off button, and traces each touch the moment it reaches a strip, so a gesture that does nothing can be told from a touch the strips never received.
 - In test builds the log keeps listing the windows the system shows for 25 seconds after a gesture, not only the first few, so what appears when the recents screen is left can be seen.
+- The alternate home screen now starts the launcher's home activity as an ordinary activity, without the Home category, so the system no longer brings its own launcher up first when Home is swiped from an app. The plain Home intent is the fallback.
 
 ### Português
 
@@ -41,6 +42,7 @@ O código passa a ser todo do AnyGest: as partes que ainda vinham do HyperGestur
 - Card novo "Tela inicial alternativa" em Gestos: o launcher do sistema continua como padrão (assim os Recentes e as animações ficam com o sistema, evitando a animação sobreposta que o HyperOS mostra com um launcher de terceiros como padrão) e o gesto de Home abre o launcher escolhido. Se ele não puder ser aberto, o Home volta para o do sistema. O launcher fica fora dos Recentes.
 - O log agora informa a espera do Recents e a distância do gesto em uso, anota cada toque no botão de ligar e desligar os gestos e registra cada toque no instante em que chega a uma faixa, para separar um gesto que não faz nada de um toque que as faixas nunca receberam.
 - Nas versões de teste, o log continua listando as janelas que o sistema mostra por 25 segundos depois de um gesto, e não só as primeiras, para ver o que aparece quando a tela de Recentes é fechada.
+- A tela inicial alternativa agora abre a atividade de início do launcher como uma atividade comum, sem a categoria Home, para o sistema não trazer o launcher dele antes quando o Home é feito de dentro de um app. A intenção de Home comum fica como reserva.
 
 ## 4.4.4
 
