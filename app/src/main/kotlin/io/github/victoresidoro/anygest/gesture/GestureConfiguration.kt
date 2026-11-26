@@ -71,6 +71,12 @@ data class GestureConfiguration(
     val pauseInAppsEnabled: Boolean = true,
     /** Apps that refuse to run next to an accessibility service. Empty until the user adds one. */
     val pauseApps: Set<String> = DEFAULT_PAUSE_APPS,
+    /**
+     * The launcher the Home gesture opens in place of the system's, as a package name; null
+     * leaves Home to the system. It lets the system launcher stay the default, which keeps
+     * Recents and its animations with the system, while another launcher is what is seen.
+     */
+    val alternateHome: String? = null,
     /** Read from the device each time, never saved. The defaults are AOSP's. */
     val platform: PlatformDefaults = PlatformDefaults(),
 ) {

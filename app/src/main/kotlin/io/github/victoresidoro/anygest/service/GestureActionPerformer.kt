@@ -18,6 +18,7 @@
 package io.github.victoresidoro.anygest.service
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
@@ -34,21 +35,65 @@ class GestureActionPerformer(private val service: AccessibilityService) {
 
     private val switcher = AppSwitcher(service)
 
+    /** The launcher Home opens instead of the system's, kept current by the service from the settings. */
+    @Volatile
+    var alternateHome: String? = null
+        set(value) {
+            field = value
+            inUse = value
+        }
+
     fun perform(action: GestureAction): Boolean {
         val startedMs = SystemClock.uptimeMillis()
         val done = dispatch(action)
-        Trace.performed(startedMs, action.id, done)
+        val viaOther = action == GestureAction.Home && alternateHome != null
+        Trace.performed(startedMs, if (viaOther) "${action.id} (alternate)" else action.id, done)
         return done
     }
 
     private fun dispatch(action: GestureAction): Boolean = when (action) {
         GestureAction.Back -> global(action, AccessibilityService.GLOBAL_ACTION_BACK)
-        GestureAction.Home -> global(action, AccessibilityService.GLOBAL_ACTION_HOME)
+        GestureAction.Home -> home(action)
         GestureAction.Recents -> global(action, AccessibilityService.GLOBAL_ACTION_RECENTS)
         // Android has no global action for these two, so they launch an app instead.
         GestureAction.PreviousApp -> switcher.step(toPrevious = true)
         GestureAction.NextApp -> switcher.step(toPrevious = false)
         GestureAction.CircleToSearch -> circleToSearch()
+    }
+
+    /**
+     * With an alternate home set, Home opens that launcher's home screen and Recents and the
+     * animations stay with the system launcher. When it cannot be opened (uninstalled, or the
+     * start refused) the system's Home answers, so the gesture never goes dead.
+     */
+    private fun home(action: GestureAction): Boolean {
+        val target = alternateHome
+        if (target != null) {
+            val problem = openHomeOf(target)
+            if (problem == null) return true
+            fail(action, "alternate home $target: $problem")
+        }
+        return global(action, AccessibilityService.GLOBAL_ACTION_HOME)
+    }
+
+    /** Null when started, otherwise why it was not. */
+    private fun openHomeOf(packageName: String): String? {
+        val intent = Intent(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_HOME)
+            .setPackage(packageName)
+            // The task flags the system itself uses for Home. The launcher is left out of
+            // Recents so it does not show up there as a card of its own.
+            .addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
+                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS,
+            )
+        return try {
+            service.startActivity(intent)
+            null
+        } catch (t: Throwable) {
+            t.javaClass.simpleName
+        }
     }
 
     // A service that was unbound throws here instead of returning false, and an uncaught throw
@@ -88,6 +133,11 @@ class GestureActionPerformer(private val service: AccessibilityService) {
 
         @Volatile
         var lastFailure: String? = null
+            private set
+
+        /** The alternate home in effect, for the diagnostics. */
+        @Volatile
+        var inUse: String? = null
             private set
     }
 }

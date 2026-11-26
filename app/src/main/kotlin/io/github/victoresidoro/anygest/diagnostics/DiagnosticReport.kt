@@ -35,6 +35,7 @@ internal object DiagnosticReport {
         appendLine("- Accessibility service: enabled ${diagnostics.accessibilityServiceEnabled}, running ${diagnostics.accessibilityServiceRunning}")
         appendLine("- ADB mode: ${diagnostics.adbMode}")
         appendLine("- Home launcher: ${diagnostics.homeLauncher} (candidates: ${diagnostics.homeCandidates})")
+        diagnostics.alternateHome?.let { appendLine("- Alternate home (Home gesture opens): $it") }
         appendLine("- Strips: ${diagnostics.strips}")
         section("Last global action failure", diagnostics.lastGlobalActionFailure)
         section("Last app switch failure", diagnostics.lastAppSwitchFailure)

@@ -45,6 +45,8 @@ data class Diagnostics(
     /** The package that answers Home right now, to compare with what a launcher warns about. */
     val homeLauncher: String = "unknown",
     val homeCandidates: String = "unknown",
+    /** The launcher Home opens in place of the system's; null when none is set. */
+    val alternateHome: String? = null,
     // The app
     val appVersionName: String,
     val accessibilityServiceEnabled: Boolean,
@@ -83,6 +85,7 @@ object DiagnosticsCollector {
             navigationIntegrationAvailable = xiaomi,
             homeLauncher = LauncherWatch.homeLauncher(context),
             homeCandidates = LauncherWatch.homeCandidates(context),
+            alternateHome = GestureActionPerformer.inUse,
             appVersionName = versionNameOf(context),
             accessibilityServiceEnabled = isAccessibilityServiceEnabled(context),
             accessibilityServiceRunning = AnyGestAccessibilityService.isRunning(),

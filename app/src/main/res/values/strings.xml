@@ -372,4 +372,15 @@
     <string name="power_body_off">The gestures are off and will stay off until you switch them on. The button bar is showing.</string>
     <string name="power_turn_off">Switch off until I switch on</string>
     <string name="power_turn_on">Switch on</string>
+    <string name="alt_home_title">Alternate home screen</string>
+    <string name="alt_home_on">On</string>
+    <string name="alt_home_off">Off</string>
+    <string name="alt_home_body">Keeps the system launcher as the default, so Recents and its animations stay with the system, and makes the Home gesture open another launcher instead. It avoids the animation glitch that HyperOS shows when a third-party launcher is the default.</string>
+    <string name="alt_home_setup">Leave the system launcher as the default in Settings, and choose the other launcher here. If it cannot be opened, Home goes back to the system.</string>
+    <string name="alt_home_current">Home opens: %1$s</string>
+    <string name="alt_home_choose">Choose launcher</string>
+    <string name="alt_home_change">Change launcher</string>
+    <string name="alt_home_clear">Turn off</string>
+    <string name="alt_home_dialog_title">Launcher for Home</string>
+    <string name="alt_home_none">No other launcher is installed.</string>
 </resources>

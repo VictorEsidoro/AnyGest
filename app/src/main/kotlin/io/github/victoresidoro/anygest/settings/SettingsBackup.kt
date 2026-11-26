@@ -68,6 +68,7 @@ object SettingsBackup {
             configuration.circleToSearchFollowsSystemTiming.toString()
         properties["pause_in_apps_enabled"] = configuration.pauseInAppsEnabled.toString()
         properties["pause_apps"] = configuration.pauseApps.sorted().joinToString(",")
+        configuration.alternateHome?.let { properties["alternate_home"] = it }
         val writer = StringWriter()
         properties.store(writer, "AnyGest settings")
         return writer.toString()
@@ -151,6 +152,9 @@ object SettingsBackup {
         }
         read("pause_in_apps_enabled", boolean) { c, v -> c.copy(pauseInAppsEnabled = v) }
         read("pause_apps", ::packageList) { c, v -> c.copy(pauseApps = v) }
+        read("alternate_home", { raw -> raw.trim().takeIf { PACKAGE_NAME.matches(it) } }) { c, v ->
+            c.copy(alternateHome = v)
+        }
         return Decoded(result, ignored)
     }
 }

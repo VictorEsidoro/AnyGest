@@ -365,4 +365,15 @@
     <string name="power_body_off">Os gestos estão desligados e só voltam quando você ligar. A barra de botões está aparecendo.</string>
     <string name="power_turn_off">Desligar até eu ligar</string>
     <string name="power_turn_on">Ligar</string>
+    <string name="alt_home_title">Tela inicial alternativa</string>
+    <string name="alt_home_on">Ligada</string>
+    <string name="alt_home_off">Desligada</string>
+    <string name="alt_home_body">Mantém o launcher do sistema como padrão, para que os Recentes e as animações continuem com o sistema, e faz o gesto de Home abrir outro launcher. Evita o defeito de animação que o HyperOS mostra quando um launcher de terceiros é o padrão.</string>
+    <string name="alt_home_setup">Deixe o launcher do sistema como padrão nas Configurações e escolha aqui o outro launcher. Se ele não puder ser aberto, o Home volta para o do sistema.</string>
+    <string name="alt_home_current">O Home abre: %1$s</string>
+    <string name="alt_home_choose">Escolher launcher</string>
+    <string name="alt_home_change">Trocar launcher</string>
+    <string name="alt_home_clear">Desligar</string>
+    <string name="alt_home_dialog_title">Launcher do Home</string>
+    <string name="alt_home_none">Nenhum outro launcher está instalado.</string>
 </resources>

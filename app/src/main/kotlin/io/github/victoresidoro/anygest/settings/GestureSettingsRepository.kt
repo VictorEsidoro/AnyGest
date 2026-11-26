@@ -85,6 +85,8 @@ class GestureSettingsRepository(private val context: Context) {
         this[CIRCLE_TO_SEARCH_SYSTEM_TIMING] = c.circleToSearchFollowsSystemTiming
         this[PAUSE_IN_APPS] = c.pauseInAppsEnabled
         this[PAUSE_APPS] = c.pauseApps
+        val home = c.alternateHome
+        if (home == null) remove(ALTERNATE_HOME) else this[ALTERNATE_HOME] = home
     }
 
     private fun decode(saved: Preferences): GestureConfiguration {
@@ -117,6 +119,7 @@ class GestureSettingsRepository(private val context: Context) {
             pauseInAppsEnabled = saved[PAUSE_IN_APPS] ?: d.pauseInAppsEnabled,
             // A saved empty set is a list the user emptied, so it is not the same as no list.
             pauseApps = saved[PAUSE_APPS] ?: d.pauseApps,
+            alternateHome = saved[ALTERNATE_HOME] ?: d.alternateHome,
         )
     }
 
@@ -163,5 +166,6 @@ class GestureSettingsRepository(private val context: Context) {
         val CIRCLE_TO_SEARCH_SYSTEM_TIMING = booleanPreferencesKey("circle_to_search_follows_system_timing")
         val PAUSE_IN_APPS = booleanPreferencesKey("pause_in_apps_enabled")
         val PAUSE_APPS = stringSetPreferencesKey("pause_apps")
+        val ALTERNATE_HOME = stringPreferencesKey("alternate_home")
     }
 }

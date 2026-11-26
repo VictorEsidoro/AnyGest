@@ -65,6 +65,7 @@ internal fun AnchorScope.GesturesSection(env: SectionEnv) {
     // Never folded: this is the one gesture that needs a permission before it works, and behind
     // a tap its switch goes unnoticed.
     Anchor("appswitch") { AppSwitchCard(config, env.change) }
+    Anchor("althome") { AlternateHomeCard(config, env.change) }
     // Never folded either: it depends on a setting outside the app (the default assistant),
     // and this card is where that is explained.
     Anchor("circle") { CircleToSearchCard(config, env.change) }

@@ -53,6 +53,7 @@ class SettingsBackupTest {
             circleToSearchFollowsSystemTiming = false,
             pauseInAppsEnabled = false,
             pauseApps = setOf("com.example.bank", "br.com.other.bank"),
+            alternateHome = "com.example.launcher",
         )
 
         val decoded = SettingsBackup.decode(SettingsBackup.encode(original))
@@ -128,5 +129,18 @@ class SettingsBackupTest {
 
         assertEquals(GestureConfiguration.DEFAULT_PAUSE_APPS, decoded.configuration.pauseApps)
         assertEquals(1, decoded.ignored)
+    }
+
+    @Test
+    fun `an alternate home that is not a package name is skipped`() {
+        val decoded = SettingsBackup.decode("format=1\nalternate_home=not a package\n")!!
+
+        assertEquals(null, decoded.configuration.alternateHome)
+        assertEquals(1, decoded.ignored)
+    }
+
+    @Test
+    fun `no alternate home is written when none is set`() {
+        assertEquals(false, SettingsBackup.encode(GestureConfiguration()).contains("alternate_home"))
     }
 }
