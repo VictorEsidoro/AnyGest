@@ -62,7 +62,10 @@ class TraceLogTest {
         log.performed(1_000, 1, "home", ok = true)
         for (i in 1..10) log.windowChanged(1_000L + i * 10, "w$i")
 
-        assertEquals(1 + TraceLog.MAX_WINDOW_EVENTS, log.lines(2_000).size)
+        val lines = log.lines(2_000)
+        assertEquals(TraceLog.MAX_WINDOW_EVENTS, lines.count { "window ->" in it })
+        // The rest are not lost, they are listed as coming later.
+        assertEquals(10 - TraceLog.MAX_WINDOW_EVENTS, lines.count { "window (later) ->" in it })
     }
 
     @Test
@@ -81,9 +84,18 @@ class TraceLogTest {
         log.windowChanged(2_000 + TraceLog.WINDOW_WAIT_MS + 1, "late")
 
         val lines = log.lines(6_000)
-        assertEquals(2, lines.size)
-        assertFalse("late" in lines.joinToString())
-        assertTrue("no window change within 3 s after home" in lines.last())
+        assertEquals(3, lines.size)
+        assertTrue("no window change within 3 s after home" in lines[1])
+        assertTrue("window (later) -> late, 3001 ms after home started" in lines.last())
+    }
+
+    @Test
+    fun `a window change long after an action is not listed`() {
+        val log = TraceLog()
+        log.performed(2_000, 5, "home", ok = true)
+        log.windowChanged(2_000 + TraceLog.LATE_WINDOW_MS + 1, "much later")
+
+        assertFalse("much later" in log.lines(40_000).joinToString())
     }
 
     @Test

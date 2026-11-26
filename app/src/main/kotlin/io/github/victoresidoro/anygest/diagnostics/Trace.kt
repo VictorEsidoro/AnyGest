@@ -36,6 +36,9 @@ internal class TraceLog(private val capacity: Int = 120) {
     private var downAtMs = NONE
     private var waiting: Waiting? = null
 
+    /** The last action performed and when it started, for window changes that come late. */
+    private var lastAction: Pair<Long, String>? = null
+
     @Synchronized
     fun touchDown(atMs: Long) {
         downAtMs = atMs
@@ -52,6 +55,7 @@ internal class TraceLog(private val capacity: Int = 120) {
     fun performed(startedMs: Long, durationMs: Long, action: String, ok: Boolean) {
         expire(startedMs)
         add(startedMs + durationMs, "$action call took $durationMs ms, ${if (ok) "accepted" else "refused"}")
+        if (ok) lastAction = startedMs to action
         waiting = if (ok) Waiting(startedMs, action) else null
     }
 
@@ -65,7 +69,15 @@ internal class TraceLog(private val capacity: Int = 120) {
     @Synchronized
     fun windowChanged(atMs: Long, label: String, eventSkewMs: Long = 0) {
         expire(atMs)
-        val pending = waiting ?: return
+        val pending = waiting
+        if (pending == null) {
+            // Past the first few changes: what the system does a while later, such as the home
+            // screen it shows when the recents screen is left, is still worth a line.
+            val last = lastAction ?: return
+            if (atMs - last.first > LATE_WINDOW_MS) return
+            add(atMs, "window (later) -> $label, ${atMs - last.first} ms after ${last.second} started")
+            return
+        }
         if (++pending.seen >= MAX_WINDOW_EVENTS) waiting = null
         val skew = if (Math.abs(eventSkewMs) > SKEW_NOTE_MS) ", event stamped $eventSkewMs ms before receipt" else ""
         add(atMs, "window -> $label, ${atMs - pending.startedMs} ms after ${pending.action} started$skew")
@@ -98,6 +110,9 @@ internal class TraceLog(private val capacity: Int = 120) {
     companion object {
         const val WINDOW_WAIT_MS = 3_000L
         const val MAX_WINDOW_EVENTS = 4
+
+        /** Test builds keep recording window changes this long after a gesture. */
+        const val LATE_WINDOW_MS = 25_000L
         private const val SKEW_NOTE_MS = 1_000L
         private const val NONE = Long.MIN_VALUE
     }

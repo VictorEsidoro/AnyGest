@@ -21,6 +21,7 @@ AnyGest's own code base: the parts that still came from HyperGesture are rewritt
 - New card on the home screen, "Gestures on or off": one button that switches the gestures off until you switch them on again. It does what the tile's off switch does (the button bar comes back first) and nothing switches the service back on by itself in between, which "Switch the gestures back on by itself" would otherwise do. Shown only in ADB mode, where the app can write the setting.
 - New "Alternate home screen" card in Gestures: the system launcher stays the default (so Recents and its animations stay with the system, avoiding the overlapping animation HyperOS shows with a third-party launcher as default) and the Home gesture opens the launcher you pick instead. If it cannot be opened, Home goes back to the system's. The launcher is kept out of Recents.
 - The log now says which Recents hold and swipe settings are in use, notes every tap on the gestures on/off button, and traces each touch the moment it reaches a strip, so a gesture that does nothing can be told from a touch the strips never received.
+- In test builds the log keeps listing the windows the system shows for 25 seconds after a gesture, not only the first few, so what appears when the recents screen is left can be seen.
 
 ### Português
 
@@ -39,6 +40,7 @@ O código passa a ser todo do AnyGest: as partes que ainda vinham do HyperGestur
 - Card novo na tela inicial, "Gestos ligados ou desligados": um botão que desliga os gestos até você ligar de novo. Faz o que o interruptor do atalho faz (a barra de botões volta antes) e nada religa o serviço sozinho nesse meio tempo, o que "Religar os gestos sozinho" faria. Só aparece no modo ADB, onde o app consegue escrever a configuração.
 - Card novo "Tela inicial alternativa" em Gestos: o launcher do sistema continua como padrão (assim os Recentes e as animações ficam com o sistema, evitando a animação sobreposta que o HyperOS mostra com um launcher de terceiros como padrão) e o gesto de Home abre o launcher escolhido. Se ele não puder ser aberto, o Home volta para o do sistema. O launcher fica fora dos Recentes.
 - O log agora informa a espera do Recents e a distância do gesto em uso, anota cada toque no botão de ligar e desligar os gestos e registra cada toque no instante em que chega a uma faixa, para separar um gesto que não faz nada de um toque que as faixas nunca receberam.
+- Nas versões de teste, o log continua listando as janelas que o sistema mostra por 25 segundos depois de um gesto, e não só as primeiras, para ver o que aparece quando a tela de Recentes é fechada.
 
 ## 4.4.4
 

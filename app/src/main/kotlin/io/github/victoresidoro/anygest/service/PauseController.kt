@@ -78,7 +78,7 @@ internal class PauseController(
     }
 
     /**
-     * Test builds only: window changes from every app for a few seconds after a gesture, so
+     * Test builds only: window changes from every app for 25 seconds after a gesture, so
      * the trace can time the transition it starts. The narrow subscription comes back by itself.
      */
     fun widenForTrace() {
@@ -88,7 +88,7 @@ internal class PauseController(
         info.packageNames = null
         service.serviceInfo = info
         handler.removeCallbacks(narrow)
-        handler.postDelayed(narrow, TraceLog.WINDOW_WAIT_MS + 500L)
+        handler.postDelayed(narrow, TraceLog.LATE_WINDOW_MS + 500L)
     }
 
     /** A window of [packageName] came to the front. */
