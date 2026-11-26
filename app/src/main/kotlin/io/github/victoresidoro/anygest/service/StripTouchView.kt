@@ -89,6 +89,7 @@ internal class StripTouchView(
     private val samples = ArrayList<TouchSample>(64)
     private var twoFingers = false
     private var moves = 0
+    private var lastOutsideMs = 0L
 
     /** One click per gesture: a side swipe that clicked on arming stays quiet when it fires. */
     private var clicked = false
@@ -106,6 +107,10 @@ internal class StripTouchView(
     // Nothing to click here: a real tap is replayed to the app underneath.
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
+            noteOutside(event.eventTime)
+            return false
+        }
         listener.delivered(event.eventTime)
         // Display coordinates, which is what the tracker and the replay use.
         val sample = TouchSample(event.rawX, event.rawY, event.eventTime)
@@ -145,6 +150,17 @@ internal class StripTouchView(
             else -> return false
         }
         return true
+    }
+
+    /**
+     * A touch that landed on another window while this strip was watching (bottom strip only).
+     * It answers one question: did a finger go down somewhere else when a pull from the bottom
+     * never reached the strip? One line at most every 1.5 s, so taps in an app do not flood the log.
+     */
+    private fun noteOutside(eventTimeMs: Long) {
+        if (eventTimeMs - lastOutsideMs < OUTSIDE_NOTE_GAP_MS) return
+        lastOutsideMs = eventTimeMs
+        Trace.note("$edge strip: a touch went to another window (watched outside)")
     }
 
     private fun down(sample: TouchSample) {
@@ -275,6 +291,7 @@ internal class StripTouchView(
 
     private companion object {
         const val TAG = "AnyGest"
+        const val OUTSIDE_NOTE_GAP_MS = 1_500L
 
         /** A few seconds of a 240 Hz panel, so a long touch is replayed whole. */
         const val MAX_SAMPLES = 4000

@@ -23,6 +23,7 @@ AnyGest's own code base: the parts that still came from HyperGesture are rewritt
 - The log now says which Recents hold and swipe settings are in use, notes every tap on the gestures on/off button, and traces each touch the moment it reaches a strip, so a gesture that does nothing can be told from a touch the strips never received.
 - In test builds the log keeps listing the windows the system shows for 25 seconds after a gesture, not only the first few, so what appears when the recents screen is left can be seen.
 - The alternate home screen now starts the launcher's home activity as an ordinary activity, without the Home category, so the system no longer brings its own launcher up first when Home is swiped from an app. The plain Home intent is the fallback.
+- The bottom strip is never shorter than the system gesture zone (52 dp), even when the bar inset reads zero, and it now also notes in the log when a touch went to another window instead of the strip, so a pull from an app that never reaches the strip can be told apart from one that arrived and was taken by the system.
 
 ### Português
 
@@ -43,6 +44,7 @@ O código passa a ser todo do AnyGest: as partes que ainda vinham do HyperGestur
 - O log agora informa a espera do Recents e a distância do gesto em uso, anota cada toque no botão de ligar e desligar os gestos e registra cada toque no instante em que chega a uma faixa, para separar um gesto que não faz nada de um toque que as faixas nunca receberam.
 - Nas versões de teste, o log continua listando as janelas que o sistema mostra por 25 segundos depois de um gesto, e não só as primeiras, para ver o que aparece quando a tela de Recentes é fechada.
 - A tela inicial alternativa agora abre a atividade de início do launcher como uma atividade comum, sem a categoria Home, para o sistema não trazer o launcher dele antes quando o Home é feito de dentro de um app. A intenção de Home comum fica como reserva.
+- A faixa de baixo nunca fica menor que a zona de gestos do sistema (52 dp), mesmo quando o inset da barra aparece como zero, e o log agora anota quando um toque foi para outra janela em vez da faixa, para diferenciar um puxão que nunca chegou à faixa de um que chegou e foi tomado pelo sistema.
 
 ## 4.4.4
 

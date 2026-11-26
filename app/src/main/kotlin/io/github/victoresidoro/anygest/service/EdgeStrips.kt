@@ -231,7 +231,9 @@ internal class EdgeStrips(
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                // The bottom strip also hears that a touch went elsewhere, for the diagnostic.
+                (if (edge == ScreenEdge.BOTTOM) WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH else 0),
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = when (edge) {

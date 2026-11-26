@@ -37,8 +37,16 @@ class StripSizeTest {
 
     @Test
     fun `the bottom strip reaches under the bar and stops short of the corners`() {
-        // 60 px thick plus the 60 px bar; 90% of 1200 is 1080.
-        assertEquals(StripSize(1080, 120), StripSize.of(ScreenEdge.BOTTOM, GestureConfiguration(), portrait))
+        // 60 px thick plus the 60 px bar is 120, but never less than the system zone (52 dp, 156 px); 90% of 1200 is 1080.
+        assertEquals(StripSize(1080, 156), StripSize.of(ScreenEdge.BOTTOM, GestureConfiguration(), portrait))
+        val thick = GestureConfiguration(edgeWidthDp = 40f)
+        assertEquals(StripSize(1080, 180), StripSize.of(ScreenEdge.BOTTOM, thick, portrait))
+    }
+
+    @Test
+    fun `the bottom strip keeps the system zone height when the bar inset reads zero`() {
+        val noInset = ScreenGeometry(1200, 2600, 3f, navLeftPx = 0, navRightPx = 0, navBottomPx = 0)
+        assertEquals(StripSize(1080, 156), StripSize.of(ScreenEdge.BOTTOM, GestureConfiguration(), noInset))
     }
 
     @Test

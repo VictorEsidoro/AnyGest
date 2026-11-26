@@ -28,6 +28,8 @@ import io.github.victoresidoro.anygest.gesture.ScreenEdge
 internal data class StripSize(val widthPx: Int, val heightPx: Int) {
 
     companion object {
+        private const val MIN_BOTTOM_DP = 52f
+
         fun of(
             edge: ScreenEdge,
             configuration: GestureConfiguration,
@@ -41,7 +43,8 @@ internal data class StripSize(val widthPx: Int, val heightPx: Int) {
                 ScreenEdge.RIGHT -> StripSize(thickness + geometry.navRightPx, sideLength)
                 ScreenEdge.BOTTOM -> StripSize(
                     (geometry.widthPx * layout.bottomLengthPercent / 100).coerceAtLeast(1),
-                    thickness + geometry.navBottomPx,
+                    // Never under the system's own gesture zone (about 52 dp), even when the inset reads 0.
+                    maxOf(thickness + geometry.navBottomPx, (MIN_BOTTOM_DP * geometry.density).toInt()),
                 )
             }
         }
